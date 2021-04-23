@@ -1,7 +1,9 @@
 module MixedModelsMakie
     using CairoMakie
-    using LinearAlgebra
+    using Missings
     using MixedModels
+
+    export shrinkage
 
     include("shrinkage.jl")
 
