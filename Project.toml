@@ -3,6 +3,13 @@ uuid = "b12ae82c-6730-437f-aff9-d2c38332a376"
 authors = ["Phillip Alday <me@phillipalday.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Missings = "e1d29d7a-bbdc-5cf2-9ac0-f12de2c33e28"
+MixedModels = "ff71e718-51f3-5ec2-a782-8ffcbfa3c316"
+
 [compat]
 julia = "1.5"
 

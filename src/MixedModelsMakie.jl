@@ -1,5 +1,8 @@
 module MixedModelsMakie
+    using CairoMakie
+    using LinearAlgebra
+    using MixedModels
 
-# Write your package code here.
+    include("shrinkage.jl")
 
 end
