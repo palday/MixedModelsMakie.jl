@@ -1,9 +1,12 @@
 module MixedModelsMakie
     using CairoMakie
-    using Missings
     using MixedModels
 
-    export shrinkage
+    export
+        CoefByGroup,
+
+        shrinkage,
+        shrinkageplot
 
     include("shrinkage.jl")
 
