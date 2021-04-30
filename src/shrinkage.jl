@@ -51,7 +51,7 @@ shrinkageplot(m::LinearMixedModel, gf::Symbol=first(fnames(m))) = shrinkageplot(
 
 shrinkageplot(cg::CoefByGroup) = shrinkageplot(Figure(resolution=(1000,1000)), cg)
 
-function shrinkageplot(f::Figure, cg::CoefByGroup)
+function shrinkageplot!(f::Figure, cg::CoefByGroup)
     shrinkage2d(Axis(f[1,1]), cg)
     f
 end
