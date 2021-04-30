@@ -56,7 +56,7 @@ function shrinkageplot!(f::Figure, cg::CoefByGroup)
     f
 end
 
-function shrinkage2d(a::Axis, cg::CoefByGroup{T}, inds=(1, 2)) where T
+function shrinkage2d!(a::Axis, cg::CoefByGroup{T}, inds=(1, 2)) where T
     i, j = inds
     fxd = cg.fixed
     scatter!(a, view(fxd, i:i), view(fxd, j:j), color=:green, label="Pop")
