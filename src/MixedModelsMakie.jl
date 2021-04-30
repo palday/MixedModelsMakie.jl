@@ -1,5 +1,13 @@
 module MixedModelsMakie
+    using AbstractPlotting
+    using MixedModels
 
-# Write your package code here.
+    export
+        CoefByGroup,
+
+        shrinkage,
+        shrinkageplot
+
+    include("shrinkage.jl")
 
 end
