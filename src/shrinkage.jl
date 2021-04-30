@@ -30,7 +30,7 @@ function shrinkage(m::LinearMixedModel{T}) where {T}
     cvec = sizehint!(CoefByGroup[], length(ranefs))
     for (j, re) in enumerate(m.reterms)
         cnms = re.cnames
-        cnms ⊆ fenms || throw(ArgumentError("re[$j].cnames is not a subset of m.feterm.cnames"))
+        cnms ⊆ fenms || throw(ArgumentError("No corresponding fixed effect for random effects $(setdiff(cnms, fenms)): there is no estimated grand mean to measure shrinkage towards"))
         Xmat = view(m.Xymat, :, [findfirst(==(nm), fenms) for nm in cnms])
         levs = re.levels
         refs = re.refs
