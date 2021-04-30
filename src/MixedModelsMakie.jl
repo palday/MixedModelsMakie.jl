@@ -1,5 +1,5 @@
 module MixedModelsMakie
-    using CairoMakie
+    using AbstractPlotting
     using MixedModels
 
     export
