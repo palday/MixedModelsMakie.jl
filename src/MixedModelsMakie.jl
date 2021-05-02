@@ -9,11 +9,14 @@ module MixedModelsMakie
 
         caterpillar,
         caterpillar!,
+        Clevelandaxes!,
         ranefinfo,
         shrinkage,
-        shrinkageplot
+        shrinkageplot,
+        simplelinreg
 
     include("shrinkage.jl")
     include("caterpillar.jl")
+    include("xyplot.jl")
 
 end
