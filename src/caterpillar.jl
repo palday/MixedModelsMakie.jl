@@ -34,6 +34,14 @@ function ranefinfo(m::LinearMixedModel{T}) where {T}
     NamedTuple{fn}((val...,))
 end
 
+"""
+    caterpillar!(f::Figure, r::RanefInfo; orderby=1)
+
+Add Axes of a caterpillar plot from `r` to `f`.
+
+The order of the levels on the vertical axes is increasing `orderby` column
+of `r.ranef`, usually the `(Intercept)` random effects.
+"""
 function caterpillar!(f::Figure, r::RanefInfo; orderby=1)
     rr = r.ranef
     vv = view(rr, :, orderby)
@@ -41,6 +49,7 @@ function caterpillar!(f::Figure, r::RanefInfo; orderby=1)
     y = axes(rr, 1)
     cn = r.cnames
     axs = [Axis(f[1, j]) for j in axes(rr, 2)]
+    linkyaxes!(axs...)
     for (j, ax) in enumerate(axs)
         xvals = view(rr, ord, j)
         scatter!(ax, xvals, y, color=(:red, 0.2))
