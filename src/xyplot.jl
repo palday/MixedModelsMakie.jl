@@ -1,22 +1,28 @@
-function Clevelandaxes!(f::Figure, npanel, layout)
+"""
+    Clevelandaxes!(f::Figure, labs, layout)
+
+Create a set of axes within `f` with rows, columns determined by `layout` sufficient to hold `labs`
+"""
+function Clevelandaxes!(f::Figure, labs, layout)
     nrow, ncol = layout
+    npanel = length(labs)
     axs = sizehint!(Axis[], npanel)
-    for ind in 1:npanel
+    for ind in eachindex(labs)
         i, j = fldmod1(ind, ncol)
         ii = nrow + 1 - i   # axes grid rows numbered from top, we want to fill bottom row first
         ax = Axis(f[ii, j])
         push!(axs, ax)
-        if isone(i)  # on the bottom row
+        if isone(i)         # on the bottom row
             hidexdecorations!(ax, grid=false, ticks=false, ticklabels=iseven(j))
-        elseif isone(ii)
+        elseif isone(ii)    # on the top row
             hidexdecorations!(ax, grid=false, ticks=false, ticklabels=isodd(j))
             ax.xaxisposition = :top
         else
             hidexdecorations!(ax, grid=false)
         end
-        if isone(j)
+        if isone(j)         # on the left side
             hideydecorations!(ax, grid=false, ticks=false, ticklabels=iseven(i))
-        elseif j == ncol
+        elseif j == ncol    # on the right side
             hideydecorations!(ax, grid=false, ticks=false, ticklabels=isodd(i))
             ax.yaxisposition = :right
         else
@@ -24,6 +30,8 @@ function Clevelandaxes!(f::Figure, npanel, layout)
         end
     end
     linkaxes!(axs...)
+    colgap!(f.layout, 0)
+    rowgap!(f.layout, 0)
     f
 end
 
