@@ -9,7 +9,7 @@ module MixedModelsMakie
 
         caterpillar,
         caterpillar!,
-        Clevelandaxes!,
+        clevelandaxes!,
         ranefinfo,
         shrinkage,
         shrinkageplot,
