@@ -1,9 +1,9 @@
 """
-    Clevelandaxes!(f::Figure, labs, layout)
+    clevelandaxes!(f::Figure, labs, layout)
 
 Create a set of axes within `f` with rows, columns determined by `layout` sufficient to hold `labs`
 """
-function Clevelandaxes!(f::Figure, labs, layout)
+function clevelandaxes!(f::Figure, labs, layout)
     nrow, ncol = layout
     npanel = length(labs)
     axs = sizehint!(Axis[], npanel)
