@@ -9,6 +9,9 @@ Fields include:
 - `fixed`: `AbstractVector{T}` of the global OLS estimates for the coefficients in `cnames` only.
 - `condmodes`: `AbstractMatrix{T}` of size `length(levels) x length(cnames)` of the conditional means/modes for the random effects
 - `grpest`: similar to `condmodes` but allowing for `Missing` values, giving the within group OLS estimates of the coefficients.
+
+!!! note
+    This functionality may be moved upstream into MixedModels.jl in the near future.
 """
 struct CoefByGroup{T<:AbstractFloat}
     cnames::Vector{String}

@@ -13,6 +13,7 @@ module MixedModelsMakie
         ranefinfo,
         shrinkage,
         shrinkageplot,
+        shrinkageplot!,
         simplelinreg
 
     include("shrinkage.jl")

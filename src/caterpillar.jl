@@ -3,7 +3,10 @@
 
 Information on random effects conditional modes/means, variances, etc.
 
-Used for creating caterpillar plots
+Used for creating caterpillar plots.
+
+!!! note
+    This functionality may be moved upstream into MixedModels.jl in the near future.
 """
 struct RanefInfo{T<:AbstractFloat}
     cnames::Vector{String}
@@ -48,18 +51,17 @@ function caterpillar!(f::Figure, r::RanefInfo; orderby=1)
     ord = sortperm(vv)
     y = axes(rr, 1)
     cn = r.cnames
-
-    @show axs = [Axis(f[1, j]) for j in axes(rr, 2)]
-    #linkyaxes!(axs...)
-    # for (j, ax) in enumerate(axs)
-    #     xvals = view(rr, ord, j)
-    #     #scatter!(ax, xvals, y, color=(:red, 0.2))
-    #     #errorbars!(ax, xvals, y, view(r.stddev, ord, j), direction=:x)
-    #     ax.xlabel = cn[j]
-    #     ax.yticks = y
-    #     j > 1 && hideydecorations!(ax, grid=false)
-    # end
-    # axs[1].yticks = (y, r.levels[ord])
+    axs = [Axis(f[1, j]) for j in axes(rr, 2)]
+    linkyaxes!(axs...)
+    for (j, ax) in enumerate(axs)
+        xvals = view(rr, ord, j)
+        scatter!(ax, xvals, y, color=(:red, 0.2))
+        errorbars!(ax, xvals, y, view(r.stddev, ord, j), direction=:x)
+        ax.xlabel = cn[j]
+        ax.yticks = y
+        j > 1 && hideydecorations!(ax, grid=false)
+    end
+    axs[1].yticks = (y, r.levels[ord])
     f
 end
 
