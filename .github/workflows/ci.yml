@@ -1,0 +1,55 @@
+name: continuous-integration
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'LICENSE.md'
+      - 'README.md'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - 'LICENSE.md'
+      - 'README.md'
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        version: [1.5, 1]
+        arch: [x64]
+        os: [ubuntu-18.04] # macos-10.15, windows-2019
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Julia Setup
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+      - name: Cache
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-artifacts
+        with:
+          path: ~/.julia/artifacts
+          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-test-${{ env.cache-name }}-
+            ${{ runner.os }}-test-
+            ${{ runner.os }}-
+      - name: Build
+        uses: julia-actions/julia-buildpkg@v1
+      - name: Test
+        uses: julia-actions/julia-runtest@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Coverage Process
+        uses: julia-actions/julia-processcoverage@v1
+        if:  ${{ startsWith(matrix.os, 'ubuntu') && (matrix.version == '1') }}
+      - name: Coverage Upload
+        uses: codecov/codecov-action@v1
+        if:  ${{ startsWith(matrix.os, 'ubuntu') && (matrix.version == '1') }}
+        with:
+          file: lcov.info
