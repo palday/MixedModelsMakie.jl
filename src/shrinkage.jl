@@ -9,6 +9,9 @@ Fields include:
 - `fixed`: `AbstractVector{T}` of the global OLS estimates for the coefficients in `cnames` only.
 - `condmodes`: `AbstractMatrix{T}` of size `length(levels) x length(cnames)` of the conditional means/modes for the random effects
 - `grpest`: similar to `condmodes` but allowing for `Missing` values, giving the within group OLS estimates of the coefficients.
+
+!!! note
+    This functionality may be moved upstream into MixedModels.jl in the near future.
 """
 struct CoefByGroup{T<:AbstractFloat}
     cnames::Vector{String}
@@ -24,14 +27,18 @@ end
 Return a `NamedTuple{fnames(m), NTuple(k, CoefByGroup)}` of the coefficients by group for the grouping factors
 """
 function shrinkage(m::LinearMixedModel{T}) where {T}
-    fenms = m.feterm.cnames
-    yvec = view(m.Xymat, :, size(m.Xymat, 2))
+    # should this be fixefnames or coefnames?
+    # need to think about when pivoting is occuring
+    fenms = fixefnames(m)
+    # returns a view from Xymat in MM4, or just the response vec in MM3.x
+    yvec = response(m)
     ranefs = ranef(m)
     cvec = sizehint!(CoefByGroup[], length(ranefs))
     for (j, re) in enumerate(m.reterms)
         cnms = re.cnames
         cnms ⊆ fenms || throw(ArgumentError("No corresponding fixed effect for random effects $(setdiff(cnms, fenms)): there is no estimated grand mean to measure shrinkage towards"))
-        Xmat = view(m.Xymat, :, [findfirst(==(nm), fenms) for nm in cnms])
+        # XXX Should m.X return a view into m.Xymat?
+        Xmat = view(m.X, :, [findfirst(==(nm), fenms) for nm in cnms])
         levs = re.levels
         refs = re.refs
         grpest = Matrix{Union{Missing,T}}(missing, (length(levs), length(cnms)))

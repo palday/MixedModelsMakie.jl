@@ -1,6 +1,6 @@
 using MixedModelsMakie
 using Test
 
-@testset "MixedModelsMakie.jl" begin
-    # Write your tests here.
+@testset "There are no tests" begin
+    @test true
 end

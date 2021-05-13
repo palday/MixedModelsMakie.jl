@@ -3,7 +3,10 @@
 
 Information on random effects conditional modes/means, variances, etc.
 
-Used for creating caterpillar plots
+Used for creating caterpillar plots.
+
+!!! note
+    This functionality may be moved upstream into MixedModels.jl in the near future.
 """
 struct RanefInfo{T<:AbstractFloat}
     cnames::Vector{String}
@@ -22,7 +25,7 @@ function ranefinfo(m::LinearMixedModel{T}) where {T}
     val = sizehint!(RanefInfo[], length(fn))
     for (re, eff, cv) in zip(m.reterms, ranef(m), condVar(m))
         push!(
-            val, 
+            val,
             RanefInfo(
                 re.cnames,
                 re.levels,
