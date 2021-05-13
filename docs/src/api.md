@@ -26,7 +26,7 @@ caterpillar
 caterpillar!
 ```
 
-```@example
+```@example Caterpillar
 using CairoMakie
 CairoMakie.activate!(type = "svg")
 using MixedModels
@@ -37,6 +37,9 @@ fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstud
 subjre = ranefinfo(fm1)[:subj]
 
 caterpillar!(Figure(; resolution=(800,600)), subjre)
+```
+
+```@example Caterpillar
 caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=2)
 ```
 
@@ -58,7 +61,7 @@ shrinkageplot
 shrinkageplot!
 ```
 
-```@example
+```@example Shrinkage
 using CairoMakie
 using MixedModels
 using MixedModelsMakie
