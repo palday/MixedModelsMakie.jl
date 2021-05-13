@@ -58,10 +58,6 @@ shrinkageplot
 shrinkageplot!
 ```
 
-```@docs
-shrinkage2d!
-```
-
 ```@example
 using CairoMakie
 using MixedModels
