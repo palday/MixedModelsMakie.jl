@@ -12,4 +12,4 @@ makedocs(;
     ],
 )
 
-deploydocs(repo = "github.com/palday/MixedModelsMakie.jl.git", push_preview = true)
+deploydocs(repo = "github.com/palday/MixedModelsMakie.jl.git", devbranch = "main", push_preview = true)
