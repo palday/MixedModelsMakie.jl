@@ -28,7 +28,7 @@ caterpillar!
 
 ```@example Caterpillar
 using CairoMakie
-CairoMakie.activate!(type = "svg")
+CairoMakie.activate!(type = "png")
 using MixedModels
 using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
@@ -41,6 +41,10 @@ caterpillar!(Figure(; resolution=(800,600)), subjre)
 
 ```@example Caterpillar
 caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=2)
+```
+
+```@example Caterpillar
+caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=nothing)
 ```
 
 ## Shrinkage Plots
