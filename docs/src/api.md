@@ -28,7 +28,7 @@ caterpillar!
 
 ```@example Caterpillar
 using CairoMakie
-CairoMakie.activate!(type = "svg")
+CairoMakie.activate!(type = "png")
 using MixedModels
 using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
