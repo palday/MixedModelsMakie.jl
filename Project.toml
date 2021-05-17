@@ -1,7 +1,7 @@
 name = "MixedModelsMakie"
 uuid = "b12ae82c-6730-437f-aff9-d2c38332a376"
-authors = ["Phillip Alday <me@phillipalday.com> and contributors"]
-version = "0.1.0"
+authors = ["Phillip Alday <me@phillipalday.com>, Douglas Bates <dmbates@gmail.com> and contributors"]
+version = "0.1.1"
 
 [deps]
 AbstractPlotting = "537997a7-5e4e-5d89-9595-2241ea00577e"
