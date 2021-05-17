@@ -7,7 +7,6 @@
 [![DOI](https://zenodo.org/badge/337082315.svg)](https://zenodo.org/badge/latestdoi/337082315)
 
 
-
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://palday.github.io/MixedModelsMakie.jl/dev
 
