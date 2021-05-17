@@ -50,7 +50,7 @@ order they are stored in.
 function caterpillar!(f::Figure, r::RanefInfo; orderby=1)
     rr = r.ranef
     if orderby === nothing
-        ord = 1:size(rr, 2)
+        ord = 1:size(rr, 1)
     else
         vv = view(rr, :, orderby)
         ord = sortperm(vv)
