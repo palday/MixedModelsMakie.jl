@@ -55,13 +55,8 @@ order they are stored in.
 """
 function caterpillar!(f::Figure, r::RanefInfo; orderby=1)
     rr = r.ranef
-    if orderby === nothing
-        ord = 1:size(rr, 1)
-    else
-        vv = view(rr, :, orderby)
-        ord = sortperm(vv)
-    end
     y = axes(rr, 1)
+    ord = isnothing(orderby) ? y : sortperm(view(rr, :, orderby))
     cn = r.cnames
     axs = [Axis(f[1, j]) for j in axes(rr, 2)]
     linkyaxes!(axs...)
