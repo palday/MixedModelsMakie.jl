@@ -20,4 +20,4 @@ module MixedModelsMakie
     include("caterpillar.jl")
     include("xyplot.jl")
 
-end
+end # module

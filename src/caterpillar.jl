@@ -44,11 +44,17 @@ Add Axes of a caterpillar plot from `r` to `f`.
 
 The order of the levels on the vertical axes is increasing `orderby` column
 of `r.ranef`, usually the `(Intercept)` random effects.
+Setting `orderby=nothing` will disable sorting, i.e. return the levels in the
+order they are stored in.
 """
 function caterpillar!(f::Figure, r::RanefInfo; orderby=1)
     rr = r.ranef
-    vv = view(rr, :, orderby)
-    ord = sortperm(vv)
+    if orderby === nothing
+        ord = 1:size(rr, 2)
+    else
+        vv = view(rr, :, orderby)
+        ord = sortperm(vv)
+    end
     y = axes(rr, 1)
     cn = r.cnames
     axs = [Axis(f[1, j]) for j in axes(rr, 2)]

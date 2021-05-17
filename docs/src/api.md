@@ -43,6 +43,10 @@ caterpillar!(Figure(; resolution=(800,600)), subjre)
 caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=2)
 ```
 
+```@example Caterpillar
+caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=nothing)
+```
+
 ## Shrinkage Plots
 
 ```@docs
