@@ -1,6 +1,6 @@
 module MixedModelsMakie
-    using AbstractPlotting
     using LinearAlgebra
+    using Makie
     using MixedModels
 
     export
