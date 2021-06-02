@@ -38,10 +38,10 @@ end
 """
     simplelinreg(x, y)
 
-Return the coefficients, `[a, b]`,  from a simple linear regression, `y = a + bx + ϵ`
+Return a Tuple of the coefficients, `(a, b)`,  from a simple linear regression, `y = a + bx + ϵ`
 """
 function simplelinreg(x, y)
     x, y = float(x), float(y)
     A = cholesky!(Symmetric([length(x) sum(x) sum(y); 0.0 sum(abs2, x) dot(x, y); 0.0 0.0 sum(abs2, y)])).factors
-    ldiv!(UpperTriangular(view(A, 1:2, 1:2)), view(A, 1:2, 3))
+    (ldiv!(UpperTriangular(view(A, 1:2, 1:2)), view(A, 1:2, 3))..., )
 end
