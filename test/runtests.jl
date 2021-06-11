@@ -1,4 +1,5 @@
 using MixedModelsMakie
+using MixedModelsMakie.MixedModels
 using Random # we don't depend on exact PRNG vals, so no need for StableRNGs
 using Test
 
@@ -13,6 +14,23 @@ end
     @. y += a + b * x
     result = simplelinreg(x, y)
     @test result isa Tuple
-    @test a ≈ result[1] atol=0.05
-    @test b ≈ result[2] atol=0.05
+    @test a ≈ first(result) atol=0.05
+    @test b ≈ last(result) atol=0.05
+end
+
+@testset "Shrinkage" begin
+    
+    m1 = let form = @formula(1000/reaction ~ 1 + days + (1+days|subj))
+        fit(MixedModel, form, MixedModels.dataset(:sleepstudy))
+    end
+    shrk1 = shrinkage(m1)
+    @test isone(length(shrk1))
+    @test first(keys(shrk1)) == :subj
+    glob = shrk1.subj.globalest
+    @test isa(glob, NamedTuple)
+    @test length(glob) == 2
+    @test keys(glob) == (Symbol("(Intercept)"), :days)
+    mxd = shrk1.subj.withinmxdtbl
+    @test isa(mxd, NamedTuple)
+    @test keys(mxd) == (:level, :mixed, :within)
 end

@@ -4,21 +4,15 @@
 Coefficients for groups of observations defined by levels of a grouping factor
 
 Fields include:
-- `cnames`: `Vector{String}` of the column (or coefficient) names
-- `levels`: `Vector` of the levels of the grouping factor.  Usually `String`s but not necessarily.
-- `fixed`: `AbstractVector{T}` of the global OLS estimates for the coefficients in `cnames` only.
-- `condmodes`: `AbstractMatrix{T}` of size `length(levels) x length(cnames)` of the conditional means/modes for the random effects
-- `grpest`: similar to `condmodes` but allowing for `Missing` values, giving the within group OLS estimates of the coefficients.
+- `globalest`: `NamedTuple` - names are coefficient names, values are the global estimates
+- `withinmxdtbl`: `Tables.columntable` (i.e. `NamedTuple` of `Vectors`).  Names are `level`, `mixed` and `within`
 
 !!! note
     This functionality may be moved upstream into MixedModels.jl in the near future.
 """
-struct CoefByGroup{T<:AbstractFloat}
-    cnames::Vector{String}
-    levels::Vector
-    fixed::AbstractVector{T}
-    condmodes::AbstractMatrix{T}
-    grpest::AbstractMatrix{Union{Missing,T}}
+struct CoefByGroup
+    globalest::NamedTuple    # global coefficient estimates
+    withinmxdtbl::NamedTuple # Tables.columntable of levels, within-group estimates, and mixed-effects "estimates"
 end
 
 """
@@ -33,23 +27,23 @@ function shrinkage(m::LinearMixedModel{T}) where {T}
     # returns a view from Xymat in MM4, or just the response vec in MM3.x
     yvec = response(m)
     ranefs = ranef(m)
-    cvec = sizehint!(CoefByGroup[], length(ranefs))
+    cvec = []
     for (j, re) in enumerate(m.reterms)
-        cnms = re.cnames
+        cnms, levs, refs = re.cnames, re.levels, re.refs
         cnms ⊆ fenms || throw(ArgumentError("No corresponding fixed effect for random effects $(setdiff(cnms, fenms)): there is no estimated grand mean to measure shrinkage towards"))
-        # XXX Should m.X return a view into m.Xymat?
+        # XXX Should m.X return a view into m.Xymat?  It could but needs MM4 to do so
+        # Is it a big deal to take a view of a view?
         Xmat = view(m.X, :, [findfirst(==(nm), fenms) for nm in cnms])
-        levs = re.levels
-        refs = re.refs
-        grpest = Matrix{Union{Missing,T}}(missing, (length(levs), length(cnms)))
+        globalvec = Xmat \ yvec
+        globalest = NamedTuple{(Symbol.(cnms)...,)}((globalvec..., ))
+        memat = ranefs[j] .+ globalvec
+        meest = [(view(memat, :, i)...,) for i in axes(memat, 2)]
+        grpest = NTuple{length(cnms), T}[]
         for i in eachindex(levs)
             rows = findall(==(i), refs)
-            try
-                grpest[i, :] = view(Xmat, rows, :) \ view(yvec, rows)
-            catch
-            end
+            push!(grpest, ((view(Xmat, rows, :) \ view(yvec, rows))...,))
         end
-        push!(cvec, CoefByGroup(cnms, levs, Xmat \ yvec, ranefs[j]', grpest))
+        push!(cvec, CoefByGroup(globalest, (level=levs, mixed=meest, within=grpest)))
     end
     NamedTuple{fnames(m)}((cvec...,))
 end
@@ -58,34 +52,26 @@ shrinkageplot(m::LinearMixedModel, gf::Symbol=first(fnames(m))) = shrinkageplot(
 
 shrinkageplot(cg::CoefByGroup) = shrinkageplot!(Figure(resolution=(1000,1000)), cg)
 
-function shrinkageplot!(f::Figure, cg::CoefByGroup)
-    shrinkage2d!(Axis(f[1,1]), cg)
+function shrinkageplot!(f::Figure, cg::CoefByGroup, inds=(1,2))
+    length(inds) == 2 && shrinkage2d!(Axis(f[1,1]), cg, inds)
     f
 end
 
-function shrinkage2d!(a::Axis, cg::CoefByGroup{T}, inds=(1, 2)) where T
+function shrinkage2d!(a::Axis, cg::CoefByGroup, inds=(1, 2))
+    fxd = cg.globalest
+    T = typeof(first(fxd))
     i, j = inds
-    fxd = cg.fixed
-    scatter!(a, view(fxd, i:i), view(fxd, j:j), color=:green, label="Pop")
-    u = view(cg.condmodes, :, i) .+ fxd[i]
-    v = view(cg.condmodes, :, j) .+ fxd[j]
+    scatter!(a, [fxd[i]], [fxd[j]], color=:green, label="Pop")
+    wmx = cg.withinmxdtbl
+    u = getindex.(wmx.mixed, i)
+    v = getindex.(wmx.mixed, j)
     scatter!(a, u, v, color=:blue, label="Mixed")
-    x = view(cg.grpest, :, i)
-    y = view(cg.grpest, :, j)
-    missgrp = ismissing.(x) .| ismissing.(y)
-    if any(missgrp)
-        nonmiss = .!(missgrp)
-        x = convert(Vector{T}, view(x, nonmiss))
-        y = convert(Vector{T}, view(y, nonmiss))
-        u = view(u, nonmiss)
-        v = view(v, nonmiss)
-    else
-        x = convert(Vector{T}, x)
-        y = convert(Vector{T}, y)
-    end
+    x = getindex.(wmx.within, i)
+    y = getindex.(wmx.within, j)
     scatter!(a, x, y, color=:red, label="Within")
     arrows!(a, x, y, u - x, v - y)
-    a.xlabel = cg.cnames[i]
-    a.ylabel = cg.cnames[j]
+    nms = keys(cg.globalest)
+    a.xlabel = string(nms[i])
+    a.ylabel = string(nms[j])
     a
 end
