@@ -1,4 +1,5 @@
 module MixedModelsMakie
+    using DataFrames
     using LinearAlgebra
     using Makie
     using MixedModels
