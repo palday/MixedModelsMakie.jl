@@ -35,6 +35,14 @@ function clevelandaxes!(f::Figure, labs, layout)
     f
 end
 
+function clevelandaxes!(f::Figure, labs::GroupedDataFrame, layout)
+    kvals = keys(labs)
+    if !isone(length(first(kvals)))
+        throw(ArgumentError("labs as a GroupedDataFrame should have only one grouping factor"))
+    end
+    clevelandaxes!(f, first.(kvals), layout)
+end
+
 """
     simplelinreg(x, y)
 
