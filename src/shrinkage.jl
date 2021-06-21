@@ -22,9 +22,14 @@ function shrinkageplot(
     cnms = m.reterms[reind].cnames
     f = Figure(; resolution=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
     k = size(reest, 1)  # dimension of the random-effects vector per level of gf
+	cols = Dict()
     for i in 2:k                          # strict lower triangle of panels
+		row = Axis[]
         for j in 1:(i - 1)
             ax = Axis(f[i - 1, j])
+			push!(row, ax)
+			col = get!(cols, j, Axis[])
+			push!(col, ax)
             x, y = view(reref, j, :), view(reref, i, :)
             scatter!(ax, x, y; color=(:red, 0.25))   # reference points
             u, v = view(reest, j, :), view(reest, i, :)
@@ -37,10 +42,16 @@ function shrinkageplot(
             end
             if isone(j)            # add y labels on left column
                 ax.ylabel = string(cnms[i])
-            else 
+            else
                 hideydecorations!(ax; grid=false)
             end
         end
+		linkyaxes!(row...)
     end
+
+	foreach(values(cols)) do col
+		linkxaxes!(col...)
+	end
+
     return f
 end
