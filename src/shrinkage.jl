@@ -1,91 +1,46 @@
 """
-    CoefByGroup
+    shrinkageplot(m::LinearMixedModel, gf::Symbol=first(fnames(m)), θref)
 
-Coefficients for groups of observations defined by levels of a grouping factor
+Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
 
-Fields include:
-- `cnames`: `Vector{String}` of the column (or coefficient) names
-- `levels`: `Vector` of the levels of the grouping factor.  Usually `String`s but not necessarily.
-- `fixed`: `AbstractVector{T}` of the global OLS estimates for the coefficients in `cnames` only.
-- `condmodes`: `AbstractMatrix{T}` of size `length(levels) x length(cnames)` of the conditional means/modes for the random effects
-- `grpest`: similar to `condmodes` but allowing for `Missing` values, giving the within group OLS estimates of the coefficients.
-
-!!! note
-    This functionality may be moved upstream into MixedModels.jl in the near future.
+Two sets of conditional means are plotted: those at the estimated parameter values and those at `θref`.
+The default `θref` results in `Λ` being a very large multiple of the identity.  The corresponding
+conditional means can be regarded as unpenalized.
 """
-struct CoefByGroup{T<:AbstractFloat}
-    cnames::Vector{String}
-    levels::Vector
-    fixed::AbstractVector{T}
-    condmodes::AbstractMatrix{T}
-    grpest::AbstractMatrix{Union{Missing,T}}
-end
-
-"""
-    shrinkage(m)
-
-Return a `NamedTuple{fnames(m), NTuple(k, CoefByGroup)}` of the coefficients by group for the grouping factors
-"""
-function shrinkage(m::LinearMixedModel{T}) where {T}
-    # should this be fixefnames or coefnames?
-    # need to think about when pivoting is occuring
-    fenms = fixefnames(m)
-    # returns a view from Xymat in MM4, or just the response vec in MM3.x
-    yvec = response(m)
-    ranefs = ranef(m)
-    cvec = sizehint!(CoefByGroup[], length(ranefs))
-    for (j, re) in enumerate(m.reterms)
-        cnms = re.cnames
-        cnms ⊆ fenms || throw(ArgumentError("No corresponding fixed effect for random effects $(setdiff(cnms, fenms)): there is no estimated grand mean to measure shrinkage towards"))
-        # XXX Should m.X return a view into m.Xymat?
-        Xmat = view(m.X, :, [findfirst(==(nm), fenms) for nm in cnms])
-        levs = re.levels
-        refs = re.refs
-        grpest = Matrix{Union{Missing,T}}(missing, (length(levs), length(cnms)))
-        for i in eachindex(levs)
-            rows = findall(==(i), refs)
-            try
-                grpest[i, :] = view(Xmat, rows, :) \ view(yvec, rows)
-            catch
-            end
+function shrinkageplot(
+    m::LinearMixedModel{T},
+    gf::Symbol=first(fnames(m)),
+    θref::AbstractVector{T}=10000 .* m.optsum.initial,
+) where {T}
+    reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
+    if isnothing(reind)
+        throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
+    end
+    reest = ranef(m)[reind]               # random effects conditional means at estimated θ
+    reref = ranef(updateL!(setθ!(m, θref)))[reind]  # same at θref
+    updateL!(setθ!(m, m.optsum.final))    # restore parameter estimates and update m
+    cnms = m.reterms[reind].cnames
+    f = Figure(; resolution=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
+    k = size(reest, 1)  # dimension of the random-effects vector per level of gf
+    for i in 2:k                          # strict lower triangle of panels
+        for j in 1:(i - 1)
+            ax = Axis(f[i - 1, j])
+            x, y = view(reref, j, :), view(reref, i, :)
+            scatter!(ax, x, y; color=(:red, 0.25))   # reference points
+            u, v = view(reest, j, :), view(reest, i, :)
+            arrows!(ax, x, y, u .- x, v .- y)        # first so arrow heads don't obscure pts
+            scatter!(ax, u, v; color=(:blue, 0.25))  # conditional means at estimates
+			if i == k              # add x labels on bottom row
+				ax.xlabel = string(cnms[j])
+			else
+				hidexdecorations!(ax; grid=false)
+			end
+			if isone(j)            # add y labels on left column
+				ax.ylabel = string(cnms[i])
+			else 
+				hideydecorations!(ax; grid=false)
+			end
         end
-        push!(cvec, CoefByGroup(cnms, levs, Xmat \ yvec, ranefs[j]', grpest))
     end
-    NamedTuple{fnames(m)}((cvec...,))
-end
-
-shrinkageplot(m::LinearMixedModel, gf::Symbol=first(fnames(m))) = shrinkageplot(shrinkage(m)[gf])
-
-shrinkageplot(cg::CoefByGroup) = shrinkageplot!(Figure(resolution=(1000,1000)), cg)
-
-function shrinkageplot!(f::Figure, cg::CoefByGroup)
-    shrinkage2d!(Axis(f[1,1]), cg)
-    f
-end
-
-function shrinkage2d!(a::Axis, cg::CoefByGroup{T}, inds=(1, 2)) where T
-    i, j = inds
-    fxd = cg.fixed
-    scatter!(a, view(fxd, i:i), view(fxd, j:j), color=:green, label="Pop")
-    u = view(cg.condmodes, :, i) .+ fxd[i]
-    v = view(cg.condmodes, :, j) .+ fxd[j]
-    scatter!(a, u, v, color=:blue, label="Mixed")
-    x = view(cg.grpest, :, i)
-    y = view(cg.grpest, :, j)
-    missgrp = ismissing.(x) .| ismissing.(y)
-    if any(missgrp)
-        nonmiss = .!(missgrp)
-        x = convert(Vector{T}, view(x, nonmiss))
-        y = convert(Vector{T}, view(y, nonmiss))
-        u = view(u, nonmiss)
-        v = view(v, nonmiss)
-    else
-        x = convert(Vector{T}, x)
-        y = convert(Vector{T}, y)
-    end
-    scatter!(a, x, y, color=:red, label="Within")
-    arrows!(a, x, y, u - x, v - y)
-    a.xlabel = cg.cnames[i]
-    a.ylabel = cg.cnames[j]
-    a
+    return f
 end

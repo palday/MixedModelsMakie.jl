@@ -4,16 +4,13 @@ module MixedModelsMakie
     using MixedModels
 
     export
-        CoefByGroup,
         RanefInfo,
 
         caterpillar,
         caterpillar!,
         clevelandaxes!,
         ranefinfo,
-        shrinkage,
         shrinkageplot,
-        shrinkageplot!,
         simplelinreg
 
     include("shrinkage.jl")
