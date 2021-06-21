@@ -30,16 +30,16 @@ function shrinkageplot(
             u, v = view(reest, j, :), view(reest, i, :)
             arrows!(ax, x, y, u .- x, v .- y)        # first so arrow heads don't obscure pts
             scatter!(ax, u, v; color=(:blue, 0.25))  # conditional means at estimates
-			if i == k              # add x labels on bottom row
-				ax.xlabel = string(cnms[j])
-			else
-				hidexdecorations!(ax; grid=false)
-			end
-			if isone(j)            # add y labels on left column
-				ax.ylabel = string(cnms[i])
-			else 
-				hideydecorations!(ax; grid=false)
-			end
+            if i == k              # add x labels on bottom row
+                ax.xlabel = string(cnms[j])
+            else
+                hidexdecorations!(ax; grid=false)
+            end
+            if isone(j)            # add y labels on left column
+                ax.ylabel = string(cnms[i])
+            else 
+                hideydecorations!(ax; grid=false)
+            end
         end
     end
     return f
