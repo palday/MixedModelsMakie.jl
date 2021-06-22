@@ -63,7 +63,7 @@ function caterpillar!(f::Figure, r::RanefInfo; orderby=1)
     for (j, ax) in enumerate(axs)
         xvals = view(rr, ord, j)
         scatter!(ax, xvals, y, color=(:red, 0.2))
-        errorbars!(ax, xvals, y, view(r.stddev, ord, j), direction=:x)
+        errorbars!(ax, xvals, y, 1.960 * view(r.stddev, ord, j), direction=:x)
         ax.xlabel = cn[j]
         ax.yticks = y
         j > 1 && hideydecorations!(ax, grid=false)
