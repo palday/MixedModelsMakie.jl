@@ -83,3 +83,37 @@ of the random effects.
 function caterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)))
     caterpillar!(Figure(resolution=(1000,800)), ranefinfo(m)[gf])
 end
+
+"""
+    qqcaterpillar!(f::Figure, r::RanefInfo; cols=axes(r.cnames, 1))
+
+Update the figure with a caterpillar plot with the vertical axis on the Normal() quantile scale.
+"""
+function qqcaterpillar!(f::Figure, r::RanefInfo; cols=axes(r.cnames, 1))
+    cn, rr = r.cnames, r.ranef
+    y = zquantile.(ppoints(size(rr, 1)))
+    axs = [Axis(f[1,j]) for j in axes(cols, 1)]
+    linkyaxes!(axs...)
+    for (j, k) in enumerate(cols)
+        ax = axs[j]
+        xvals = rr[:, k]
+        ord = sortperm(xvals)
+        xvals = xvals[ord]
+        scatter!(ax, xvals, y, color=(:red, 0.2))
+        errorbars!(ax, xvals, y, 1.960 * view(r.stddev, ord, k); direction=:x)
+        ax.xlabel = string(cn[k])
+        j > 1 && hideydecorations!(ax, grid=false)
+    end
+    f
+end
+
+"""
+    qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing)
+
+Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and prediction intervals
+"""
+function qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing)
+    reinfo = ranefinfo(m)[gf]
+    cols = something(cols, axes(reinfo.cnames, 1))
+    qqcaterpillar!(Figure(resolution=(1000, 800)), reinfo; cols=cols)
+end
