@@ -90,6 +90,7 @@ end
 Update the figure with a caterpillar plot with the vertical axis on the Normal() quantile scale.
 """
 function qqcaterpillar!(f::Figure, r::RanefInfo; cols=axes(r.cnames, 1))
+    cols = _cols_to_idx(r, cols)
     cn, rr = r.cnames, r.ranef
     y = zquantile.(ppoints(size(rr, 1)))
     axs = [Axis(f[1,j]) for j in axes(cols, 1)]
@@ -106,6 +107,10 @@ function qqcaterpillar!(f::Figure, r::RanefInfo; cols=axes(r.cnames, 1))
     end
     f
 end
+
+_cols_to_idx(r, cols) = cols
+_cols_to_idx(r, cols::AbstractVector{<:Symbol}) = _cols_to_idx(r, string.(cols))
+_cols_to_idx(r, cols::Vector{<:AbstractString}) = [i for (i,c) in enumerate(r.cnames) if c in cols]
 
 """
     qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing)
