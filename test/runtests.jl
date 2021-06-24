@@ -19,12 +19,13 @@ end
     @test b ≈ result[2] atol=0.05
 end
 
+m1 = fit(
+    MixedModel,
+    @formula(1000/reaction ~ 1 + days + (1+days|subj)),
+    MixedModels.dataset(:sleepstudy),
+)
+
 @testset "ranefinfo" begin
-    m1 = fit(
-        MixedModel,
-        @formula(1000/reaction ~ 1 + days + (1+days|subj)),
-        MixedModels.dataset(:sleepstudy),
-    )
     reinfo = ranefinfo(m1)
     @test isone(length(reinfo))
     @test keys(reinfo) == (:subj, )
