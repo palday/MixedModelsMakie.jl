@@ -44,11 +44,6 @@ end
 end
 
 @testset "shrinkageplot" begin
-    m1 = fit(
-        MixedModel,
-        @formula(1000/reaction ~ 1 + days + (1+days|subj)),
-        MixedModels.dataset(:sleepstudy),
-    )
     f = shrinkageplot(m1)
     @test isone(length(f.content))
 end
