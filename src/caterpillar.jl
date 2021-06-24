@@ -88,6 +88,8 @@ end
     qqcaterpillar!(f::Figure, r::RanefInfo; cols=axes(r.cnames, 1))
 
 Update the figure with a caterpillar plot with the vertical axis on the Normal() quantile scale.
+
+The display can be restricted to a subset of random effects associated with a grouping variable by specifying `cols`, either by indices or term names.
 """
 function qqcaterpillar!(f::Figure, r::RanefInfo; cols=axes(r.cnames, 1))
     cols = _cols_to_idx(r, cols)
@@ -115,7 +117,9 @@ _cols_to_idx(r, cols::Vector{<:AbstractString}) = [i for (i,c) in enumerate(r.cn
 """
     qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing)
 
-Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and prediction intervals
+Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and prediction intervals.
+
+The display can be restricted to a subset of random effects associated with a grouping variable by specifying `cols`, either by indices or term names.
 """
 function qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing)
     reinfo = ranefinfo(m)[gf]

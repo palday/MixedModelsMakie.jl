@@ -47,6 +47,27 @@ caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=2)
 caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=nothing)
 ```
 
+```@docs
+qqcaterpillar
+```
+
+```@docs
+qqcaterpillar!
+```
+
+```@example Caterpillar
+qqcaterpillar(fm1)
+```
+
+
+```@example Caterpillar
+qqcaterpillar!(Figure(; resolution=(400,300)), subjre; cols=[1])
+```
+
+```@example Caterpillar
+qqcaterpillar!(Figure(; resolution=(400,300)), subjre; cols=[:days])
+```
+
 ## Shrinkage Plots
 
 ```@docs
