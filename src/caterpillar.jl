@@ -63,7 +63,7 @@ function caterpillar!(f::Figure, r::RanefInfo; orderby=1)
     for (j, ax) in enumerate(axs)
         xvals = view(rr, ord, j)
         scatter!(ax, xvals, y, color=(:red, 0.2))
-        errorbars!(ax, xvals, y, view(r.stddev, ord, j), direction=:x)
+        errorbars!(ax, xvals, y, 1.960 * view(r.stddev, ord, j), direction=:x)
         ax.xlabel = cn[j]
         ax.yticks = y
         j > 1 && hideydecorations!(ax, grid=false)
@@ -82,4 +82,47 @@ of the random effects.
 """
 function caterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)))
     caterpillar!(Figure(resolution=(1000,800)), ranefinfo(m)[gf])
+end
+
+"""
+    qqcaterpillar!(f::Figure, r::RanefInfo; cols=axes(r.cnames, 1))
+
+Update the figure with a caterpillar plot with the vertical axis on the Normal() quantile scale.
+
+The display can be restricted to a subset of random effects associated with a grouping variable by specifying `cols`, either by indices or term names.
+"""
+function qqcaterpillar!(f::Figure, r::RanefInfo; cols=axes(r.cnames, 1))
+    cols = _cols_to_idx(r, cols)
+    cn, rr = r.cnames, r.ranef
+    y = zquantile.(ppoints(size(rr, 1)))
+    axs = [Axis(f[1,j]) for j in axes(cols, 1)]
+    linkyaxes!(axs...)
+    for (j, k) in enumerate(cols)
+        ax = axs[j]
+        xvals = rr[:, k]
+        ord = sortperm(xvals)
+        xvals = xvals[ord]
+        scatter!(ax, xvals, y, color=(:red, 0.2))
+        errorbars!(ax, xvals, y, 1.960 * view(r.stddev, ord, k); direction=:x)
+        ax.xlabel = string(cn[k])
+        j > 1 && hideydecorations!(ax, grid=false)
+    end
+    f
+end
+
+_cols_to_idx(r, cols) = cols
+_cols_to_idx(r, cols::AbstractVector{<:Symbol}) = _cols_to_idx(r, string.(cols))
+_cols_to_idx(r, cols::Vector{<:AbstractString}) = [i for (i,c) in enumerate(r.cnames) if c in cols]
+
+"""
+    qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing)
+
+Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and prediction intervals.
+
+The display can be restricted to a subset of random effects associated with a grouping variable by specifying `cols`, either by indices or term names.
+"""
+function qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing)
+    reinfo = ranefinfo(m)[gf]
+    cols = something(cols, axes(reinfo.cnames, 1))
+    qqcaterpillar!(Figure(resolution=(1000, 800)), reinfo; cols=cols)
 end
