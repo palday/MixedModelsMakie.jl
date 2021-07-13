@@ -14,6 +14,7 @@ module MixedModelsMakie
         qqcaterpillar!,
         ranefinfo,
         shrinkageplot,
+        shrinkageplot!,
         simplelinreg
 
     include("utilities.jl")
