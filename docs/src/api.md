@@ -72,6 +72,7 @@ qqcaterpillar!(Figure(; resolution=(400,300)), subjre; cols=[:days])
 
 ```@docs
 shrinkageplot
+shrinkageplot!
 ```
 
 
@@ -83,4 +84,8 @@ sleepstudy = MixedModels.dataset(:sleepstudy)
 
 fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy)
 shrinkageplot(fm1)
+```
+
+```@example Shrinkage
+shrinkageplot!(Figure(; resolution=(400,400)), fm1)
 ```

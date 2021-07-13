@@ -1,5 +1,5 @@
 """
-    shrinkageplot(m::LinearMixedModel, gf::Symbol=first(fnames(m)), θref)
+    shrinkageplot!(f::Figure, m::LinearMixedModel, gf::Symbol=first(fnames(m)), θref)
 
 Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
 
@@ -7,7 +7,7 @@ Two sets of conditional means are plotted: those at the estimated parameter valu
 The default `θref` results in `Λ` being a very large multiple of the identity.  The corresponding
 conditional means can be regarded as unpenalized.
 """
-function shrinkageplot(
+function shrinkageplot!(f::Figure,
     m::LinearMixedModel{T},
     gf::Symbol=first(fnames(m)),
     θref::AbstractVector{T}=10000 .* m.optsum.initial,
@@ -20,7 +20,6 @@ function shrinkageplot(
     reref = ranef(updateL!(setθ!(m, θref)))[reind]  # same at θref
     updateL!(setθ!(m, m.optsum.final))    # restore parameter estimates and update m
     cnms = m.reterms[reind].cnames
-    f = Figure(; resolution=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
     k = size(reest, 1)  # dimension of the random-effects vector per level of gf
 	cols = Dict()
     for i in 2:k                          # strict lower triangle of panels
@@ -54,4 +53,22 @@ function shrinkageplot(
 	end
 
     return f
+end
+
+
+"""
+    shrinkageplot(m::LinearMixedModel, gf::Symbol=first(fnames(m)), θref)
+
+Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
+
+Two sets of conditional means are plotted: those at the estimated parameter values and those at `θref`.
+The default `θref` results in `Λ` being a very large multiple of the identity.  The corresponding
+conditional means can be regarded as unpenalized.
+"""
+function shrinkageplot(m::LinearMixedModel{T}, args...) where {T}
+
+    f = Figure(; resolution=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
+
+    return shrinkageplot!(f, m, args...)
+
 end
