@@ -8,6 +8,43 @@ DocTestFilters = [r"([a-z]*) => \1", r"getfield\(.*##[0-9]+#[0-9]+"]
 
 # MixedModelsMakie.jl API
 
+## Coefficient Plots
+```@docs
+coefplot
+```
+
+```@docs
+coefplot!
+```
+
+```@example Coefplot
+
+using CairoMakie
+using MixedModels
+using MixedModelsMakie
+using Random
+
+verbagg = MixedModels.dataset(:verbagg)
+
+gm1 = fit(MixedModel,
+          @formula(r2 ~ 1 + anger + gender + btype + situ + (1|subj) + (1|item)),
+          verbagg,
+          Bernoulli();
+          progress=false)
+
+coefplot(gm1)
+```
+
+```@example Coefplot
+sleepstudy = MixedModels.dataset(:sleepstudy)
+
+fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy; progress=false)
+boot = parametricbootstrap(MersenneTwister(42), 1000, fm1)
+
+coefplot(boot; conf_level=0.99)
+```
+
+
 ## Caterpillar Plots
 
 ```@docs
@@ -33,7 +70,7 @@ using MixedModels
 using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
 
-fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy)
+fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy; progress=false)
 subjre = ranefinfo(fm1)[:subj]
 
 caterpillar!(Figure(; resolution=(800,600)), subjre)
@@ -82,7 +119,7 @@ using MixedModels
 using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
 
-fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy)
+fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy; progress=false)
 shrinkageplot(fm1)
 ```
 

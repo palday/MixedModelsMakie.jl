@@ -1,8 +1,10 @@
 module MixedModelsMakie
     using LinearAlgebra
+    using DataFrames
     using Makie
     using MixedModels
     using SpecialFunctions
+    using Statistics
 
     export
         RanefInfo,
@@ -10,6 +12,8 @@ module MixedModelsMakie
         caterpillar,
         caterpillar!,
         clevelandaxes!,
+        coefplot,
+        coefplot!,
         qqcaterpillar,
         qqcaterpillar!,
         ranefinfo,
@@ -20,6 +24,7 @@ module MixedModelsMakie
     include("utilities.jl")
     include("shrinkage.jl")
     include("caterpillar.jl")
+    include("coefplot.jl")
     include("xyplot.jl")
 
 end # module
