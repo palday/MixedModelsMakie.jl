@@ -4,6 +4,7 @@ module MixedModelsMakie
     using Distributions
     using Makie
     using MixedModels
+    using Printf
     using SpecialFunctions
     using Statistics
 

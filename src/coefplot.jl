@@ -11,7 +11,7 @@ function coefplot!(f::Figure, x::Union{MixedModel, MixedModelBootstrap}; conf_le
 	ax = Axis(f[1, 1])
     scatter!(ax, xvals, y)
     errorbars!(ax, xvals, y,  xvals .- ci.lower, ci.upper .- xvals, direction=:x)
-    ax.xlabel = "Estimate and $(round(Int, conf_level * 100))% confidence interval"
+    ax.xlabel = @sprintf "Estimate and %g%% confidence interval" (conf_level * 100)
     ax.yticks = (y, ci.coefname)
 	ylims!(0, nrow(ci) + 1)
 
@@ -34,7 +34,7 @@ _npreds(x::MixedModel) = length(coefnames(x))
 Return a `Figure` of a "coefplot" of the fixed-effects and associated confidence intervals.
 """
 function coefplot(x::Union{MixedModel, MixedModelBootstrap}; conf_level=0.95)
-	return coefplot!(Figure(resolution=(640, 75 * _npreds(x))), x)
+	return coefplot!(Figure(resolution=(640, 75 * _npreds(x))), x; conf_level)
 end
 
 # TODO: it would be useful to have a ridge plot of by-coefficient densities for a richer plot of the bootstrap

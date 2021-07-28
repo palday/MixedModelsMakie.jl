@@ -41,7 +41,7 @@ sleepstudy = MixedModels.dataset(:sleepstudy)
 fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy; progress=false)
 boot = parametricbootstrap(MersenneTwister(42), 1000, fm1)
 
-coefplot(boot; conf_level=0.99)
+coefplot(boot; conf_level=0.999)
 ```
 
 ## Random effects and group-level predictions
