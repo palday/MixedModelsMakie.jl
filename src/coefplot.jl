@@ -5,7 +5,7 @@
 Add a "coefplot" of the fixed-effects and associated confidence intervals to the figure.
 """
 function coefplot!(f::Figure, x::Union{MixedModel, MixedModelBootstrap}; conf_level=0.95)
-	ci = citable(x, conf_level)
+	ci = confint_table(x, conf_level)
 	y = nrow(ci):-1:1
 	xvals = ci.estimate
 	ax = Axis(f[1, 1])
@@ -40,8 +40,8 @@ end
 # TODO: it would be useful to have a ridge plot of by-coefficient densities for a richer plot of the bootstrap
 
 """
-    citable(x::MixedModel, level=0.95)
-    citable(x::MixedModelBootstrap, level=0.95)
+    confint_table(x::MixedModel, level=0.95)
+    confint_table(x::MixedModelBootstrap, level=0.95)
 
 Return a DataFrame of coefficient names, point estimates and confidence intervals.
 
@@ -58,7 +58,7 @@ The returned table has the following columns:
 - `upper`: the upper edge of the confidence interval
 
 """
-function citable(x::MixedModel, level=0.95)
+function confint_table(x::MixedModel, level=0.95)
 	# taking from the lower tail
 	semultiple = zquantile((1 - level) / 2)
 	se = stderror(x)
@@ -68,7 +68,7 @@ function citable(x::MixedModel, level=0.95)
 	                 upper=coef(x) - semultiple * se)
 end
 
-function citable(x::MixedModelBootstrap, level=0.95)
+function confint_table(x::MixedModelBootstrap, level=0.95)
 	df = transform!(select!(DataFrame(x.β), Not(:iter)),
 		            :coefname => ByRow(string) => :coefname)
 	return combine(groupby(df, :coefname),

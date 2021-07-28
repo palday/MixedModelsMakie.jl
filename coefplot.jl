@@ -5,7 +5,7 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ 1a4838e6-ef4c-11eb-1de1-d95361bba71a
-begin 
+begin
 	using MixedModels
 	using CairoMakie
 	using DataFrames
@@ -29,8 +29,8 @@ fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1+days|subj)), MixedModels
 
 # ╔═╡ 1ec5f38f-a4e8-49bb-9be3-fe3bd3edd46f
 """
-    citable(x::MixedModel, level=0.95)
-    citable(x::MixedModelBootstrap, level=0.95)
+    confint_table(x::MixedModel, level=0.95)
+    confint_table(x::MixedModelBootstrap, level=0.95)
 
 Return a DataFrame of coefficient names, point estimates and confidence intervals.
 
@@ -47,13 +47,13 @@ The returned table has the following columns:
 - `upper`: the upper edge of the confidence interval
 
 """
-function citable(x::MixedModel, level=0.95)
+function confint_table(x::MixedModel, level=0.95)
 	# taking from the lower tail
 	semultiple = zquantile((1 - level) / 2)
 	se = stderror(x)
-	
+
 	return DataFrame(coefname=coefnames(x), estimate=coef(x),
-	                 lower=coef(x) + semultiple * se, 
+	                 lower=coef(x) + semultiple * se,
 	                 upper=coef(x) - semultiple * se)
 end
 
@@ -64,20 +64,20 @@ coeftable(fm1)
 boot = parametricbootstrap(1000, fm1)
 
 # ╔═╡ aa33ff72-33f1-4b7c-b6be-f515471b101c
-function citable(x::MixedModelBootstrap, level=0.95)
-	df = transform!(select!(DataFrame(boot.β), Not(:iter)), 
+function confint_table(x::MixedModelBootstrap, level=0.95)
+	df = transform!(select!(DataFrame(boot.β), Not(:iter)),
 		            :coefname => ByRow(string) => :coefname)
-	combine(groupby(df, :coefname), 
+	combine(groupby(df, :coefname),
 		    :β => mean => :estimate,
 		    :β => NamedTuple{(:lower, :upper)} ∘ shortestcovint => [:lower, :upper])
-	
+
 end
 
 # ╔═╡ fc1a8efd-c075-4cb8-9e10-9e3d0876afc8
-citable(fm1)
+confint_table(fm1)
 
 # ╔═╡ 9e5c1d5d-393d-49aa-b27f-aa4427585a9a
-citable(boot)
+confint_table(boot)
 
 # ╔═╡ b88faad9-d737-45ca-9ff4-a2eeb794cbbe
 
@@ -90,7 +90,7 @@ citable(boot)
 Add a "coefplot" of the fixed-effects and associated confidence intervals to the figure.
 """
 function coefplot!(f::Figure, x::Union{MixedModel, MixedModelBootstrap}; conf_level=0.95)
-	ci = citable(x, conf_level)
+	ci = confint_table(x, conf_level)
 	y = nrow(ci):-1:1
 	xvals = ci.estimate
 	ax = Axis(f[1, 1])
@@ -115,7 +115,7 @@ _npreds(x::MixedModel) = length(coefnames(x))
 
 Return a `Figure` of a "coefplot" of the fixed-effects and associated confidence intervals.
 """
-function coefplot(x::Union{MixedModel, MixedModelBootstrap}; conf_level=0.95)    
+function coefplot(x::Union{MixedModel, MixedModelBootstrap}; conf_level=0.95)
 	coefplot!(Figure(resolution=(640, 75 * _npreds(x))), x)
 end
 
