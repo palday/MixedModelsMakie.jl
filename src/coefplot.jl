@@ -14,6 +14,13 @@ function coefplot!(f::Figure, x::Union{MixedModel, MixedModelBootstrap}; conf_le
     ax.xlabel = "Estimate and $(round(Int, conf_level * 100))% confidence interval"
     ax.yticks = (y, ci.coefname)
 	ylims!(0, nrow(ci) + 1)
+
+	crosses_zero = any(zip(ci.lower, ci.upper)) do (lower, upper)
+		return sign(upper) == sign(lower)
+	end
+
+	crosses_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
+
     return f
 end
 
