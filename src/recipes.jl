@@ -1,7 +1,7 @@
 # this file is for short recipes
 
 # XXX it would be great to have a 1-1 aspect ratio here,
-# but this eems like something that should be done upstream
+# but this seems like something that should be done upstream
 Makie.convert_arguments(P::Type{<:Makie.QQNorm}, x::MixedModel) = convert_arguments(P, residuals(x))
 Makie.convert_arguments(P::Type{<:Makie.QQPlot}, d::Distributions.Distribution, x::MixedModel) = convert_arguments(P, d, residuals(x))
 
