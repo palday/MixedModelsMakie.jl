@@ -11,10 +11,10 @@ function coefplot!(f::Figure, x::Union{MixedModel, MixedModelBootstrap}; conf_le
 	ax = Axis(f[1, 1])
     scatter!(ax, xvals, y)
     errorbars!(ax, xvals, y,  xvals .- ci.lower, ci.upper .- xvals, direction=:x)
-    ax.xlabel = "Estimate and $(conf_level * 100)% confidence interval"
+    ax.xlabel = "Estimate and $(round(Int, conf_level * 100))% confidence interval"
     ax.yticks = (y, ci.coefname)
 	ylims!(0, nrow(ci) + 1)
-    f
+    return f
 end
 
 _npreds(x::MixedModelBootstrap) = length(first(x.fits).β)
@@ -27,7 +27,7 @@ _npreds(x::MixedModel) = length(coefnames(x))
 Return a `Figure` of a "coefplot" of the fixed-effects and associated confidence intervals.
 """
 function coefplot(x::Union{MixedModel, MixedModelBootstrap}; conf_level=0.95)
-	coefplot!(Figure(resolution=(640, 75 * _npreds(x))), x)
+	return coefplot!(Figure(resolution=(640, 75 * _npreds(x))), x)
 end
 
 """
@@ -62,8 +62,7 @@ end
 function citable(x::MixedModelBootstrap, level=0.95)
 	df = transform!(select!(DataFrame(x.β), Not(:iter)),
 		            :coefname => ByRow(string) => :coefname)
-	combine(groupby(df, :coefname),
-		    :β => mean => :estimate,
-		    :β => NamedTuple{(:lower, :upper)} ∘ shortestcovint => [:lower, :upper])
-
+	return combine(groupby(df, :coefname),
+		           :β => mean => :estimate,
+		           :β => NamedTuple{(:lower, :upper)} ∘ shortestcovint => [:lower, :upper])
 end
