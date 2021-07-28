@@ -37,6 +37,8 @@ function coefplot(x::Union{MixedModel, MixedModelBootstrap}; conf_level=0.95)
 	return coefplot!(Figure(resolution=(640, 75 * _npreds(x))), x)
 end
 
+# TODO: it would be useful to have a ridge plot of by-coefficient densities for a richer plot of the bootstrap
+
 """
     citable(x::MixedModel, level=0.95)
     citable(x::MixedModelBootstrap, level=0.95)
