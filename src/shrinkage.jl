@@ -1,4 +1,22 @@
 """
+    shrinkageplot(m::LinearMixedModel, args...;
+                  gf::Symbol=first(fnames(m)),
+                  θref::AbstractVector{T}=10000 .* m.optsum.initial,
+                  kwargs...)
+
+A shrinkage plit is a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
+
+Two sets of conditional means are plotted: those at the estimated parameter values and those at `θref`.
+The default `θref` results in `Λ` being a very large multiple of the identity.  The corresponding
+conditional means can be regarded as unpenalized.
+
+"""
+function shrinkageplot end
+
+
+
+#=
+"""
     shrinkageplot!(f::Figure, m::LinearMixedModel, gf::Symbol=first(fnames(m)), θref)
 
 Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
@@ -72,3 +90,4 @@ function shrinkageplot(m::LinearMixedModel{T}, args...) where {T}
     return shrinkageplot!(f, m, args...)
 
 end
+=#

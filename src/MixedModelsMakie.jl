@@ -7,12 +7,15 @@ module MixedModelsMakie
     export
         RanefInfo,
 
-        caterpillar,
-        caterpillar!,
+        CaterpillarPlot,
+        caterpillarplot,
+        caterpillarplot!,
         clevelandaxes!,
-        qqcaterpillar,
-        qqcaterpillar!,
+        #QQCaterpillarPlot,
+        #qqcaterpillar,
+        #qqcaterpillar!,
         ranefinfo,
+        ShrinkagePlot,
         shrinkageplot,
         shrinkageplot!,
         simplelinreg

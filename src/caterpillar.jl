@@ -16,11 +16,11 @@ struct RanefInfo{T<:AbstractFloat}
 end
 
 """
-    ranefinfo(m::LinearMixedModel)
+    ranefinfo(m::MixedModel)
 
 Return a `NamedTuple{fnames(m), NTuple(k, RanefInfo)}` from model `m`
 """
-function ranefinfo(m::LinearMixedModel{T}) where {T}
+function ranefinfo(m::MixedModel{T}) where {T}
     fn = fnames(m)
     val = sizehint!(RanefInfo[], length(fn))
     for (re, eff, cv) in zip(m.reterms, ranef(m), condVar(m))
@@ -37,6 +37,74 @@ function ranefinfo(m::LinearMixedModel{T}) where {T}
     NamedTuple{fn}((val...,))
 end
 
+"""
+    ranefinfo(m::MixedModel, gf::Symbol)
+
+Return a `RanefInfo` corresponding to the grouping variable `gf` model `m`.
+"""
+function ranefinfo(m::MixedModel, gf::Symbol)
+    idx = findfirst(==(gf), fnames(m))
+    idx !== nothing || throw(ArgumentError("$gf is not the name of a grouping variable in the model"))
+
+    re, eff, cv = m.reterms[idx], ranef(m)[idx], condVar(m)[idx]
+    return RanefInfo(re.cnames, re.levels,Matrix(adjoint(eff)),
+                    Matrix(adjoint(dropdims(sqrt.(mapslices(diag, cv, dims=1:2)), dims=2))))
+end
+
+_cols_to_idx(r, cols) = cols
+_cols_to_idx(r, cols::AbstractVector{<:Symbol}) = _cols_to_idx(r, string.(cols))
+_cols_to_idx(r, cols::Vector{<:AbstractString}) = [i for (i,c) in enumerate(r.cnames) if c in cols]
+
+"""
+    caterpillarplot(m::MixedModel, args...;
+                    dotcolor=(:red, 0.2), barcolor=(:black, 1.0), kwargs...)
+
+A caterpillar plot is a horizontal error-bar plot of conditional means and standard deviations
+of the random effects.
+
+The order of the levels on the vertical axes is increasing `orderby` column,
+defaulting to first column, which is usually the `(Intercept)` random effects.
+Setting `orderby=nothing` will disable sorting, i.e. return the levels in the
+order they are stored in.
+
+!!! note
+    Even when not sorting the levels, they might have already been sorted during
+    model matrix construction and so might not appear in the same oder as in the data.
+"""
+function caterpillarplot end
+
+@recipe(CaterpillarPlot) do scene
+    Attributes(
+        dotcolor=(:red, 0.2),
+        barcolor=(:black, 1.0),
+        orderby=1,
+        groupvar=nothing,
+    )
+end
+
+function Makie.plot!(cp::CaterpillarPlot{<:Tuple{<:MixedModel}})
+    model = cp[1][]
+    groupvar = isnothing(cp.groupvar[]) ? first(fnames(model)) : cp.groupvar[]
+    r = ranefinfo(model, groupvar)
+
+    rr = r.ranef
+    y = axes(rr, 1)
+    ord = isnothing(cp.orderby[]) ? y : sortperm(view(rr, :, cp.orderby[]))
+    cn = r.cnames
+    axs = [Axis(cp[1, j]) for j in axes(rr, 2)]
+    linkyaxes!(axs...)
+    for (j, ax) in enumerate(axs)
+        xvals = view(rr, ord, j)
+        scatter!(ax, xvals, y, color=(:red, 0.2))
+        errorbars!(ax, xvals, y, 1.960 * view(r.stddev, ord, j), direction=:x)
+        ax.xlabel = cn[j]
+        ax.yticks = y
+        j > 1 && hideydecorations!(ax, grid=false)
+    end
+    axs[1].yticks = (y, r.levels[ord])
+    return cp
+end
+#=
 """
     caterpillar!(f::Figure, r::RanefInfo; orderby=1)
 
@@ -110,10 +178,6 @@ function qqcaterpillar!(f::Figure, r::RanefInfo; cols=axes(r.cnames, 1))
     f
 end
 
-_cols_to_idx(r, cols) = cols
-_cols_to_idx(r, cols::AbstractVector{<:Symbol}) = _cols_to_idx(r, string.(cols))
-_cols_to_idx(r, cols::Vector{<:AbstractString}) = [i for (i,c) in enumerate(r.cnames) if c in cols]
-
 """
     qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing)
 
@@ -126,3 +190,4 @@ function qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=no
     cols = something(cols, axes(reinfo.cnames, 1))
     qqcaterpillar!(Figure(resolution=(1000, 800)), reinfo; cols=cols)
 end
+=#

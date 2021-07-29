@@ -19,11 +19,11 @@ ranefinfo
 ```
 
 ```@docs
-caterpillar
+caterpillarplot
 ```
 
 ```@docs
-caterpillar!
+caterpillarplot!
 ```
 
 ```@example Caterpillar
@@ -34,17 +34,16 @@ using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
 
 fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy)
-subjre = ranefinfo(fm1)[:subj]
-
-caterpillar!(Figure(; resolution=(800,600)), subjre)
+f = Figure()
+caterpillarplot!(f[1, 1], fm1)
 ```
 
 ```@example Caterpillar
-caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=2)
+caterpillarplot(fm1; grouvar=:subj, orderby=2)
 ```
 
 ```@example Caterpillar
-caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=nothing)
+caterpillarplot(fm1; orderby=nothing)
 ```
 
 ```@docs
@@ -72,7 +71,6 @@ qqcaterpillar!(Figure(; resolution=(400,300)), subjre; cols=[:days])
 
 ```@docs
 shrinkageplot
-shrinkageplot!
 ```
 
 
@@ -83,9 +81,5 @@ using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
 
 fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy)
-shrinkageplot(fm1)
-```
-
-```@example Shrinkage
-shrinkageplot!(Figure(; resolution=(400,400)), fm1)
+# shrinkageplot(fm1)
 ```
