@@ -6,7 +6,7 @@ module MixedModelsMakie
     using MixedModels
     using Printf
     using SpecialFunctions
-    using Statistics
+    using StatsBase
 
     export
         RanefInfo,

@@ -9,16 +9,12 @@ DocTestFilters = [r"([a-z]*) => \1", r"getfield\(.*##[0-9]+#[0-9]+"]
 # MixedModelsMakie.jl API
 
 ## Coefficient Plots
+
 ```@docs
 coefplot
 ```
 
-```@docs
-coefplot!
-```
-
 ```@example Coefplot
-
 using CairoMakie
 using MixedModels
 using MixedModelsMakie
@@ -41,7 +37,7 @@ sleepstudy = MixedModels.dataset(:sleepstudy)
 fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy; progress=false)
 boot = parametricbootstrap(MersenneTwister(42), 1000, fm1)
 
-coefplot(boot; conf_level=0.999)
+coefplot(boot; conf_level=0.999, title="Custom Title")
 ```
 
 ## Random effects and group-level predictions
@@ -133,6 +129,9 @@ shrinkageplot!(Figure(; resolution=(400,400)), fm1)
 We have also provided a few useful plot recipes for common plot types applied to mixed models.
 These are especially useful for diagnostics and model checking.
 ### QQ Plots
+
+The methods for `qqnorm` and `qqplot` are implemented using [Makie recipes](https://makie.juliaplots.org/v0.15.0/recipes.html).
+In other words, these are convenience wrappers for calling the relevant plotting methods on `residuals(model)`.
 
 ```@example Residuals
 using CairoMakie
