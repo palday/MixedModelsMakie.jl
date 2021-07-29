@@ -17,9 +17,9 @@ function coefplot!(f::Figure, x::Union{MixedModel, MixedModelBootstrap}; conf_le
 
     crosses_zero = any(zip(ci.lower, ci.upper)) do (lower, upper)
         return sign(upper) == sign(lower)
-end
+    end
 
-crosses_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
+    crosses_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
 
     return f
 end
