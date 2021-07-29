@@ -5,21 +5,21 @@
 Add a "coefplot" of the fixed-effects and associated confidence intervals to the figure.
 """
 function coefplot!(f::Figure, x::Union{MixedModel, MixedModelBootstrap}; conf_level=0.95)
-	ci = confint_table(x, conf_level)
-	y = nrow(ci):-1:1
-	xvals = ci.estimate
-	ax = Axis(f[1, 1])
+    ci = confint_table(x, conf_level)
+    y = nrow(ci):-1:1
+    xvals = ci.estimate
+    ax = Axis(f[1, 1])
     scatter!(ax, xvals, y)
     errorbars!(ax, xvals, y,  xvals .- ci.lower, ci.upper .- xvals, direction=:x)
     ax.xlabel = @sprintf "Estimate and %g%% confidence interval" (conf_level * 100)
     ax.yticks = (y, ci.coefname)
-	ylims!(0, nrow(ci) + 1)
+    ylims!(0, nrow(ci) + 1)
 
-	crosses_zero = any(zip(ci.lower, ci.upper)) do (lower, upper)
-		return sign(upper) == sign(lower)
-	end
+    crosses_zero = any(zip(ci.lower, ci.upper)) do (lower, upper)
+        return sign(upper) == sign(lower)
+end
 
-	crosses_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
+crosses_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
 
     return f
 end
@@ -34,7 +34,7 @@ _npreds(x::MixedModel) = length(coefnames(x))
 Return a `Figure` of a "coefplot" of the fixed-effects and associated confidence intervals.
 """
 function coefplot(x::Union{MixedModel, MixedModelBootstrap}; conf_level=0.95)
-	return coefplot!(Figure(resolution=(640, 75 * _npreds(x))), x; conf_level)
+    return coefplot!(Figure(resolution=(640, 75 * _npreds(x))), x; conf_level)
 end
 
 # TODO: it would be useful to have a ridge plot of by-coefficient densities for a richer plot of the bootstrap
@@ -59,19 +59,19 @@ The returned table has the following columns:
 
 """
 function confint_table(x::MixedModel, level=0.95)
-	# taking from the lower tail
-	semultiple = zquantile((1 - level) / 2)
-	se = stderror(x)
+    # taking from the lower tail
+    semultiple = zquantile((1 - level) / 2)
+    se = stderror(x)
 
-	return DataFrame(coefname=coefnames(x), estimate=coef(x),
-	                 lower=coef(x) + semultiple * se,
-	                 upper=coef(x) - semultiple * se)
+    return DataFrame(coefname=coefnames(x), estimate=coef(x),
+                     lower=coef(x) + semultiple * se,
+                     upper=coef(x) - semultiple * se)
 end
 
 function confint_table(x::MixedModelBootstrap, level=0.95)
-	df = transform!(select!(DataFrame(x.β), Not(:iter)),
-		            :coefname => ByRow(string) => :coefname)
-	return combine(groupby(df, :coefname),
-		           :β => mean => :estimate,
-		           :β => NamedTuple{(:lower, :upper)} ∘ shortestcovint => [:lower, :upper])
+    df = transform!(select!(DataFrame(x.β), Not(:iter)),
+                    :coefname => ByRow(string) => :coefname)
+    return combine(groupby(df, :coefname),
+                   :β => mean => :estimate,
+                   :β => NamedTuple{(:lower, :upper)} ∘ shortestcovint => [:lower, :upper])
 end
