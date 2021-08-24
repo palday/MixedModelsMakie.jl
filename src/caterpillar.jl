@@ -38,7 +38,8 @@ function ranefinfo(m::MixedModel, gf::Symbol)
     idx = findfirst(==(gf), fnames(m))
     idx !== nothing || throw(ArgumentError("$gf is not the name of a grouping variable in the model"))
 
-    re, eff, cv = m.reterms[idx], ranef(m)[idx], condVar(m)[idx]
+    # XXX replace ranef(m)[idx] with ranef(m, gf) when that becomes available upstream
+    re, eff, cv = m.reterms[idx], ranef(m)[idx], condVar(m, gf)
     return RanefInfo(re.cnames, re.levels,Matrix(adjoint(eff)),
                     Matrix(adjoint(dropdims(sqrt.(mapslices(diag, cv, dims=1:2)), dims=2))))
 end
