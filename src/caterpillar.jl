@@ -23,8 +23,9 @@ Return a `NamedTuple{fnames(m), NTuple(k, RanefInfo)}` from model `m`
 function ranefinfo(m::MixedModel{T}) where {T}
     fn = fnames(m)
     val = sizehint!(RanefInfo[], length(fn))
+    re = ranef(m)
     for grp in fn
-        push!(val, ranefinfo(m, grp))
+        push!(val, ranefinfo(m, grp, re))
     end
     NamedTuple{fn}((val...,))
 end
@@ -34,13 +35,13 @@ end
 
 Return a `RanefInfo` corresponding to the grouping variable `gf` model `m`.
 """
-function ranefinfo(m::MixedModel, gf::Symbol)
+function ranefinfo(m::MixedModel, gf::Symbol, re=ranef(m))
     idx = findfirst(==(gf), fnames(m))
     idx !== nothing || throw(ArgumentError("$gf is not the name of a grouping variable in the model"))
 
     # XXX replace ranef(m)[idx] with ranef(m, gf) when that becomes available upstream
-    re, eff, cv = m.reterms[idx], ranef(m)[idx], condVar(m, gf)
-    return RanefInfo(re.cnames, re.levels,Matrix(adjoint(eff)),
+    re, eff, cv = m.reterms[idx], re[idx], condVar(m, gf)
+    return RanefInfo(re.cnames, re.levels, Matrix(adjoint(eff)),
                     Matrix(adjoint(dropdims(sqrt.(mapslices(diag, cv, dims=1:2)), dims=2))))
 end
 
