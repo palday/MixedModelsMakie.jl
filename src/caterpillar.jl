@@ -77,7 +77,7 @@ function caterpillar!(f::Figure, r::RanefInfo; orderby=1)
         ax.yticks = y
         j > 1 && hideydecorations!(ax, grid=false)
     end
-    axs[1].yticks = (y, r.levels[ord])
+    axs[1].yticks = (y, string.(r.levels[ord]))
     f
 end
 
