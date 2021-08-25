@@ -4,6 +4,8 @@ using MixedModelsMakie
 using Random # we don't depend on exact PRNG vals, so no need for StableRNGs
 using Test
 
+using MixedModelsMakie: confint_table
+
 @testset "There are no graphical tests" begin
     @test true
 end
@@ -24,6 +26,18 @@ m1 = fit(
     @formula(1000/reaction ~ 1 + days + (1+days|subj)),
     MixedModels.dataset(:sleepstudy),
 )
+
+@testset "confint_table" begin
+    wald = confint_table(m1, 0.68)
+    bsamp = parametricbootstrap(MersenneTwister(42), 1000, m1)
+    boot = confint_table(bsamp, 0.68)
+
+    @test wald.coefname == boot.coefname
+    @test wald.estimate ≈ boot.estimate rtol=0.05
+    @test wald.lower ≈ boot.lower rtol=0.05
+    @test wald.upper ≈ boot.upper rtol=0.05
+end
+
 
 @testset "ranefinfo" begin
     reinfo = ranefinfo(m1)

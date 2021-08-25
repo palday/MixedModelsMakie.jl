@@ -16,26 +16,35 @@ struct RanefInfo{T<:AbstractFloat}
 end
 
 """
-    ranefinfo(m::LinearMixedModel)
+    ranefinfo(m::MixedModel)
 
 Return a `NamedTuple{fnames(m), NTuple(k, RanefInfo)}` from model `m`
 """
-function ranefinfo(m::LinearMixedModel{T}) where {T}
+function ranefinfo(m::MixedModel{T}) where {T}
     fn = fnames(m)
     val = sizehint!(RanefInfo[], length(fn))
-    for (re, eff, cv) in zip(m.reterms, ranef(m), condVar(m))
-        push!(
-            val,
-            RanefInfo(
-                re.cnames,
-                re.levels,
-                Matrix(adjoint(eff)),
-                Matrix(adjoint(dropdims(sqrt.(mapslices(diag, cv, dims=1:2)), dims=2))),
-            )
-        )
+    re = ranef(m)
+    for grp in fn
+        push!(val, ranefinfo(m, grp, re))
     end
     NamedTuple{fn}((val...,))
 end
+
+"""
+    ranefinfo(m::MixedModel, gf::Symbol)
+
+Return a `RanefInfo` corresponding to the grouping variable `gf` model `m`.
+"""
+function ranefinfo(m::MixedModel, gf::Symbol, re=ranef(m))
+    idx = findfirst(==(gf), fnames(m))
+    idx !== nothing || throw(ArgumentError("$gf is not the name of a grouping variable in the model"))
+
+    # XXX replace ranef(m)[idx] with ranef(m, gf) when that becomes available upstream
+    re, eff, cv = m.reterms[idx], re[idx], condVar(m, gf)
+    return RanefInfo(re.cnames, re.levels, Matrix(adjoint(eff)),
+                    Matrix(adjoint(dropdims(sqrt.(mapslices(diag, cv, dims=1:2)), dims=2))))
+end
+
 
 """
     caterpillar!(f::Figure, r::RanefInfo; orderby=1)
@@ -68,7 +77,7 @@ function caterpillar!(f::Figure, r::RanefInfo; orderby=1)
         ax.yticks = y
         j > 1 && hideydecorations!(ax, grid=false)
     end
-    axs[1].yticks = (y, r.levels[ord])
+    axs[1].yticks = (y, string.(r.levels[ord]))
     f
 end
 
@@ -122,7 +131,7 @@ Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and pr
 The display can be restricted to a subset of random effects associated with a grouping variable by specifying `cols`, either by indices or term names.
 """
 function qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing)
-    reinfo = ranefinfo(m)[gf]
+    reinfo = ranefinfo(m, gf)
     cols = something(cols, axes(reinfo.cnames, 1))
     qqcaterpillar!(Figure(resolution=(1000, 800)), reinfo; cols=cols)
 end
