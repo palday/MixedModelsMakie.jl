@@ -26,3 +26,5 @@ Manifest.toml
 # Editor files
 .vscode/*
 *~
+
+scratch/
