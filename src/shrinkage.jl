@@ -2,22 +2,23 @@
     splomaxes!(f::Figure, labels::AbstractVector{<:AbstractString})
 
 Populate f with a set of `(k*(k-1))/2` axes in a lower triangle for all pairs of `labels`,
-where `k` is the length of `labels`.
+where `k` is the length of `labels`.  The `panel!` function should have the signature
+`panel!(ax::Axis, i::Integer, j::Integer)` and should draw the [i,j] panel in `ax`.
 """
-function splomaxes!(f::Figure, labels::AbstractVector{<:AbstractString}, panel!::Function)
+function splomaxes!(f::Figure, labels, panel!::Function; extraticks::Bool=false)
     k = length(labels)
-	cols = Dict()
+    cols = Dict()
     for i in 2:k                          # strict lower triangle of panels
-		row = Axis[]
+        row = Axis[]
         for j in 1:(i - 1)
             ax = Axis(f[i - 1, j])
             panel!(ax, i, j)
-			push!(row, ax)
-			col = get!(cols, j, Axis[])
-			push!(col, ax)
+            push!(row, ax)
+            col = get!(cols, j, Axis[])
+            push!(col, ax)
             if i == k              # add x labels on bottom row
                 ax.xlabel = string(labels[j])
-            elseif i == 2
+            elseif extraticks && i == 2
                 ax.xaxisposition = :top
                 hidexdecorations!(ax; grid=false, ticks=false)
             else
@@ -25,19 +26,19 @@ function splomaxes!(f::Figure, labels::AbstractVector{<:AbstractString}, panel!:
             end
             if isone(j)            # add y labels on left column
                 ax.ylabel = string(labels[i])
-            elseif j == i - 1
+            elseif extraticks && j == i - 1
                 ax.yaxisposition = :right
-                hideydecorations!(ax; grid=false, ticks=false) 
+                hideydecorations!(ax; grid=false, ticks=false)
             else
                 hideydecorations!(ax; grid=false)
             end
         end
-		linkyaxes!(row...)
+        linkyaxes!(row...)
     end
 
-	foreach(values(cols)) do col
-		linkxaxes!(col...)
-	end
+    foreach(values(cols)) do col
+        linkxaxes!(col...)
+    end
 
     return f
 end
@@ -51,7 +52,8 @@ Two sets of conditional means are plotted: those at the estimated parameter valu
 The default `θref` results in `Λ` being a very large multiple of the identity.  The corresponding
 conditional means can be regarded as unpenalized.
 """
-function shrinkageplot!(f::Figure,
+function shrinkageplot!(
+    f::Figure,
     m::LinearMixedModel{T},
     gf::Symbol=first(fnames(m)),
     θref::AbstractVector{T}=10000 .* m.optsum.initial,
@@ -68,13 +70,12 @@ function shrinkageplot!(f::Figure,
         scatter!(ax, x, y; color=(:red, 0.25))   # reference points
         u, v = view(reest, j, :), view(reest, i, :)
         arrows!(ax, x, y, u .- x, v .- y)        # first so arrow heads don't obscure pts
-        scatter!(ax, u, v; color=(:blue, 0.25))  # conditional means at estimates
+        return scatter!(ax, u, v; color=(:blue, 0.25))  # conditional means at estimates
     end
     splomaxes!(f, m.reterms[reind].cnames, pfunc)
 
     return f
 end
-
 
 """
     shrinkageplot(m::LinearMixedModel, gf::Symbol=first(fnames(m)), θref)
@@ -86,9 +87,7 @@ The default `θref` results in `Λ` being a very large multiple of the identity.
 conditional means can be regarded as unpenalized.
 """
 function shrinkageplot(m::LinearMixedModel{T}, args...) where {T}
-
     f = Figure(; resolution=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
 
     return shrinkageplot!(f, m, args...)
-
 end
