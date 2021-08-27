@@ -37,7 +37,7 @@ Return a `RanefInfo` corresponding to the grouping variable `gf` model `m`.
 """
 function ranefinfo(m::MixedModel, gf::Symbol, re=ranef(m))
     idx = findfirst(==(gf), fnames(m))
-    idx !== nothing ||
+    isnothing(idx) &&
         throw(ArgumentError("$gf is not the name of a grouping variable in the model"))
 
     # XXX replace ranef(m)[idx] with ranef(m, gf) when that becomes available upstream
