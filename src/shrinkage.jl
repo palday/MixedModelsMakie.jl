@@ -17,7 +17,7 @@ function splomaxes!(f::Figure, labels, panel!::Function; extraticks::Bool=false)
             col = get!(cols, j, Axis[])
             push!(col, ax)
             if i == k              # add x labels on bottom row
-                ax.xlabel = string(labels[j])
+                ax.xlabel = string(labels[i])
             elseif extraticks && i == 2
                 ax.xaxisposition = :top
                 hidexdecorations!(ax; grid=false, ticks=false)
@@ -25,7 +25,7 @@ function splomaxes!(f::Figure, labels, panel!::Function; extraticks::Bool=false)
                 hidexdecorations!(ax; grid=false)
             end
             if isone(j)            # add y labels on left column
-                ax.ylabel = string(labels[i])
+                ax.ylabel = string(labels[j])
             elseif extraticks && j == i - 1
                 ax.yaxisposition = :right
                 hideydecorations!(ax; grid=false, ticks=false)
@@ -91,3 +91,20 @@ function shrinkageplot(m::LinearMixedModel{T}, args...) where {T}
 
     return shrinkageplot!(f, m, args...)
 end
+
+"""
+    splom!(f::Figure, df::DataFrame)
+
+Create a scatter-plot matrix in `f` from the columns of `df`.
+"""
+function splom!(f::Figure, df::DataFrame; addcontours::Bool=false)
+    mat = Array(df)
+    function pfunc(ax, i, j)
+        v = view(mat, :, [i, j])
+        scatter!(ax, v, color=(:blue, 0.2))
+        addcontours && contour!(ax, kde(v))
+        return ax
+    end
+    splomaxes!(f, names(df), pfunc)
+end
+
