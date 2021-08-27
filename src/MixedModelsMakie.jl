@@ -2,6 +2,7 @@ module MixedModelsMakie
 using LinearAlgebra
 using DataFrames
 using Distributions
+using KernelDensity
 using Makie
 using MixedModels
 using Printf
@@ -19,7 +20,8 @@ export RanefInfo,
     ranefinfo,
     shrinkageplot,
     shrinkageplot!,
-    simplelinreg
+    simplelinreg,
+    splom!
 
 include("utilities.jl")
 include("shrinkage.jl")
