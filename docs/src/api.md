@@ -149,3 +149,20 @@ qqnorm(fm1)
 # and standard deviation equal to the residual standard deviation
 qqplot(Normal(0, fm1.σ), fm1)
 ```
+
+## General plots
+
+We also provide a `splom` or scatter-plot matrix plot for data frames with numeric columns.
+These plots can be used to visualize the joint distribution of, say, the parameter estimates from a simulation.
+
+```@example Splom
+using CairoMakie
+using DataFrames
+using LinearAlgebra
+using MixedModelsMakie
+
+splom!(
+    Figure(; resolution=(800, 800)),
+    DataFrame(rmul!(randn(100, 3), LowerTriangular([1 0 0;1 1 0;-1 -1 1])), [:x, :y, :z]),
+)
+```
