@@ -141,7 +141,7 @@ using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
 
 fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy; progress=false)
-qqnorm(fm1)
+qqnorm(fm1; qqline=:R)
 ```
 
 ```@example Residuals
