@@ -2,7 +2,7 @@
 
 # XXX it would be great to have a 1-1 aspect ratio here,
 # but this seems like something that should be done upstream
-Makie.convert_arguments(P::Type{<:Makie.QQNorm}, x::MixedModel) = convert_arguments(P, residuals(x) ./ x.σ)
+Makie.convert_arguments(P::Type{<:Makie.QQNorm}, x::MixedModel) = convert_arguments(P, residuals(x) ./ dispersion(x))
 Makie.convert_arguments(P::Type{<:Makie.QQPlot}, d::Distributions.Distribution, x::MixedModel) = convert_arguments(P, d, residuals(x))
 
 
