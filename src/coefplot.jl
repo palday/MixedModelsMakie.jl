@@ -15,18 +15,20 @@ Create a coefficient plot of the fixed-effects and associated confidence interva
     and thus there are also additional auto-generated methods for `coefplot` and `coefplot!` that may be useful
     when constructing more complex figures.
 """
-function coefplot(x::Union{MixedModel, MixedModelBootstrap}; conf_level=0.95, vline_at_zero=true, attributes...)
-    fig = Figure(resolution=(640, 75 * _npreds(x)))
+function coefplot(
+    x::Union{MixedModel,MixedModelBootstrap};
+    conf_level=0.95,
+    vline_at_zero=true,
+    attributes...,
+)
+    fig = Figure(; resolution=(640, 75 * _npreds(x)))
     ax = Axis(fig[1, 1])
     pl = coefplot!(ax, x; conf_level, vline_at_zero, attributes...)
     return Makie.FigureAxisPlot(fig, ax, pl)
 end
 
 @recipe(CoefPlot, x) do scene
-    return Attributes(
-        conf_level=0.95,
-        vline_at_zero=true,
-    )
+    return Attributes(; conf_level=0.95, vline_at_zero=true)
 end
 
 function Makie.plot!(ax::Axis, P::Type{<:CoefPlot}, allattrs::Makie.Attributes, x)
@@ -38,7 +40,9 @@ function Makie.plot!(ax::Axis, P::Type{<:CoefPlot}, allattrs::Makie.Attributes, 
     if haskey(allattrs, :xlabel)
         ax.xlabel = allattrs.xlabel[]
     else
-        ax.xlabel = @sprintf "Estimate and %g%% confidence interval" (allattrs.conf_level[] * 100)
+        ax.xlabel = @sprintf "Estimate and %g%% confidence interval" (
+            allattrs.conf_level[] * 100
+        )
     end
     if haskey(allattrs, :ylabel)
         ax.ylabel = allattrs.ylabel[]
@@ -52,13 +56,13 @@ function Makie.plot!(ax::Axis, P::Type{<:CoefPlot}, allattrs::Makie.Attributes, 
     return plot
 end
 
-function Makie.plot!(plot::CoefPlot{<:Tuple{Union{MixedModel, MixedModelBootstrap}}})
+function Makie.plot!(plot::CoefPlot{<:Tuple{Union{MixedModel,MixedModelBootstrap}}})
     model_or_boot, conf_level = plot[1][], plot.conf_level[]
     ci = confint_table(model_or_boot, conf_level)
     y = nrow(ci):-1:1
     xvals = ci.estimate
     scatter!(plot, xvals, y)
-    errorbars!(plot, xvals, y,  xvals .- ci.lower, ci.upper .- xvals, direction=:x)
+    errorbars!(plot, xvals, y, xvals .- ci.lower, ci.upper .- xvals; direction=:x)
 
     return plot
 end
@@ -89,15 +93,21 @@ function confint_table(x::StatsBase.StatisticalModel, level=0.95)
     semultiple = zquantile((1 - level) / 2)
     se = stderror(x)
 
-    return DataFrame(coefname=coefnames(x), estimate=coef(x),
-                     lower=coef(x) + semultiple * se,
-                     upper=coef(x) - semultiple * se)
+    return DataFrame(;
+        coefname=coefnames(x),
+        estimate=coef(x),
+        lower=coef(x) + semultiple * se,
+        upper=coef(x) - semultiple * se,
+    )
 end
 
 function confint_table(x::MixedModelBootstrap, level=0.95)
-    df = transform!(select!(DataFrame(x.β), Not(:iter)),
-                    :coefname => ByRow(string) => :coefname)
-    return combine(groupby(df, :coefname),
-                   :β => mean => :estimate,
-                   :β => NamedTuple{(:lower, :upper)} ∘ shortestcovint => [:lower, :upper])
+    df = transform!(
+        select!(DataFrame(x.β), Not(:iter)), :coefname => ByRow(string) => :coefname
+    )
+    return combine(
+        groupby(df, :coefname),
+        :β => mean => :estimate,
+        :β => NamedTuple{(:lower, :upper)} ∘ shortestcovint => [:lower, :upper],
+    )
 end
