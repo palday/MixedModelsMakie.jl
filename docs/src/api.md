@@ -152,7 +152,7 @@ qqplot(Normal(0, fm1.σ), fm1)
 
 ## General plots
 
-We also provide a `splom` or scatter-plot matrix plot for data frames with numeric columns.
+We also provide a `splom` or scatter-plot matrix plot for data frames with numeric columns (i.e. a matrix of all pairwise plots).
 These plots can be used to visualize the joint distribution of, say, the parameter estimates from a simulation.
 
 ```@example Splom
