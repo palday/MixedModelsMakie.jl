@@ -17,6 +17,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 [compat]
 DataFrames = "1"
 Distributions = "0.21, 0.22, 0.23, 0.24, 0.25"
+KernelDensity = "0.6.3"
 Makie = "0.15"
 MixedModels = "4.1"
 SpecialFunctions = "1"
