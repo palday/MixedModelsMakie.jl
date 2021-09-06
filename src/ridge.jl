@@ -63,9 +63,9 @@ Convenience methods that call `DataFrame(bstrp.β)` and pass that onto the prima
 By default, the intercept is shown, but this can be disabled.
 """
 function ridgeplot!(axis::Axis, bstrp::MixedModelBootstrap, args...;
-                    show_intercept=true, kwargs...)
+                    show_intercept=true,  normalize=true, kwargs...)
 
     df = DataFrame(bstrp.β)
-    hide_intercept && filter!(:coefname => !=(Symbol("(Intercept)")), df)
-    ridgeplot!(axis, :β, :coefname; sort_by_group=false)
+    show_intercept || filter!(:coefname => !=(Symbol("(Intercept)")), df)
+    ridgeplot!(axis, df, :β, :coefname, args...; sort_by_group=false, normalize, kwargs...)
 end

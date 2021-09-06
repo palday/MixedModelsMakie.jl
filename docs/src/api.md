@@ -40,6 +40,17 @@ boot = parametricbootstrap(MersenneTwister(42), 1000, fm1)
 coefplot(boot; conf_level=0.999, title="Custom Title")
 ```
 
+## Ridge Plots
+
+```@docs
+ridgeplot!
+```
+
+```@example Coefplot
+ridgeplot(boot)
+```
+
+
 ## Random effects and group-level predictions
 
 ### Caterpillar Plots
