@@ -18,6 +18,8 @@ export RanefInfo,
     qqcaterpillar,
     qqcaterpillar!,
     ranefinfo,
+    ridgeplot,
+    ridgeplot!,
     shrinkageplot,
     shrinkageplot!,
     simplelinreg,
@@ -27,6 +29,7 @@ include("utilities.jl")
 include("shrinkage.jl")
 include("caterpillar.jl")
 include("coefplot.jl")
+include("ridge.jl")
 include("xyplot.jl")
 include("recipes.jl")
 
