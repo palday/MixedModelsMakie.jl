@@ -43,7 +43,7 @@ coefplot(boot; conf_level=0.999, title="Custom Title")
 ## Ridge Plots
 
 ```@docs
-ridgeplot!
+ridgeplot
 ```
 
 ```@example Coefplot
