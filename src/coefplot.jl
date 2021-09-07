@@ -1,12 +1,20 @@
-_npreds(x::MixedModelBootstrap) = length(first(x.fits).β)
-_npreds(x::MixedModel) = length(coefnames(x))
+_npreds(x; show_intercept=true) = length(_coefnames(x; show_intercept))
 
-_coefnames(x) = coefnames(x)
-_coefnames(x::MixedModelBootstrap) = collect(string.(propertynames(first(x.fits).β)))
+function _coefnames(x; show_intercept=true)
+    cn = coefnames(x)
+    return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
+end
+
+function _coefnames(x::MixedModelBootstrap; show_intercept=true)
+    cn = collect(string.(propertynames(first(x.fits).β)))
+    return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
+end
 
 """
-    coefplot(x::MixedModel; conf_level=0.95, vline_at_zero=true, attributes...)
-    coefplot(x::MixedModelBootstrap; conf_level=0.95, vline_at_zero=true, attributes...)
+    coefplot(x::MixedModel;
+             conf_level=0.95, vline_at_zero=true, show_intercept=true, attributes...)
+    coefplot(x::MixedModelBootstrap;
+             conf_level=0.95, vline_at_zero=true, show_intercept=true, attributes...)
 
 Create a coefficient plot of the fixed-effects and associated confidence intervals.
 
@@ -19,16 +27,17 @@ function coefplot(
     x::Union{MixedModel,MixedModelBootstrap};
     conf_level=0.95,
     vline_at_zero=true,
+    show_intercept=true,
     attributes...,
 )
-    fig = Figure(; resolution=(640, 75 * _npreds(x)))
+    fig = Figure(; resolution=(640, 75 * _npreds(x; show_intercept)))
     ax = Axis(fig[1, 1])
-    pl = coefplot!(ax, x; conf_level, vline_at_zero, attributes...)
+    pl = coefplot!(ax, x; conf_level, vline_at_zero, show_intercept, attributes...)
     return Makie.FigureAxisPlot(fig, ax, pl)
 end
 
 @recipe(CoefPlot, x) do scene
-    return Attributes(; conf_level=0.95, vline_at_zero=true)
+    return Attributes(; conf_level=0.95, vline_at_zero=true, show_intercept=true)
 end
 
 function Makie.plot!(ax::Axis, P::Type{<:CoefPlot}, allattrs::Makie.Attributes, x)
@@ -48,8 +57,9 @@ function Makie.plot!(ax::Axis, P::Type{<:CoefPlot}, allattrs::Makie.Attributes, 
         ax.ylabel = allattrs.ylabel[]
     end
     reset_limits!(ax)
-    cn = _coefnames(x)
-    nticks = _npreds(x)
+    show_intercept = allattrs.show_intercept[]
+    cn = _coefnames(x; show_intercept)
+    nticks = _npreds(x; show_intercept)
     ax.yticks = (nticks:-1:1, cn)
     ylims!(ax, 0, nticks + 1)
     allattrs.vline_at_zero[] && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
@@ -59,6 +69,7 @@ end
 function Makie.plot!(plot::CoefPlot{<:Tuple{Union{MixedModel,MixedModelBootstrap}}})
     model_or_boot, conf_level = plot[1][], plot.conf_level[]
     ci = confint_table(model_or_boot, conf_level)
+    plot.show_intercept[] || filter!(:coefname => !=("(Intercept)"), ci)
     y = nrow(ci):-1:1
     xvals = ci.estimate
     scatter!(plot, xvals, y)
@@ -66,8 +77,6 @@ function Makie.plot!(plot::CoefPlot{<:Tuple{Union{MixedModel,MixedModelBootstrap
 
     return plot
 end
-
-# TODO: it would be useful to have a ridge plot of by-coefficient densities for a richer plot of the bootstrap
 
 """
     confint_table(x::StatsBase.StatisticalModel, level=0.95)
