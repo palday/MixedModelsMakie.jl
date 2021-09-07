@@ -44,10 +44,11 @@ function confint_table(x::MixedModelBootstrap, level=0.95)
     df = transform!(
         select!(DataFrame(x.β), Not(:iter)), :coefname => ByRow(string) => :coefname
     )
+    ci(x) = shortestcovint(x, level)
     return combine(
         groupby(df, :coefname),
         :β => mean => :estimate,
-        :β => NamedTuple{(:lower, :upper)} ∘ shortestcovint => [:lower, :upper],
+        :β => NamedTuple{(:lower, :upper)} ∘ ci => [:lower, :upper],
     )
 end
 
