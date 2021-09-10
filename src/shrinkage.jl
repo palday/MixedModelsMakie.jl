@@ -77,8 +77,14 @@ function shrinkageplot!(
 end
 
 function _ranef(m::LinearMixedModel, θref)
-    vv = ranef(updateL!(setθ!(m, θref)))
-    updateL!(setθ!(m, m.optsum.final)) # restore parameter estimates and update m
+    vv = try
+        ranef(updateL!(setθ!(m, θref)))
+    catch e
+        @error "Failed to compute unshrunken values with the following exception:"
+        rethrow(e)
+    finally
+        updateL!(setθ!(m, m.optsum.final)) # restore parameter estimates and update m
+    end
     return vv
 end
 
