@@ -35,7 +35,7 @@ end
 
 Return a `RanefInfo` corresponding to the grouping variable `gf` model `m`.
 """
-function ranefinfo(m::MixedModel, gf::Symbol, re=ranef(m))
+function ranefinfo(m::LinearMixedModel, gf::Symbol, re=ranef(m))
     idx = findfirst(==(gf), fnames(m))
     isnothing(idx) &&
         throw(ArgumentError("$gf is not the name of a grouping variable in the model"))
@@ -49,6 +49,8 @@ function ranefinfo(m::MixedModel, gf::Symbol, re=ranef(m))
         Matrix(adjoint(dropdims(sqrt.(mapslices(diag, cv; dims=1:2)); dims=2))),
     )
 end
+
+ranefinfo(m::GeneralizedLinearMixedModel, args...; kwargs...) = ranefinfo(m.LMM, args...; kwargs...)
 
 """
     caterpillar!(f::Figure, r::RanefInfo; orderby=1)
@@ -93,7 +95,7 @@ Returns a `Figure` of a "caterpillar plot" of the random-effects means and predi
 A "caterpillar plot" is a horizontal error-bar plot of conditional means and standard deviations
 of the random effects.
 """
-function caterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)))
+function caterpillar(m::MixedModel, gf::Symbol=first(fnames(m)))
     return caterpillar!(Figure(; resolution=(1000, 800)), ranefinfo(m)[gf])
 end
 
@@ -136,7 +138,7 @@ Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and pr
 
 The display can be restricted to a subset of random effects associated with a grouping variable by specifying `cols`, either by indices or term names.
 """
-function qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing)
+function qqcaterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); cols=nothing)
     reinfo = ranefinfo(m, gf)
     cols = something(cols, axes(reinfo.cnames, 1))
     return qqcaterpillar!(Figure(; resolution=(1000, 800)), reinfo; cols=cols)

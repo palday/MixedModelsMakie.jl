@@ -77,8 +77,15 @@ CairoMakie.activate!(type = "svg")
 using MixedModels
 using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
+verbagg = MixedModels.dataset(:verbagg)
 
 fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy; progress=false)
+gm0 = fit(MixedModel,
+          @formula(r2 ~ 1 + anger + gender + btype + situ + (1|subj) + (1|item)),
+          verbagg,
+          Bernoulli();
+          progress=false)
+
 subjre = ranefinfo(fm1)[:subj]
 
 caterpillar!(Figure(; resolution=(800,600)), subjre)
@@ -90,6 +97,10 @@ caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=2)
 
 ```@example Caterpillar
 caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=nothing)
+```
+
+```@example Caterpillar
+caterpillar(gm0, :item)
 ```
 
 ```@docs
@@ -104,6 +115,9 @@ qqcaterpillar!
 qqcaterpillar(fm1)
 ```
 
+```@example Caterpillar
+qqcaterpillar(gm0, :item)
+```
 
 ```@example Caterpillar
 qqcaterpillar!(Figure(; resolution=(400,300)), subjre; cols=[1])
@@ -120,7 +134,6 @@ shrinkageplot
 shrinkageplot!
 ```
 
-
 ```@example Shrinkage
 using CairoMakie
 using MixedModels
@@ -133,6 +146,15 @@ shrinkageplot(fm1)
 
 ```@example Shrinkage
 shrinkageplot!(Figure(; resolution=(400,400)), fm1)
+```
+
+```@example Shrinkage
+gm1 = fit(MixedModel,
+          @formula(r2 ~ 1 + anger + gender + btype + situ + (1|subj) + (1+gender|item)),
+          verbagg,
+          Bernoulli();
+          progress=false)
+shrinkageplot(gm1)
 ```
 
 ## Diagnostics
