@@ -44,7 +44,7 @@ function splomaxes!(f::Figure, labels, panel!::Function; extraticks::Bool=false)
 end
 
 """
-    shrinkageplot!(f::Figure, m::LinearMixedModel, gf::Symbol=first(fnames(m)), θref)
+    shrinkageplot!(f::Figure, m::MixedModel, gf::Symbol=first(fnames(m)), θref)
 
 Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
 
@@ -54,17 +54,16 @@ conditional means can be regarded as unpenalized.
 """
 function shrinkageplot!(
     f::Figure,
-    m::LinearMixedModel{T},
+    m::MixedModel{T},
     gf::Symbol=first(fnames(m)),
-    θref::AbstractVector{T}=10000 .* m.optsum.initial,
+    θref::AbstractVector{T}= (isa(m, LinearMixedModel) ? 1e4 : 1) .* m.optsum.initial,
 ) where {T}
     reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
     if isnothing(reind)
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
     end
-    reest = ranef(m)[reind]               # random effects conditional means at estimated θ
-    reref = ranef(updateL!(setθ!(m, θref)))[reind]  # same at θref
-    updateL!(setθ!(m, m.optsum.final))    # restore parameter estimates and update m
+    reest = ranef(m)[reind]          # random effects conditional means at estimated θ
+    reref = _ranef(m, θref)[reind]   # same at θref
     function pfunc(ax, i, j)
         x, y = view(reref, j, :), view(reref, i, :)
         scatter!(ax, x, y; color=(:red, 0.25))   # reference points
@@ -77,8 +76,35 @@ function shrinkageplot!(
     return f
 end
 
+function _ranef(m::LinearMixedModel, θref)
+    vv = try
+        ranef(updateL!(setθ!(m, θref)))
+    catch e
+        @error "Failed to compute unshrunken values with the following exception:"
+        rethrow(e)
+    finally
+        updateL!(setθ!(m, m.optsum.final)) # restore parameter estimates and update m
+    end
+    return vv
+end
+
+function _ranef(m::GeneralizedLinearMixedModel, θref)
+    fast = length(m.θ) == length(m.optsum.final)
+    setpar! = fast ? MixedModels.setθ! : MixedModels.setβθ!
+    vv = try
+        ranef(pirls!(setpar!(m, θref), fast, false)) # not verbose
+    catch e
+        @error "Failed to compute unshrunken values with the following exception:"
+        rethrow(e)
+    finally
+        pirls!(setpar!(m, m.optsum.final), fast, false) # restore parameter estimates and update m
+    end
+
+    return vv
+end
+
 """
-    shrinkageplot(m::LinearMixedModel, gf::Symbol=first(fnames(m)), θref)
+    shrinkageplot(m::MixedModel, gf::Symbol=first(fnames(m)), θref)
 
 Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
 
@@ -86,7 +112,7 @@ Two sets of conditional means are plotted: those at the estimated parameter valu
 The default `θref` results in `Λ` being a very large multiple of the identity.  The corresponding
 conditional means can be regarded as unpenalized.
 """
-function shrinkageplot(m::LinearMixedModel{T}, args...) where {T}
+function shrinkageplot(m::MixedModel, args...)
     f = Figure(; resolution=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
 
     return shrinkageplot!(f, m, args...)
@@ -107,4 +133,3 @@ function splom!(f::Figure, df::DataFrame; addcontours::Bool=false)
     end
     splomaxes!(f, names(df), pfunc)
 end
-
