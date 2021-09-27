@@ -53,6 +53,23 @@ end
 ranefinfo(m::GeneralizedLinearMixedModel, args...; kwargs...) = ranefinfo(m.LMM, args...; kwargs...)
 
 """
+    ranefinfotable(ri::RanefInfo)
+
+Return the information in `ri` as a column table (`NamedTuple` of `Vector`s) 
+"""
+function ranefinfotable(ri::RanefInfo)
+    cnames, levels = ri.cnames, ri.levels
+    k = length(cnames)
+    l = length(levels)
+    (;
+        cname=repeat(cnames; inner=l),
+        level=repeat(levels; outer=k),
+        μ=vec(ri.ranef),
+        σ=vec(ri.stddev),
+    )
+end
+
+"""
     caterpillar!(f::Figure, r::RanefInfo; orderby=1)
 
 Add Axes of a caterpillar plot from `r` to `f`.
