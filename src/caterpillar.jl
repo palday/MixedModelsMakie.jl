@@ -53,6 +53,31 @@ end
 ranefinfo(m::GeneralizedLinearMixedModel, args...; kwargs...) = ranefinfo(m.LMM, args...; kwargs...)
 
 """
+    ranefinfotable(ri::RanefInfo)
+
+Return the information in `ri` as a column table (`NamedTuple` of `Vector`s)
+
+The columns are
+
+- `name`: name of the random effect
+- `level`: level of the grouping factor
+- `cmode`: conditional mode of the random effect
+- `cstddev`: conditional standard deviation of the random effect
+
+"""
+function ranefinfotable(ri::RanefInfo)
+    cnames, levels = ri.cnames, ri.levels
+    k = length(cnames)
+    l = length(levels)
+    (;
+        name=repeat(cnames; inner=l),
+        level=repeat(levels; outer=k),
+        cmode=vec(ri.ranef),
+        cstddev=vec(ri.stddev),
+    )
+end
+
+"""
     caterpillar!(f::Figure, r::RanefInfo; orderby=1)
 
 Add Axes of a caterpillar plot from `r` to `f`.

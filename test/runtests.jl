@@ -43,7 +43,7 @@ end
     reinfo = ranefinfo(m1)
     @test isone(length(reinfo))
     @test keys(reinfo) == (:subj, )
-    re1 = first(reinfo)
+    re1 = only(reinfo)
     @test isa(re1, RanefInfo)
     @test re1.cnames == ["(Intercept)", "days"]
     @test first(re1.levels) == "S308"
@@ -56,6 +56,9 @@ end
     @test isa(first(f.content), Axis)
     @test isone(f.layout.nrows)
     @test f.layout.ncols == 2
+    tbl = ranefinfotable(re1)
+    @test keys(tbl) == (:name, :level, :cmode, :cstddev)
+    @test length(tbl.cmode) == length(re1.cnames) * length(re1.levels)
 end
 
 @testset "shrinkageplot" begin
