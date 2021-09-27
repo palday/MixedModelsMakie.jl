@@ -55,17 +55,25 @@ ranefinfo(m::GeneralizedLinearMixedModel, args...; kwargs...) = ranefinfo(m.LMM,
 """
     ranefinfotable(ri::RanefInfo)
 
-Return the information in `ri` as a column table (`NamedTuple` of `Vector`s) 
+Return the information in `ri` as a column table (`NamedTuple` of `Vector`s)
+
+The columns are
+
+- `name`: name of the random effect
+- `level`: level of the grouping factor
+- `cmode`: conditional mode of the random effect
+- `cstddev`: conditional standard deviation of the random effect
+
 """
 function ranefinfotable(ri::RanefInfo)
     cnames, levels = ri.cnames, ri.levels
     k = length(cnames)
     l = length(levels)
     (;
-        cname=repeat(cnames; inner=l),
+        name=repeat(cnames; inner=l),
         level=repeat(levels; outer=k),
-        μ=vec(ri.ranef),
-        σ=vec(ri.stddev),
+        cmode=vec(ri.ranef),
+        cstddev=vec(ri.stddev),
     )
 end
 

@@ -57,8 +57,8 @@ end
     @test isone(f.layout.nrows)
     @test f.layout.ncols == 2
     tbl = ranefinfotable(re1)
-    @test keys(tbl) == (:cname, :level, :μ, :σ)
-    @test length(tbl.μ) == length(re1.cnames) * length(re1.levels)
+    @test keys(tbl) == (:name, :level, :cmode, :cstddev)
+    @test length(tbl.cmode) == length(re1.cnames) * length(re1.levels)
 end
 
 @testset "shrinkageplot" begin
