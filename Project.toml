@@ -4,6 +4,7 @@ authors = ["Phillip Alday <me@phillipalday.com>, Douglas Bates <dmbates@gmail.co
 version = "0.3.12"
 
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 KernelDensity = "5ab0869b-81aa-558d-bb23-cbf5423bbe9b"
@@ -18,7 +19,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 DataFrames = "1"
 Distributions = "0.21, 0.22, 0.23, 0.24, 0.25"
 KernelDensity = "0.6.3"
-Makie = "0.15, 0.16"
+Makie = "0.15, 0.16.2"
 MixedModels = "4.1"
 SpecialFunctions = "1, 2"
 StatsBase = "0.31, 0.32, 0.33"
