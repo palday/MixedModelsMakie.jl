@@ -90,8 +90,8 @@ function Makie.plot!(plot::RidgePlot{<:Tuple{MixedModelBootstrap}})
     for (offset, row) in enumerate(reverse(eachrow(dens)))
         # multiply by 0.95 so that the ridges don't overlap
         dd = 0.95 * row.kde.density ./ maximum(row.kde.density)
-        lower = Node(Point2f.(row.kde.x, offset))
-        upper = Node(Point2f.(row.kde.x, dd .+ offset))
+        lower = Observable(Point2f.(row.kde.x, offset))
+        upper = Observable(Point2f.(row.kde.x, dd .+ offset))
         band!(plot, lower, upper; color=(:black, 0.3))
         lines!(plot, upper; color=(:black, 1.0))
     end
