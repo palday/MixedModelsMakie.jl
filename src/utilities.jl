@@ -33,23 +33,19 @@ function confint_table(x::StatsBase.StatisticalModel, level=0.95)
     se = stderror(x)
 
     return DataFrame(;
-        coefname=coefnames(x),
-        estimate=coef(x),
-        lower=coef(x) + semultiple * se,
-        upper=coef(x) - semultiple * se,
-    )
+                     coefname=coefnames(x),
+                     estimate=coef(x),
+                     lower=coef(x) + semultiple * se,
+                     upper=coef(x) - semultiple * se)
 end
 
 function confint_table(x::MixedModelBootstrap, level=0.95)
-    df = transform!(
-        select!(DataFrame(x.β), Not(:iter)), :coefname => ByRow(string) => :coefname
-    )
+    df = transform!(select!(DataFrame(x.β), Not(:iter)),
+                    :coefname => ByRow(string) => :coefname)
     ci(x) = shortestcovint(x, level)
-    return combine(
-        groupby(df, :coefname),
-        :β => mean => :estimate,
-        :β => NamedTuple{(:lower, :upper)} ∘ ci => [:lower, :upper],
-    )
+    return combine(groupby(df, :coefname),
+                   :β => mean => :estimate,
+                   :β => NamedTuple{(:lower, :upper)} ∘ ci => [:lower, :upper])
 end
 
 _npreds(x; show_intercept=true) = length(_coefnames(x; show_intercept))

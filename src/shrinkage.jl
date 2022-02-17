@@ -37,7 +37,7 @@ function splomaxes!(f::Figure, labels, panel!::Function; extraticks::Bool=false)
     end
 
     foreach(values(cols)) do col
-        linkxaxes!(col...)
+        return linkxaxes!(col...)
     end
 
     return f
@@ -52,12 +52,11 @@ Two sets of conditional means are plotted: those at the estimated parameter valu
 The default `θref` results in `Λ` being a very large multiple of the identity.  The corresponding
 conditional means can be regarded as unpenalized.
 """
-function shrinkageplot!(
-    f::Figure,
-    m::MixedModel{T},
-    gf::Symbol=first(fnames(m)),
-    θref::AbstractVector{T}= (isa(m, LinearMixedModel) ? 1e4 : 1) .* m.optsum.initial,
-) where {T}
+function shrinkageplot!(f::Figure,
+                        m::MixedModel{T},
+                        gf::Symbol=first(fnames(m)),
+                        θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
+                                                m.optsum.initial) where {T}
     reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
     if isnothing(reind)
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
@@ -127,9 +126,9 @@ function splom!(f::Figure, df::DataFrame; addcontours::Bool=false)
     mat = Array(df)
     function pfunc(ax, i, j)
         v = view(mat, :, [j, i])
-        scatter!(ax, v, color=(:blue, 0.2))
+        scatter!(ax, v; color=(:blue, 0.2))
         addcontours && contour!(ax, kde(v))
         return ax
     end
-    splomaxes!(f, names(df), pfunc)
+    return splomaxes!(f, names(df), pfunc)
 end

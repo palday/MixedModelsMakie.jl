@@ -42,15 +42,15 @@ function ranefinfo(m::LinearMixedModel, gf::Symbol, re=ranef(m))
 
     # XXX replace ranef(m)[idx] with ranef(m, gf) when that becomes available upstream
     re, eff, cv = m.reterms[idx], re[idx], condVar(m, gf)
-    return RanefInfo(
-        re.cnames,
-        re.levels,
-        Matrix(adjoint(eff)),
-        Matrix(adjoint(dropdims(sqrt.(mapslices(diag, cv; dims=1:2)); dims=2))),
-    )
+    return RanefInfo(re.cnames,
+                     re.levels,
+                     Matrix(adjoint(eff)),
+                     Matrix(adjoint(dropdims(sqrt.(mapslices(diag, cv; dims=1:2)); dims=2))))
 end
 
-ranefinfo(m::GeneralizedLinearMixedModel, args...; kwargs...) = ranefinfo(m.LMM, args...; kwargs...)
+function ranefinfo(m::GeneralizedLinearMixedModel, args...; kwargs...)
+    return ranefinfo(m.LMM, args...; kwargs...)
+end
 
 """
     ranefinfotable(ri::RanefInfo)
@@ -69,12 +69,11 @@ function ranefinfotable(ri::RanefInfo)
     cnames, levels = ri.cnames, ri.levels
     k = length(cnames)
     l = length(levels)
-    (;
-        name=repeat(cnames; inner=l),
-        level=repeat(levels; outer=k),
-        cmode=vec(ri.ranef),
-        cstddev=vec(ri.stddev),
-    )
+    return (;
+            name=repeat(cnames; inner=l),
+            level=repeat(levels; outer=k),
+            cmode=vec(ri.ranef),
+            cstddev=vec(ri.stddev))
 end
 
 """
