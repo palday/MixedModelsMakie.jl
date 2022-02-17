@@ -2,13 +2,19 @@ name: Documenter
 on:
   push:
     branches:
-      - master
       - main
     tags: [v*]
+    paths-ignore:
+      - 'LICENSE.md'
+      - 'README.md'
+      - 'examples/**'
   pull_request:
     branches:
-      - master
       - main
+    paths-ignore:
+      - 'LICENSE.md'
+      - 'README.md'
+      - 'examples/**'
 jobs:
   Documenter:
     name: Documentation

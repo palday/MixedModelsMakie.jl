@@ -2,7 +2,6 @@ name: continuous-integration
 on:
   push:
     branches:
-      - master
       - main
     paths-ignore:
       - 'LICENSE.md'
@@ -10,7 +9,6 @@ on:
       - 'examples/**'
   pull_request:
     branches:
-      - master
       - main
     paths-ignore:
       - 'LICENSE.md'
