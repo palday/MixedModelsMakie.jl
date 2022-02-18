@@ -3,8 +3,7 @@
     return Attributes(;
                       conf_level=0.95,
                       vline_at_zero=true,
-                      show_intercept=true,
-                      )
+                      show_intercept=true)
 end
 
 """
@@ -24,13 +23,11 @@ Setting `conf_level=missing` removes the markings for the highest density interv
     and thus there are also additional auto-generated methods for `ridgeplot` and `ridgeplot!` that may be useful
     when constructing more complex figures.
 """
-function ridgeplot(
-    x::MixedModelBootstrap;
-    conf_level=0.95,
-    vline_at_zero=true,
-    show_intercept=true,
-    attributes...,
-)
+function ridgeplot(x::MixedModelBootstrap;
+                   conf_level=0.95,
+                   vline_at_zero=true,
+                   show_intercept=true,
+                   attributes...)
     # need to guarantee a min height of 200
     fig = Figure(; resolution=(640, max(200, 100 * _npreds(x; show_intercept))))
     ax = Axis(fig[1, 1])
@@ -51,7 +48,8 @@ function Makie.plot!(ax::Axis, P::Type{<:RidgePlot}, allattrs::Makie.Attributes,
         ax.xlabel = allattrs.xlabel[]
     else
         lab = if !ismissing(allattrs.conf_level[])
-           @sprintf  "Normalized bootstrap density and %g%% confidence interval" (allattrs.conf_level[] * 100)
+            @sprintf "Normalized bootstrap density and %g%% confidence interval" (allattrs.conf_level[] *
+                                                                                  100)
         else
             "Normalized bootstrap density"
         end
@@ -98,8 +96,6 @@ function Makie.plot!(plot::RidgePlot{<:Tuple{MixedModelBootstrap}})
 
     return plot
 end
-
-
 
 # """
 #     ridgeplot!(ax::Axis, df::AbstractDataFrame, densvar::Symbol, group::Symbol; normalize=false)

@@ -11,13 +11,11 @@ Create a coefficient plot of the fixed-effects and associated confidence interva
     and thus there are also additional auto-generated methods for `coefplot` and `coefplot!` that may be useful
     when constructing more complex figures.
 """
-function coefplot(
-    x::Union{MixedModel,MixedModelBootstrap};
-    conf_level=0.95,
-    vline_at_zero=true,
-    show_intercept=true,
-    attributes...,
-)
+function coefplot(x::Union{MixedModel,MixedModelBootstrap};
+                  conf_level=0.95,
+                  vline_at_zero=true,
+                  show_intercept=true,
+                  attributes...)
     # need to guarantee a min height of 150
     fig = Figure(; resolution=(640, max(150, 75 * _npreds(x; show_intercept))))
     ax = Axis(fig[1, 1])
@@ -38,9 +36,8 @@ function Makie.plot!(ax::Axis, P::Type{<:CoefPlot}, allattrs::Makie.Attributes, 
     if haskey(allattrs, :xlabel)
         ax.xlabel = allattrs.xlabel[]
     else
-        ax.xlabel = @sprintf "Estimate and %g%% confidence interval" (
-            allattrs.conf_level[] * 100
-        )
+        ax.xlabel = @sprintf "Estimate and %g%% confidence interval" (allattrs.conf_level[] *
+                                                                      100)
     end
     if haskey(allattrs, :ylabel)
         ax.ylabel = allattrs.ylabel[]

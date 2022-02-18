@@ -2,7 +2,6 @@ name: continuous-integration
 on:
   push:
     branches:
-      - master
       - main
     paths-ignore:
       - 'LICENSE.md'
@@ -10,7 +9,6 @@ on:
       - 'examples/**'
   pull_request:
     branches:
-      - master
       - main
     paths-ignore:
       - 'LICENSE.md'
@@ -25,6 +23,11 @@ jobs:
         arch: [x64]
         os: [ubuntu-18.04] # macos-10.15, windows-2019
     steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          all_but_latest: true
+          access_token: ${{ github.token }}
       - name: Checkout
         uses: actions/checkout@v2
       - name: Julia Setup

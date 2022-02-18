@@ -10,21 +10,21 @@ using SpecialFunctions
 using StatsBase
 
 export RanefInfo,
-    caterpillar,
-    caterpillar!,
-    clevelandaxes!,
-    coefplot,
-    coefplot!,
-    qqcaterpillar,
-    qqcaterpillar!,
-    ranefinfo,
-    ranefinfotable,
-    ridgeplot,
-    ridgeplot!,
-    shrinkageplot,
-    shrinkageplot!,
-    simplelinreg,
-    splom!
+       caterpillar,
+       caterpillar!,
+       clevelandaxes!,
+       coefplot,
+       coefplot!,
+       qqcaterpillar,
+       qqcaterpillar!,
+       ranefinfo,
+       ranefinfotable,
+       ridgeplot,
+       ridgeplot!,
+       shrinkageplot,
+       shrinkageplot!,
+       simplelinreg,
+       splom!
 
 include("utilities.jl")
 include("shrinkage.jl")
