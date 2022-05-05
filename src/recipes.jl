@@ -2,7 +2,8 @@
 
 # XXX it would be great to have a 1-1 aspect ratio here,
 # but this seems like something that should be done upstream
-function Makie.convert_arguments(P::Type{<:Makie.QQNorm}, x::MixedModel, args...; qqline=:fitrobust,
+function Makie.convert_arguments(P::Type{<:Makie.QQNorm}, x::MixedModel, args...;
+                                 qqline=:fitrobust,
                                  kwargs...)
     qqline = (qqline in (:fitrobust, :R) && MAKIE_VERSION < v"0.16") ? :R : :fitrobust
     # this addresses a bug in the current Makie release:
