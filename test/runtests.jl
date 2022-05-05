@@ -68,3 +68,7 @@ end
     @test length(ppts) == 64
     @test first(ppts) ≈ inv(128)
 end
+
+@testset "recipes" begin
+    @test_logs (:warn, "qqline=:R is a deprecated value, use qqline=:fitrobust instead.") match_mode=:any qqnorm(m1; qqline=:R)
+end

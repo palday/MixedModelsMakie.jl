@@ -5,7 +5,10 @@
 function Makie.convert_arguments(P::Type{<:Makie.QQNorm}, x::MixedModel, args...;
                                  qqline=:fitrobust,
                                  kwargs...)
-    qqline = (qqline in (:fitrobust, :R) && MAKIE_VERSION < v"0.16") ? :R : :fitrobust
+    if qqline == :R
+        @warn "qqline=:R is a deprecated value, use qqline=:fitrobust instead."
+        qqline = :fitrobust
+    end
     # this addresses a bug in the current Makie release:
     # https://github.com/JuliaPlots/Makie.jl/pull/1277
     return convert_arguments(QQPlot, Distributions.Normal(0, 1), residuals(x), args...;
