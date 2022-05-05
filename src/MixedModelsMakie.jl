@@ -9,6 +9,9 @@ using Printf
 using SpecialFunctions
 using StatsBase
 
+using Pkg
+const MAKIE_VERSION = Pkg.dependencies()[Pkg.project().dependencies["Makie"]].version
+
 export RanefInfo,
        caterpillar,
        caterpillar!,

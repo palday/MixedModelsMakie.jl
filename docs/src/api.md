@@ -171,6 +171,9 @@ Specify the type of line on the QQ plots with the `qqline` keyword-argument. The
 
 The reference distribution for `qqnorm` is the standard normal, which differs from [the behavior in previous versions of Makie](https://github.com/JuliaPlots/Makie.jl/pull/1277).
 
+!!! compat
+    The [options and associated names for the `qqline` keyword argument](https://makie.juliaplots.org/v0.16/examples/plotting_functions/qqplot/index.html) changed in [Makie 0.16.3](https://github.com/JuliaPlots/Makie.jl/pull/1563) (and were broken in Makie 0.16.0-0.16.2). The equivalent to `qqline=:R` is
+    `qqline=:fitrobust`.
 ```@example Residuals
 using CairoMakie
 using MixedModels
@@ -179,7 +182,7 @@ using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
 
 fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy; progress=false)
-qqnorm(fm1; qqline=:R)
+qqnorm(fm1; qqline=:fitrobust)
 ```
 
 ```@example Residuals
