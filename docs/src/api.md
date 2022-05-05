@@ -167,13 +167,12 @@ These are especially useful for diagnostics and model checking.
 The methods for `qqnorm` and `qqplot` are implemented using [Makie recipes](https://makie.juliaplots.org/v0.15.0/recipes.html).
 In other words, these are convenience wrappers for calling the relevant plotting methods on `residuals(model)`.
 
-Specify the type of line on the QQ plots with the `qqline` keyword-argument. The default for `qqnorm` is `:R`, which delivers an R-style line connecting the first and third quartiles. The default for `qqplot` is `:identity`, which plots the line with slope = 1 and intercept = 0. The final possiblity is `:fit`, which plots the line of best fit (i.e. regressing the quantiles of the residuals onto the quantiles of the reference distribution).
+Specify the type of line on the QQ plots with the `qqline` keyword-argument. The default for `qqnorm` is `:fitrobust`, which delivers an R-style line connecting the first and third quartiles. The default for `qqplot` is `:identity`, which plots the line with slope = 1 and intercept = 0. The final possiblity is `:fit`, which plots the line of best fit (i.e. regressing the quantiles of the residuals onto the quantiles of the reference distribution).
 
 The reference distribution for `qqnorm` is the standard normal, which differs from [the behavior in previous versions of Makie](https://github.com/JuliaPlots/Makie.jl/pull/1277).
 
 !!! compat
-    The [options and associated names for the `qqline` keyword argument](https://makie.juliaplots.org/v0.16/examples/plotting_functions/qqplot/index.html) changed in [Makie 0.16.3](https://github.com/JuliaPlots/Makie.jl/pull/1563) (and were broken in Makie 0.16.0-0.16.2). The equivalent to `qqline=:R` is
-    `qqline=:fitrobust`.
+    The [options and associated names for the `qqline` keyword argument](https://makie.juliaplots.org/v0.16/examples/plotting_functions/qqplot/index.html) changed in [Makie 0.16.3](https://github.com/JuliaPlots/Makie.jl/pull/1563) (and were broken in Makie 0.16.0-0.16.2). The equivalent to `qqline=:R` is `qqline=:fitrobust`. `qqline=:R` will be supported for backwards compatibility only until the next breaking release.
 ```@example Residuals
 using CairoMakie
 using MixedModels
