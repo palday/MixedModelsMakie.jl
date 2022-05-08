@@ -44,15 +44,14 @@ end
     @test isa(re1, RanefInfo)
     @test re1.cnames == ["(Intercept)", "days"]
     @test first(re1.levels) == "S308"
-    @test first(re1.ranef) ≈ -0.081830283935302 atol = 1.0e-5
-    @test first(re1.stddev) ≈ 0.14035486016644683 atol = 1.0e-5
+    @test first(re1.ranef) ≈ -0.081830 atol = 1e-5
+    @test first(re1.stddev) ≈ 0.140354 atol = 1e-5
     f = Figure()
     @test f.content == Any[]
     caterpillar!(f, re1)
     @test length(f.content) == 2
     @test isa(first(f.content), Axis)
-    @test isone(f.layout.nrows)
-    @test f.layout.ncols == 2
+    @test size(f.layout) == (1, 2)
     tbl = ranefinfotable(re1)
     @test keys(tbl) == (:name, :level, :cmode, :cstddev)
     @test length(tbl.cmode) == length(re1.cnames) * length(re1.levels)
