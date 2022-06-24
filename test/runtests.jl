@@ -1,4 +1,4 @@
-using Makie
+using CairoMakie
 using MixedModels
 using MixedModelsMakie
 using Random # we don't depend on exact PRNG vals, so no need for StableRNGs
@@ -6,68 +6,74 @@ using Test
 
 using MixedModelsMakie: confint_table
 
-@testset "There are no graphical tests" begin
-    @test true
-end
+const OUTDIR = joinpath(pkgdir(MixedModelsMakie), "test", "output")
 
-@testset "Simple linear regression" begin
-    a, b = 1, 2
-    x = collect(1:10)
-    y = randn(MersenneTwister(42), 10) * 0.1
-    @. y += a + b * x
-    result = simplelinreg(x, y)
-    @test result isa Tuple
-    @test a ≈ result[1] atol = 0.05
-    @test b ≈ result[2] atol = 0.05
+@testset "utilities, types and tables" begin
+    include("utils_and_types.jl")
 end
 
 m1 = fit(MixedModel,
          @formula(1000 / reaction ~ 1 + days + (1 + days | subj)),
          MixedModels.dataset(:sleepstudy))
 
-@testset "confint_table" begin
-    wald = confint_table(m1, 0.68)
-    bsamp = parametricbootstrap(MersenneTwister(42), 1000, m1)
-    boot = confint_table(bsamp, 0.68)
+m2 = fit(MixedModel,
+         @formula(rt_trunc ~ 1 + spkr * prec * load +
+                             (1 + spkr + prec + load | subj) +
+                             (1 + spkr | item)),
+         MixedModels.dataset(:kb07))
 
-    @test wald.coefname == boot.coefname
-    @test wald.estimate ≈ boot.estimate rtol = 0.05
-    @test wald.lower ≈ boot.lower rtol = 0.05
-    @test wald.upper ≈ boot.upper rtol = 0.05
+b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
+
+@testset "[qq]caterpillar" begin
+    f = caterpillar(m1)
+    save(joinpath(OUTDIR, "cat_sleepstudy.png"), f)
+
+    f = caterpillar(m2, :subj)
+    save(joinpath(OUTDIR, "cat_kb07_subj.png"), f)
+
+    f = caterpillar(m2, :item)
+    save(joinpath(OUTDIR, "cat_kb07_item.png"), f)
+
+    f = qqcaterpillar(m1)
+    save(joinpath(OUTDIR, "qqcat_sleepstudy.png"), f)
+
+    f = qqcaterpillar(m2, :subj)
+    save(joinpath(OUTDIR, "qqcat_kb07_subj.png"), f)
+
+    f = qqcaterpillar(m2, :item)
+    save(joinpath(OUTDIR, "qqcat_kb07_item.png"), f)
 end
 
-@testset "ranefinfo" begin
-    reinfo = ranefinfo(m1)
-    @test isone(length(reinfo))
-    @test keys(reinfo) == (:subj,)
-    re1 = only(reinfo)
-    @test isa(re1, RanefInfo)
-    @test re1.cnames == ["(Intercept)", "days"]
-    @test first(re1.levels) == "S308"
-    @test first(re1.ranef) ≈ -0.081830 atol = 1e-5
-    @test first(re1.stddev) ≈ 0.140354 atol = 1e-5
-    f = Figure()
-    @test f.content == Any[]
-    caterpillar!(f, re1)
-    @test length(f.content) == 2
-    @test isa(first(f.content), Axis)
-    @test size(f.layout) == (1, 2)
-    tbl = ranefinfotable(re1)
-    @test keys(tbl) == (:name, :level, :cmode, :cstddev)
-    @test length(tbl.cmode) == length(re1.cnames) * length(re1.levels)
+@testset "coefplot" begin
+    f = coefplot(m1)
+    save(joinpath(OUTDIR, "coef_sleepstudy.png"), f)
+
+    f = coefplot(b1)
+    save(joinpath(OUTDIR, "coef_sleepstudy_boot.png"), f)
+end
+
+@testset "recipes" begin
+    @test_logs (:warn, "qqline=:R is a deprecated value, use qqline=:fitrobust instead.") match_mode = :any qqnorm(m1;
+                                                                                                                   qqline=:R)
+    f = qqnorm(m1; qqline=:fitrobust)
+    save(joinpath(OUTDIR, "qqnorm_sleepstudy_fitrobust.png"), f)
+
+    f = qqplot(Normal(0, m1.σ), m1)
+    save(joinpath(OUTDIR, "qqplot_sleepstud.png"), f)
+end
+
+@testset "ridgeplot" begin
+    f = ridgeplot(b1)
+    save(joinpath(OUTDIR, "ridge_sleepstudy.png"), f)
 end
 
 @testset "shrinkageplot" begin
     f = shrinkageplot(m1)
-    @test isone(length(f.content))
-end
+    save(joinpath(OUTDIR, "shrinkage_sleepstudy.png"), f)
 
-@testset "utilities" begin
-    ppts = MixedModelsMakie.ppoints(64)
-    @test length(ppts) == 64
-    @test first(ppts) ≈ inv(128)
-end
+    f = shrinkageplot(m2, :item)
+    save(joinpath(OUTDIR, "shrinkage_kb07_item.png"), f)
 
-@testset "recipes" begin
-    @test_logs (:warn, "qqline=:R is a deprecated value, use qqline=:fitrobust instead.") match_mode=:any qqnorm(m1; qqline=:R)
+    f = shrinkageplot(m2, :subj)
+    save(joinpath(OUTDIR, "shrinkage_kb07_subj.png"), f)
 end

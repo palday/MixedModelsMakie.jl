@@ -58,8 +58,8 @@ Return a sequence of `n` equally-spaced points in the interval (0, 1) - so-calle
 ppoints(n::Integer) = inv(2n):inv(n):1
 
 """
-    zquantile(x::AbstractFloat)
+    zquantile(x::Real)
 
 Evaluate `quantile(Normal(), x)` using only the `SpecialFunctions` package (i.e. not requiring `Distributions`).
 """
-zquantile(x::T) where {T<:AbstractFloat} = -erfcinv(2x) * sqrt(T(2))
+zquantile(x::T) where {T<:Real} = -erfcinv(2x) * sqrt(T(2))

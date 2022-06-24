@@ -12,13 +12,13 @@ on:
       - '.gitignore'
 jobs:
   format-check:
-    name: Style Enforcement (Julia ${{ matrix.julia-version }} - ${{ github.event_name }})
+    name: Style Enforcement
     # Run on push's or non-draft PRs
     if: (github.event_name == 'push') || (github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        julia-version: [1.6]
+        julia-version: [1.7]
     steps:
       - uses: julia-actions/setup-julia@latest
         with:
