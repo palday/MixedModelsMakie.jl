@@ -28,8 +28,10 @@ m2 = fit(MixedModel,
 b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
 
 g1 = fit(MixedModel,
-         @formula(use ~ 1 + age + abs2(age) + urban + livch + (1 | urban & dist)),
-         MixedModels.dataset(:contra), Bernoulli(); progress)
+         @formula(r2 ~ 1 + anger + gender + btype + situ +
+                       (1|subj) + (1+gender|item)),
+        verbagg,
+        Bernoulli(); progress)
 
 @testset "[qq]caterpillar" begin
     f = caterpillar(m1)
@@ -42,7 +44,7 @@ g1 = fit(MixedModel,
     save(joinpath(OUTDIR, "cat_kb07_item.png"), f)
 
     f = caterpillar(g1)
-    save(joinpath(OUTDIR, "cat_contra.png"), f)
+    save(joinpath(OUTDIR, "cat_verbagg.png"), f)
 
     f = qqcaterpillar(m1)
     save(joinpath(OUTDIR, "qqcat_sleepstudy.png"), f)
@@ -54,7 +56,7 @@ g1 = fit(MixedModel,
     save(joinpath(OUTDIR, "qqcat_kb07_item.png"), f)
 
     f = qqcaterpillar(g1)
-    save(joinpath(OUTDIR, "qqcat_contra.png"), f)
+    save(joinpath(OUTDIR, "qqcat_verbagg.png"), f)
 end
 
 @testset "clevelandaxes" begin
@@ -67,7 +69,7 @@ end
         text!(f[i, j], 1.9, -1.9;
               text="[$i, $j]", align=(:center, :center), textsize=14)
     end
-    f
+    save(joinpath(OUTDIR, "clevelandaxes.png"), f)
 end
 
 @testset "coefplot" begin
@@ -103,8 +105,8 @@ end
     f = shrinkageplot(m2, :subj)
     save(joinpath(OUTDIR, "shrinkage_kb07_subj.png"), f)
 
-    f = shrinkageplot(g1)
-    save(joinpath(OUTDIR, "shrinkage_contra.png"), f)
+    f = shrinkageplot(g1, :item)
+    save(joinpath(OUTDIR, "shrinkage_verbagg.png"), f)
 end
 
 @testset "splom!" begin
