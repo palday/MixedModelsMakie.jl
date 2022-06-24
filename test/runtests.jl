@@ -8,6 +8,7 @@ using Test
 using MixedModelsMakie: confint_table
 
 const OUTDIR = joinpath(pkgdir(MixedModelsMakie), "test", "output")
+const progress = false
 
 @testset "utilities, types and tables" begin
     include("utils_and_types.jl")
@@ -15,15 +16,19 @@ end
 
 m1 = fit(MixedModel,
          @formula(1000 / reaction ~ 1 + days + (1 + days | subj)),
-         MixedModels.dataset(:sleepstudy))
+         MixedModels.dataset(:sleepstudy); progress)
 
 m2 = fit(MixedModel,
          @formula(rt_trunc ~ 1 + spkr * prec * load +
                              (1 + spkr + prec + load | subj) +
                              (1 + spkr | item)),
-         MixedModels.dataset(:kb07))
+         MixedModels.dataset(:kb07); progress)
 
 b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
+
+g1 = fit(MixedModel,
+         @formula(use ~ 1+age+abs2(age)+urban+livch+(1|urban&dist)),
+         MixedModels.dataset(:contra); progress)
 
 @testset "[qq]caterpillar" begin
     f = caterpillar(m1)
@@ -35,6 +40,9 @@ b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
     f = caterpillar(m2, :item)
     save(joinpath(OUTDIR, "cat_kb07_item.png"), f)
 
+    f = caterpillar(g1)
+    save(joinpath(OUTDIR, "cat_contra.png"), f)
+
     f = qqcaterpillar(m1)
     save(joinpath(OUTDIR, "qqcat_sleepstudy.png"), f)
 
@@ -43,6 +51,9 @@ b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
 
     f = qqcaterpillar(m2, :item)
     save(joinpath(OUTDIR, "qqcat_kb07_item.png"), f)
+
+    f = qqcaterpillar(g1)
+    save(joinpath(OUTDIR, "qqcat_contra.png"), f)
 end
 
 @testset "coefplot" begin
@@ -77,6 +88,9 @@ end
 
     f = shrinkageplot(m2, :subj)
     save(joinpath(OUTDIR, "shrinkage_kb07_subj.png"), f)
+
+    f = shrinkageplot(g1)
+    save(joinpath(OUTDIR, "shrinkage_contra.png"), f)
 end
 
 @testset "splom!" begin
