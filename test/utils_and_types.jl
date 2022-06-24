@@ -3,8 +3,8 @@
     @test length(ppts) == 64
     @test first(ppts) ≈ inv(128)
 
-    @test MixedModelsMakie.zquantile(0.025) ≈ -1.96 atol=0.005
-    @test MixedModelsMakie.zquantile(0.975) ≈ 1.96 atol=0.005
+    @test MixedModelsMakie.zquantile(0.025) ≈ -1.96 atol = 0.005
+    @test MixedModelsMakie.zquantile(0.975) ≈ 1.96 atol = 0.005
     @test MixedModelsMakie.zquantile(0.50) ≈ 0
 end
 

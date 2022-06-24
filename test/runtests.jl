@@ -18,8 +18,8 @@ m1 = fit(MixedModel,
 
 m2 = fit(MixedModel,
          @formula(rt_trunc ~ 1 + spkr * prec * load +
-                            (1 + spkr + prec + load | subj) +
-                            (1 + spkr | item)),
+                             (1 + spkr + prec + load | subj) +
+                             (1 + spkr | item)),
          MixedModels.dataset(:kb07))
 
 b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
@@ -42,7 +42,6 @@ b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
 
     f = qqcaterpillar(m2, :item)
     save(joinpath(OUTDIR, "qqcat_kb07_item.png"), f)
-
 end
 
 @testset "coefplot" begin
@@ -54,7 +53,8 @@ end
 end
 
 @testset "recipes" begin
-    @test_logs (:warn, "qqline=:R is a deprecated value, use qqline=:fitrobust instead.") match_mode=:any qqnorm(m1; qqline=:R)
+    @test_logs (:warn, "qqline=:R is a deprecated value, use qqline=:fitrobust instead.") match_mode = :any qqnorm(m1;
+                                                                                                                   qqline=:R)
     f = qqnorm(m1; qqline=:fitrobust)
     save(joinpath(OUTDIR, "qqnorm_sleepstudy_fitrobust.png"), f)
 
