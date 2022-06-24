@@ -29,7 +29,7 @@ b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
 
 g1 = fit(MixedModel,
          @formula(use ~ 1+age+abs2(age)+urban+livch+(1|urban&dist)),
-         MixedModels.dataset(:contra); progress)
+         MixedModels.dataset(:contra), Bernoulli(); progress)
 
 @testset "[qq]caterpillar" begin
     f = caterpillar(m1)
