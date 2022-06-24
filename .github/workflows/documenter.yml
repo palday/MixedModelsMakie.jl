@@ -1,4 +1,7 @@
 name: Documenter
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
 on:
   push:
     branches:
@@ -19,12 +22,9 @@ jobs:
   Documenter:
     name: Documentation
     runs-on: ubuntu-20.04
+    # Run on push's or non-draft PRs
+    if: (github.event_name == 'push') || (github.event.pull_request.draft == false)
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.9.1
-        with:
-          all_but_latest: true
-          access_token: ${{ github.token }}
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
