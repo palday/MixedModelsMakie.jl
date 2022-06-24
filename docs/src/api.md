@@ -139,6 +139,7 @@ using CairoMakie
 using MixedModels
 using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
+verbagg = MixedModels.dataset(:verbagg)
 
 fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy; progress=false)
 shrinkageplot(fm1)
@@ -154,7 +155,7 @@ gm1 = fit(MixedModel,
           verbagg,
           Bernoulli();
           progress=false)
-shrinkageplot(gm1)
+shrinkageplot(gm1, :item)
 ```
 
 ## Diagnostics
