@@ -1,4 +1,5 @@
 using CairoMakie
+using DataFrames
 using MixedModels
 using MixedModelsMakie
 using Random # we don't depend on exact PRNG vals, so no need for StableRNGs
@@ -76,4 +77,11 @@ end
 
     f = shrinkageplot(m2, :subj)
     save(joinpath(OUTDIR, "shrinkage_kb07_subj.png"), f)
+end
+
+@testset "splom!" begin
+    df = DataFrame(MixedModels.dataset(:mmec))
+    splof = @test_logs (:info,
+                        r"Ignoring 3 non-numeric columns") splom!(Figure(), df)
+    save(joinpath(OUTDIR, "splom_mmec.png"), splof)
 end
