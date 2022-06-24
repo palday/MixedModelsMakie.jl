@@ -28,7 +28,7 @@ m2 = fit(MixedModel,
 b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
 
 g1 = fit(MixedModel,
-         @formula(use ~ 1+age+abs2(age)+urban+livch+(1|urban&dist)),
+         @formula(use ~ 1 + age + abs2(age) + urban + livch + (1 | urban & dist)),
          MixedModels.dataset(:contra), Bernoulli(); progress)
 
 @testset "[qq]caterpillar" begin
@@ -58,7 +58,7 @@ g1 = fit(MixedModel,
 end
 
 @testset "clevelandaxes" begin
-    f = clevelandaxes!(Figure(), ["S$(lpad(i, 2))" for i in 1:16], (4,4))
+    f = clevelandaxes!(Figure(), ["S$(lpad(i, 2))" for i in 1:16], (4, 4))
     n = 12
     for i in 1:4, j in 1:4
         x = randn(MersenneTwister(i), n)
