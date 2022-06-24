@@ -30,7 +30,7 @@ b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
 g1 = fit(MixedModel,
          @formula(r2 ~ 1 + anger + gender + btype + situ +
                        (1 | subj) + (1 + gender | item)),
-         verbagg,
+         MixedModels.dataset(:verbagg),
          Bernoulli(); progress)
 
 @testset "[qq]caterpillar" begin
