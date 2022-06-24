@@ -3,6 +3,7 @@ using DataFrames
 using MixedModels
 using MixedModelsMakie
 using Random # we don't depend on exact PRNG vals, so no need for StableRNGs
+using Statistics
 using Test
 
 using MixedModelsMakie: confint_table
@@ -54,6 +55,19 @@ g1 = fit(MixedModel,
 
     f = qqcaterpillar(g1)
     save(joinpath(OUTDIR, "qqcat_contra.png"), f)
+end
+
+@testset "clevelandaxes" begin
+    f = clevelandaxes!(Figure(), ["S$(lpad(i, 2))" for i in 1:16], (4,4))
+    n = 12
+    for i in 1:4, j in 1:4
+        x = randn(MersenneTwister(i), n)
+        y = randn(MersenneTwister(j), n)
+        scatter!(f[i, j], x, y)
+        text!(f[i, j], 1.9, -1.9;
+              text="[$i, $j]", align=(:center, :center), textsize=14)
+    end
+    f
 end
 
 @testset "coefplot" begin
