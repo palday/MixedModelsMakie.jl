@@ -1,6 +1,6 @@
 name: Documenter
 concurrency:
-  group: ${{ github.head_ref }}
+  group: ${{ github.head_ref }}.documenter
   cancel-in-progress: true
 on:
   push:

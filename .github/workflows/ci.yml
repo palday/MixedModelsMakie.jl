@@ -1,6 +1,6 @@
 name: continuous-integration
 concurrency:
-  group: ${{ github.head_ref }}
+  group: ${{ github.head_ref }}.ci
   cancel-in-progress: true
 on:
   push:
