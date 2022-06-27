@@ -21,7 +21,7 @@ end
 
 m1 = fit(MixedModel,
          @formula(1000 / reaction ~ 1 + days + (1 + days | subj)),
-         MixedModels.dataset(:sleepstudy))
+         MixedModels.dataset(:sleepstudy); progress)
 
 @testset "confint_table" begin
     wald = confint_table(m1, 0.68)

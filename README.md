@@ -5,7 +5,8 @@
 [![Dev Docs][docs-dev-img]][docs-dev-url]
 [![Codecov](https://codecov.io/gh/palday/MixedModelsMakie.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/palday/MixedModelsMakie.jl)
 [![DOI](https://zenodo.org/badge/337082315.svg)](https://zenodo.org/badge/latestdoi/337082315)
-[![Code Style: YAS](https://img.shields.io/badge/code%20style-yas-1fdcb2.svg)](https://github.com/jrevels/YASGuide)
+[![Code Style: YAS](https://img.shields.io/badge/code%20style-yas-1fdcb3.svg)](https://github.com/jrevels/YASGuide)
+[![This project is using Percy.io for visual regression testing.](https://percy.io/static/images/percy-badge.svg)](https://percy.io/d68e1e2f/MixedModelsMakie)
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://palday.github.io/MixedModelsMakie.jl/dev

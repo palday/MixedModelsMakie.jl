@@ -121,8 +121,15 @@ end
     splom!(f::Figure, df::DataFrame)
 
 Create a scatter-plot matrix in `f` from the columns of `df`.
+
+Non-numeric columns are ignored.
 """
 function splom!(f::Figure, df::DataFrame; addcontours::Bool=false)
+    n_cols = ncol(df)
+    df = select(df, findall(col -> eltype(col) <: Number, eachcol(df));
+                copycols=false)
+    n_cols > ncol(df) &&
+        @info "Ignoring $(n_cols - ncol(df)) non-numeric columns."
     mat = Array(df)
     function pfunc(ax, i, j)
         v = view(mat, :, [j, i])
