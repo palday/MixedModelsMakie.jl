@@ -1,4 +1,5 @@
 module MixedModelsMakie
+using BSplines
 using LinearAlgebra
 using DataFrames
 using Distributions
@@ -24,12 +25,14 @@ export RanefInfo,
        shrinkageplot,
        shrinkageplot!,
        simplelinreg,
-       splom!
+       splom!,
+       zetaplot
 
 include("utilities.jl")
 include("shrinkage.jl")
 include("caterpillar.jl")
 include("coefplot.jl")
+include("profile.jl")
 include("ridge.jl")
 include("xyplot.jl")
 include("recipes.jl")

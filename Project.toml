@@ -4,6 +4,7 @@ authors = ["Phillip Alday <me@phillipalday.com>, Douglas Bates <dmbates@gmail.co
 version = "0.3.15"
 
 [deps]
+BSplines = "488c2830-172b-11e9-1591-253b8a7df96d"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 KernelDensity = "5ab0869b-81aa-558d-bb23-cbf5423bbe9b"
