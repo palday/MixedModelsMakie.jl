@@ -69,7 +69,7 @@ function shrinkageplot!(f::Figure,
                         gf::Symbol=first(fnames(m)),
                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
                                                 m.optsum.initial;
-                        ellipse=false) where {T}
+                        ellipse=false, ellipse_scale=3, n_ellipse=5) where {T}
     reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
     if isnothing(reind)
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
@@ -77,24 +77,15 @@ function shrinkageplot!(f::Figure,
     reest = ranef(m)[reind]          # random effects conditional means at estimated θ
     reref = _ranef(m, θref)[reind]   # same at θref
     remat = m.reterms[reind]
-    display(remat.λ)
+    # display(remat.λ)
     function pfunc(ax, i, j)
         x, y = view(reref, j, :), view(reref, i, :)
         u, v = view(reest, j, :), view(reest, i, :)
         if ellipse
-            @info i, j
             cho = remat.λ[[i, j], [j,i]]
-            display(cho)
-            # ru = max(abs(minimum(u)), abs(maximum(u)))
-            # rv = max(abs(minimum(v)), abs(maximum(v)))
-            # rx = max(abs(minimum(x)), abs(maximum(x)))
-            # ry = max(abs(minimum(y)), abs(maximum(y)))
-            rad_outer = 1.1 * maximum(zip(x,y)) do tup
-                return sqrt(sum(abs2, tup))
-            end
+            rad_outer = ellipse_scale * max(maximum(abs, x), maximum(abs,y))
             rad_inner = 0
-            # rad_outer = 1.1 * sqrt(sum(abs2, [rx, ry]))
-            for radius in LinRange(rad_inner, rad_outer, 5)
+            for radius in LinRange(rad_inner, rad_outer, n_ellipse)
                 ex, ey = getellipsepoints(radius, cho)
                 lines!(ax, ex, ey;  color=:green, linestyle=:dash)
             end
