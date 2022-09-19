@@ -1,5 +1,6 @@
 module MixedModelsMakie
-using BSplines
+using AlgebraOfGraphics
+using BSplineKit
 using LinearAlgebra
 using DataFrames
 using Distributions
@@ -16,6 +17,7 @@ export RanefInfo,
        clevelandaxes!,
        coefplot,
        coefplot!,
+       deltadensity,
        qqcaterpillar,
        qqcaterpillar!,
        ranefinfo,

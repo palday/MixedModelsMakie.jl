@@ -1,31 +1,45 @@
-function _mksplines(tbl)
-    return map(sort(unique(tbl.i))) do i
-        tbli = filter(r -> r.i == i, tbl)
-        ζ = tbli.ζ
-        issorted(ζ) || ArgumentError("ζ values not sorted for β[$i]")
-        β = [β[i] for β in tbli.β]
-        issorted(β) || ArgumentError("β values not sorted for β[$i]")
-        (;
-            fwd = interpolate(BSplineBasis(4, β), β, ζ),
-            rev = interpolate(BSplineBasis(4, ζ), ζ, β),
-        )
-    end
-end
-
-function splinepanel(splpair; npts::Integer=100 )
-    (; fwd) = splpair
-    extr = extrema(fwd.basis.breakpoints)
-    betas = collect(range(first(extr), last(extr); length=npts))
-    zetas = [fwd(β) for β in betas]
-    return lines(betas, zetas)
-end
-
 function zetaplot(
     pr::MixedModelProfile;
     absv::Bool=true,
     coverage=[0.5, 0.8, 0.9, 0.95, 0.99],
 )
-    (; prtbl, fecnames, facnames, recnames) = pr
-    spl = _mksplines(prtbl)
-    splinepanel(first(spl))
+    (; prtbl, δ, fecnames) = pr
+    draw(
+        data(
+            (;
+            δ = repeat(collect(δ); outer=length(fecnames)),
+            ζ = prtbl.ζ,
+            cnames = repeat(fecnames, inner=length(δ)),
+            ),
+        ) *
+        (
+            if absv
+                mapping(:δ, :ζ => abs => "|ζ|"; color=(:cnames => "Coefficient"))
+            else
+                mapping(:δ, :ζ; color=(:cnames => "Coefficient"))
+            end
+         ) *
+        visual(Lines);
+        figure=(; resolution=(1000, 600)),
+    )
 end
+
+function deltadensity(pr::MixedModelProfile)
+    (; δ, fecnames, splines) = pr
+    xpat = first(δ):0.125:last(δ)
+    xv = repeat(xpat, outer=length(fecnames))
+    dv = @. exp(-abs2(xv) / 2) / inv(sqrt(2π)) 
+    dens = dv ./ foldl(vcat, map(s -> (Derivative(1) * s).(xpat), splines))
+    cnames = repeat(fecnames; inner=length(xpat))
+    draw( 
+        data((; xv, dens, cnames)) *
+        mapping(
+            :xv => "δ",
+            :dens => "Effective probability density";
+            color=:cnames => "Coefficient",
+        ) * 
+        visual(Lines);
+        figure=(; resolution=(1000, 600)),
+    )
+end
+
