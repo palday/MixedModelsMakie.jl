@@ -54,7 +54,7 @@ jobs:
         if: ${{ matrix.version == '1.6' }}
         run: |
           ls ./test/output/ # useful for debugging
-          npx percy upload ./test/output
+          npx @percy/cli upload ./test/output
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
       - name: Coverage Process
