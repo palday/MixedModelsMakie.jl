@@ -46,13 +46,13 @@ end
 getellipsepoints(radius, lambda) = getellipsepoints(0, 0, radius, lambda)
 
 function getellipsepoints(cx, cy, radius, lambda)
-    t = range(0, 2π, length=100)
-	ellipse_x_r = cos.(t)
-	ellipse_y_r = sin.(t)
-	r_ellipse = radius .* hcat(ellipse_x_r, ellipse_y_r) * lambda'
-	x = @. cx + r_ellipse[:, 2]
-	y = @. cy + r_ellipse[:, 1]
-	return x, y
+    t = range(0, 2π; length=100)
+    ellipse_x_r = cos.(t)
+    ellipse_y_r = sin.(t)
+    r_ellipse = radius .* hcat(ellipse_x_r, ellipse_y_r) * lambda'
+    x = @. cx + r_ellipse[:, 2]
+    y = @. cy + r_ellipse[:, 1]
+    return x, y
 end
 
 """
@@ -92,12 +92,12 @@ function shrinkageplot!(f::Figure,
         x, y = view(reref, j, :), view(reref, i, :)
         u, v = view(reest, j, :), view(reest, i, :)
         if ellipse
-            cho = remat.λ[[i, j], [j,i]]
-            rad_outer = ellipse_scale * max(maximum(abs, x), maximum(abs,y))
+            cho = remat.λ[[i, j], [j, i]]
+            rad_outer = ellipse_scale * max(maximum(abs, x), maximum(abs, y))
             rad_inner = 0
-            for radius in LinRange(rad_inner, rad_outer, n_ellipse+1)
+            for radius in LinRange(rad_inner, rad_outer, n_ellipse + 1)
                 ex, ey = getellipsepoints(radius, cho)
-                lines!(ax, ex, ey;  color=:green, linestyle=:dash)
+                lines!(ax, ex, ey; color=:green, linestyle=:dash)
             end
         end
         scatter!(ax, x, y; color=(:red, 0.25))   # reference points

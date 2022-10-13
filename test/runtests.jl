@@ -20,8 +20,8 @@ m1 = fit(MixedModel,
          MixedModels.dataset(:sleepstudy); progress)
 
 m1zc = fit(MixedModel,
-            @formula(1000 / reaction ~ 1 + days + zerocorr(1 + days | subj)),
-            MixedModels.dataset(:sleepstudy); progress)
+           @formula(1000 / reaction ~ 1 + days + zerocorr(1 + days | subj)),
+           MixedModels.dataset(:sleepstudy); progress)
 
 m2 = fit(MixedModel,
          @formula(rt_trunc ~ 1 + spkr * prec * load +
