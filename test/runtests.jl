@@ -29,7 +29,7 @@ m2 = fit(MixedModel,
                              (1 + spkr | item)),
          MixedModels.dataset(:kb07); progress)
 
-b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
+b1 = parametricbootstrap(MersenneTwister(42), 100, m1; hide_progress=!progress)
 
 g1 = fit(MixedModel,
          @formula(r2 ~ 1 + anger + gender + btype + situ +
