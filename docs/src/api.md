@@ -146,6 +146,10 @@ shrinkageplot(fm1)
 ```
 
 ```@example Shrinkage
+shrinkageplot(fm1; ellipse=true)
+```
+
+```@example Shrinkage
 shrinkageplot!(Figure(; resolution=(400,400)), fm1)
 ```
 

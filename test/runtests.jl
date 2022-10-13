@@ -19,13 +19,17 @@ m1 = fit(MixedModel,
          @formula(1000 / reaction ~ 1 + days + (1 + days | subj)),
          MixedModels.dataset(:sleepstudy); progress)
 
+m1zc = fit(MixedModel,
+           @formula(1000 / reaction ~ 1 + days + zerocorr(1 + days | subj)),
+           MixedModels.dataset(:sleepstudy); progress)
+
 m2 = fit(MixedModel,
          @formula(rt_trunc ~ 1 + spkr * prec * load +
                              (1 + spkr + prec + load | subj) +
                              (1 + spkr | item)),
          MixedModels.dataset(:kb07); progress)
 
-b1 = parametricbootstrap(MersenneTwister(42), 100, m1)
+b1 = parametricbootstrap(MersenneTwister(42), 100, m1; hide_progress=!progress)
 
 g1 = fit(MixedModel,
          @formula(r2 ~ 1 + anger + gender + btype + situ +
@@ -105,8 +109,14 @@ end
     f = shrinkageplot(m2, :subj)
     save(joinpath(OUTDIR, "shrinkage_kb07_subj.png"), f)
 
+    f = shrinkageplot(m2; ellipse=true, ellipse_scale=5)
+    save(joinpath(OUTDIR, "shrinkage_kb07_subj_ellipse.png"), f)
+
     f = shrinkageplot(g1, :item)
     save(joinpath(OUTDIR, "shrinkage_verbagg.png"), f)
+
+    f = shrinkageplot(g1, :item; ellipse=true, n_ellipse=2)
+    save(joinpath(OUTDIR, "shrinkage_verbagg_ellipse.png"), f)
 end
 
 @testset "splom!" begin

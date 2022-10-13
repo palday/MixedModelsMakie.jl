@@ -25,7 +25,7 @@ m1 = fit(MixedModel,
 
 @testset "confint_table" begin
     wald = confint_table(m1, 0.68)
-    bsamp = parametricbootstrap(MersenneTwister(42), 1000, m1)
+    bsamp = parametricbootstrap(MersenneTwister(42), 1000, m1; hide_progress=!progress)
     boot = confint_table(bsamp, 0.68)
 
     @test wald.coefname == boot.coefname
