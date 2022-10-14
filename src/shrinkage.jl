@@ -87,11 +87,16 @@ function shrinkageplot!(f::Figure,
     reest = ranef(m)[reind]          # random effects conditional means at estimated θ
     reref = _ranef(m, θref)[reind]   # same at θref
     remat = m.reterms[reind]
-    # display(remat.λ)
     function pfunc(ax, i, j)
         x, y = view(reref, j, :), view(reref, i, :)
         u, v = view(reest, j, :), view(reest, i, :)
+        scatter!(ax, x, y; color=(:red, 0.25))   # reference points
+        arrows!(ax, x, y, u .- x, v .- y)        # first so arrow heads don't obscure pts
+        plt = scatter!(ax, u, v; color=(:blue, 0.25))  # conditional means at estimates
         if ellipse
+            # force computation of current limits
+            autolimits!(ax)
+            lims = ax.finallimits[]
             cho = remat.λ[[i, j], [j, i]]
             rad_outer = ellipse_scale * max(maximum(abs, x), maximum(abs, y))
             rad_inner = 0
@@ -99,10 +104,10 @@ function shrinkageplot!(f::Figure,
                 ex, ey = getellipsepoints(radius, cho)
                 lines!(ax, ex, ey; color=:green, linestyle=:dash)
             end
+            # preserve the limits from before the ellipse
+            limits!(ax, lims)
         end
-        scatter!(ax, x, y; color=(:red, 0.25))   # reference points
-        arrows!(ax, x, y, u .- x, v .- y)        # first so arrow heads don't obscure pts
-        return scatter!(ax, u, v; color=(:blue, 0.25))  # conditional means at estimates
+        return plt
     end
     splomaxes!(f, m.reterms[reind].cnames, pfunc)
 
