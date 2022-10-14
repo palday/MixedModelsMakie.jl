@@ -1,18 +1,22 @@
 """
-    splomaxes!(f::Figure, labels::AbstractVector{<:AbstractString})
+    splomaxes!(f::Figure, labels::AbstractVector{<:AbstractString},
+               panel!::Function, args...;
+               extraticks::Bool=false, kwargs...)
 
 Populate f with a set of `(k*(k-1))/2` axes in a lower triangle for all pairs of `labels`,
 where `k` is the length of `labels`.  The `panel!` function should have the signature
-`panel!(ax::Axis, i::Integer, j::Integer)` and should draw the [i,j] panel in `ax`.
+`panel!(ax::Axis, i::Integer, j::Integer, args...; kwargs...)` and should draw the
+[i,j] panel in `ax`.
 """
-function splomaxes!(f::Figure, labels, panel!::Function; extraticks::Bool=false)
+function splomaxes!(f::Figure, labels::AbstractVector{<:AbstractString},
+                    panel!::Function, args...; extraticks::Bool=false, kwargs...)
     k = length(labels)
     cols = Dict()
     for i in 2:k                          # strict lower triangle of panels
         row = Axis[]
         for j in 1:(i - 1)
             ax = Axis(f[i - 1, j])
-            panel!(ax, i, j)
+            panel!(ax, i, j, args...; kwargs...)
             push!(row, ax)
             col = get!(cols, j, Axis[])
             push!(col, ax)
@@ -55,6 +59,30 @@ function getellipsepoints(cx, cy, radius, lambda)
     return x, y
 end
 
+function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, remat;
+                           ellipse, ellipse_scale, n_ellipse)
+    x, y = view(reref, j, :), view(reref, i, :)
+    u, v = view(reest, j, :), view(reest, i, :)
+    scatter!(ax, x, y; color=(:red, 0.25))   # reference points
+    arrows!(ax, x, y, u .- x, v .- y)        # first so arrow heads don't obscure pts
+    plt = scatter!(ax, u, v; color=(:blue, 0.25))  # conditional means at estimates
+    if ellipse
+        # force computation of current limits
+        autolimits!(ax)
+        lims = ax.finallimits[]
+        cho = remat.λ[[i, j], [j, i]]
+        rad_outer = ellipse_scale * mean(lims.widths)
+        rad_inner = 0
+        for radius in LinRange(rad_inner, rad_outer, n_ellipse + 1)
+            ex, ey = getellipsepoints(radius, cho)
+            lines!(ax, ex, ey; color=:green, linestyle=:dash)
+        end
+        # preserve the limits from before the ellipse
+        limits!(ax, lims)
+    end
+    return plt
+end
+
 """
     shrinkageplot!(f::Figure, m::MixedModel, gf::Symbol=first(fnames(m)), θref;
                    ellipse=false, ellipse_scale=1, n_ellipse=5)
@@ -87,24 +115,9 @@ function shrinkageplot!(f::Figure,
     reest = ranef(m)[reind]          # random effects conditional means at estimated θ
     reref = _ranef(m, θref)[reind]   # same at θref
     remat = m.reterms[reind]
-    # display(remat.λ)
-    function pfunc(ax, i, j)
-        x, y = view(reref, j, :), view(reref, i, :)
-        u, v = view(reest, j, :), view(reest, i, :)
-        if ellipse
-            cho = remat.λ[[i, j], [j, i]]
-            rad_outer = ellipse_scale * max(maximum(abs, x), maximum(abs, y))
-            rad_inner = 0
-            for radius in LinRange(rad_inner, rad_outer, n_ellipse + 1)
-                ex, ey = getellipsepoints(radius, cho)
-                lines!(ax, ex, ey; color=:green, linestyle=:dash)
-            end
-        end
-        scatter!(ax, x, y; color=(:red, 0.25))   # reference points
-        arrows!(ax, x, y, u .- x, v .- y)        # first so arrow heads don't obscure pts
-        return scatter!(ax, u, v; color=(:blue, 0.25))  # conditional means at estimates
-    end
-    splomaxes!(f, m.reterms[reind].cnames, pfunc)
+
+    splomaxes!(f, m.reterms[reind].cnames, _shrinkage_panel!,
+               reref, reest, remat; ellipse, ellipse_scale, n_ellipse)
 
     return f
 end

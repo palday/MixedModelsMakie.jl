@@ -109,8 +109,11 @@ end
     f = shrinkageplot(m2, :subj)
     save(joinpath(OUTDIR, "shrinkage_kb07_subj.png"), f)
 
-    f = shrinkageplot(m2; ellipse=true, ellipse_scale=5)
+    f = shrinkageplot(m2; ellipse=true)
     save(joinpath(OUTDIR, "shrinkage_kb07_subj_ellipse.png"), f)
+
+    f = shrinkageplot(m2; ellipse=true, ellipse_scale=2)
+    save(joinpath(OUTDIR, "shrinkage_kb07_subj_ellipse_scaled.png"), f)
 
     f = shrinkageplot(g1, :item)
     save(joinpath(OUTDIR, "shrinkage_verbagg.png"), f)
