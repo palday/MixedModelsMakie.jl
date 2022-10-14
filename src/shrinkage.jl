@@ -71,7 +71,7 @@ function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, remat;
         autolimits!(ax)
         lims = ax.finallimits[]
         cho = remat.λ[[i, j], [j, i]]
-        rad_outer = ellipse_scale * max(maximum(abs, x), maximum(abs, y))
+        rad_outer = ellipse_scale * maximum(lims.widths)
         rad_inner = 0
         for radius in LinRange(rad_inner, rad_outer, n_ellipse + 1)
             ex, ey = getellipsepoints(radius, cho)
