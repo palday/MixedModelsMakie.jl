@@ -31,7 +31,7 @@ function profiledensity(
     resolution=(1200, 500),
     zbd=3,
 )
-    fwd, rev = pr.fwd, pr.rev``
+    fwd, rev = pr.fwd, pr.rev
     f = Figure(; resolution)
     for (i, p) in enumerate(keys(fwd))
         rp, fw = rev[p], fwd[p]
