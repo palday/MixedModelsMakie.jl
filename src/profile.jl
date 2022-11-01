@@ -7,7 +7,7 @@ function zetaplot(
     cutoffs = sqrt.(quantile(Chisq(1), coverage))
     zbd = 1.05 * maximum(cutoffs)
     f = Figure(; resolution)
-    (; fwd, rev) = pr
+    fwd, rev = pr.fwd, pr.rev
     ylabel = absv ? "|ζ|" : "ζ"
     for (i, p) in enumerate(keys(fwd))
         rp, fw = rev[p], fwd[p]
@@ -31,7 +31,7 @@ function profiledensity(
     resolution=(1200, 500),
     zbd=3,
 )
-    (; fwd, rev) = pr
+    fwd, rev = pr.fwd, pr.rev``
     f = Figure(; resolution)
     for (i, p) in enumerate(keys(fwd))
         rp, fw = rev[p], fwd[p]
@@ -47,6 +47,7 @@ function profiledensity(
     f
 end
 
+#= outdated code
 function zetatraces!(ax::Axis, pr::MixedModelProfile, i, j)
     (; prtbl, δ, fwd) = pr
     βmat = reshape(prtbl.β, :, length(fwd))
@@ -92,3 +93,5 @@ function zetaijspline!(pr::MixedModelProfile, i, j)
     zetavalsj = fwd[j].(getindex.(view(prtbl.β, iinds), j))
     return interpolate!(rev[i], zetavalsj)
 end
+
+=#
