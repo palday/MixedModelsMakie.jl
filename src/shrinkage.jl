@@ -73,9 +73,9 @@ function shrinkageplot!(f::Figure,
     return f
 end
 
-function _ranef(m::LinearMixedModel, θref)
+function _ranef(m::LinearMixedModel, θref; uscale=false)
     vv = try
-        ranef(updateL!(setθ!(m, θref)))
+        ranef(updateL!(setθ!(m, θref)); uscale)
     catch e
         @error "Failed to compute unshrunken values with the following exception:"
         rethrow(e)
@@ -85,11 +85,11 @@ function _ranef(m::LinearMixedModel, θref)
     return vv
 end
 
-function _ranef(m::GeneralizedLinearMixedModel, θref)
+function _ranef(m::GeneralizedLinearMixedModel, θref; uscale=false)
     fast = length(m.θ) == length(m.optsum.final)
     setpar! = fast ? MixedModels.setθ! : MixedModels.setβθ!
     vv = try
-        ranef(pirls!(setpar!(m, θref), fast, false)) # not verbose
+        ranef(pirls!(setpar!(m, θref), fast, false); uscale) # not verbose
     catch e
         @error "Failed to compute unshrunken values with the following exception:"
         rethrow(e)
@@ -115,4 +115,53 @@ function shrinkageplot(m::MixedModel, args...; kwargs...)
     f = Figure(; resolution=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
 
     return shrinkageplot!(f, m, args...; kwargs...)
+end
+
+"""
+    shrinkagetables(m::MixedModel{T},
+                    θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
+                                            m.optsum.initial;
+                    uscale=false) where {T}
+
+Returns a NamedTuple of row tables of the change from OLS estimates
+to BLUPs from the mixed model.
+
+Each entry in the named tuple corresponds to a single gruoping term.
+"""
+function shrinkagetables(m::MixedModel{T},
+                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
+                                                 m.optsum.initial;
+                         uscale=false) where {T}
+
+    # BLUPs θref - same at estimated θ
+    re = _ranef(m, θref; uscale) .- ranef(m; uscale)
+    return NamedTuple{fnames(m)}((map(MixedModels.retbl, re, m.reterms)...,))
+end
+
+"""
+    shrinkagenorm(m::MixedModel{T},
+                  θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
+                                          m.optsum.initial;
+                  uscale=false, p=2)
+
+Returns a NamedTuple of row tables norm of the change from OLS estimates (across all relevant coefficients)
+to BLUPs from the mixed model.
+
+`p` corresponds to the ``L_p`` norms, i.e. ``p=2`` is the Euclidean metric.
+
+Each entry in the named tuple corresponds to a single gruoping term.
+"""
+function shrinkagenorm(m::MixedModel{T},
+                       θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
+                                               m.optsum.initial;
+                       uscale=false, p=2) where {T}
+    reest = ranef(m; uscale)
+    reref = _ranef(m, θref; uscale)
+
+    sh = map(zip(reref, reest, m.reterms)) do (ref, est, trm)
+        shrinkage = norm.(view(ref, :, j) .- view(est, :, j) for j in axes(est, 2))
+        return merge(NamedTuple{(MixedModels.fname(trm),)}((trm.levels,)),
+                     (; shrinkage))
+    end
+    return NamedTuple{fnames(m)}(sh)
 end
