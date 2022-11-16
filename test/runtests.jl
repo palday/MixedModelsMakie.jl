@@ -6,6 +6,7 @@ using Random # we don't depend on exact PRNG vals, so no need for StableRNGs
 using Statistics
 using Test
 
+using MixedModels: dataset
 using MixedModelsMakie: confint_table
 
 const OUTDIR = joinpath(pkgdir(MixedModelsMakie), "test", "output")
@@ -97,6 +98,10 @@ end
 @testset "ridgeplot" begin
     f = ridgeplot(b1)
     save(joinpath(OUTDIR, "ridge_sleepstudy.png"), f)
+end
+
+@testset "shrinkagenorm" begin
+
 end
 
 @testset "shrinkageplot" begin
