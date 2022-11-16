@@ -9,7 +9,7 @@ function zetaplot(
     f = Figure(; resolution)
     fwd, rev = pr.fwd, pr.rev
     ylabel = absv ? "|ζ|" : "ζ"
-    for (i, p) in enumerate(keys(fwd))
+    for (i, p) in enumerate(sort!(collect(keys(fwd))))
         rp, fw = rev[p], fwd[p]
         ax = Axis(f[1, i]; xlabel=string(p), ylabel)
         knts = knots(rp)
@@ -33,7 +33,7 @@ function profiledensity(
 )
     fwd, rev = pr.fwd, pr.rev
     f = Figure(; resolution)
-    for (i, p) in enumerate(keys(fwd))
+    for (i, p) in enumerate(sort!(collect(keys(fwd))))
         rp, fw = rev[p], fwd[p]
         ax = Axis(f[1, i]; xlabel=string(p), ylabel="pdf")
         knts = knots(rp)
