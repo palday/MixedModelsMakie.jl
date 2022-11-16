@@ -126,7 +126,7 @@ end
 Returns a NamedTuple of row tables of the change from OLS estimates
 to BLUPs from the mixed model.
 
-Each entry in the named tuple corresponds to a single gruoping term.
+Each entry in the named tuple corresponds to a single grouping term.
 """
 function shrinkagetables(m::MixedModel{T},
                          θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
