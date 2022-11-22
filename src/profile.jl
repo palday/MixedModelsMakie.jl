@@ -11,9 +11,14 @@ function zetaplot(
     ylabel = absv ? "|ζ|" : "ζ"
     for (i, p) in enumerate(sort!(collect(keys(fwd))))
         rp, fw = rev[p], fwd[p]
-        ax = Axis(f[1, i]; xlabel=string(p), ylabel)
+        if isone(i)
+            ax = Axis(f[1, i]; xlabel=string(p), ylabel)
+        else
+            ax = Axis(f[1, i]; xlabel=string(p))
+            hideydecorations!(ax; grid=false)
+        end
         knts = knots(rp)
-        intvl = rp(max(-zbd, first(knts)))..rp(min(zbd, last(knts)))
+        intvl = rp(max(-zbd, first(knts))) .. rp(min(zbd, last(knts)))
         lines!(ax, intvl, (absv ? abs : identity) ∘ fw)
         if absv
             sgncp = repeat(cutoffs; inner=2) .* repeat([-1, 1]; outer=length(cutoffs))
