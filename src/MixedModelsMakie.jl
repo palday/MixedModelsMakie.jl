@@ -4,6 +4,7 @@ using BSplineKit
 using LinearAlgebra
 using DataFrames
 using Distributions
+using IntervalSets
 using KernelDensity
 using Makie
 using MixedModels

@@ -31,6 +31,22 @@ function zetaplot(
     f
 end
 
+function zetapanel(ax::Axis, spl::SplineInterpolation, ivl::ClosedInterval)
+    xv = spl.x
+    inds = [x ∈ ivl for x in xv]
+    lines!(ax, ivl, identity ∘ spl)
+    yv = spl.(xv)
+    scatter!(ax, view(xv, inds), view(yv, inds))
+    miny = findmin(abs, yv)
+    est = xv[last(miny)]
+    slope = (Derivative(1) * spl)(est)
+    ablines!(ax, first(miny) - slope * est, slope; linewidth=1)
+end
+
+function zetapanel(ax::Axis, spl::SplineInterpolation) 
+    return zetapanel(ax, spl, first(spl.x) .. last(spl.x))
+end
+
 function profiledensity(
     pr::MixedModelProfile;
     resolution=(1200, 500),
