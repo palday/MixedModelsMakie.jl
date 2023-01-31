@@ -29,7 +29,7 @@ export RanefInfo,
        shrinkageplot!,
        simplelinreg,
        splom!,
-       zetaplot,
+       zetaplot!,
        zetatraceplot
 
 include("utilities.jl")

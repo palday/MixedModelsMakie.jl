@@ -1,22 +1,29 @@
-function zetaplot(
+"""
+    zetaplot!(f::Figure, pr::MixedModelProfile; absv=false, ptyp='β', coverage=[.5,.8,.9,.95,.99], zbd=nothing)
+
+Add axes with plots of the profile ζ (or its absolute value) for parameters starting with `ptyp` from `pr` to `f`.
+
+If `absv` is `true` then intervals corresponding to coverage levels in `coverage` are added to each panel.
+"""
+function zetaplot!(
+    f::Figure,
     pr::MixedModelProfile;
-    absv::Bool=true,
+    absv::Bool=false,   # plot abs(zeta) vs parameter value and add intervals
+    ptyp::Char='β',
     coverage=[0.5, 0.8, 0.9, 0.95, 0.99],
-    resolution=(1200,600),
+    zbd=nothing,
 )
+    axs = Axis[]
     cutoffs = sqrt.(quantile(Chisq(1), coverage))
-    zbd = 1.05 * maximum(cutoffs)
-    f = Figure(; resolution)
-    fwd, rev = pr.fwd, pr.rev
+    zbd = something(zbd, 1.05 * maximum(cutoffs))
     ylabel = absv ? "|ζ|" : "ζ"
-    for (i, p) in enumerate(sort!(collect(keys(fwd))))
-        rp, fw = rev[p], fwd[p]
-        if isone(i)
-            ax = Axis(f[1, i]; xlabel=string(p), ylabel)
-        else
-            ax = Axis(f[1, i]; xlabel=string(p))
-            hideydecorations!(ax; grid=false)
-        end
+    fwd, rev = pr.fwd, pr.rev
+    filt = startswith(ptyp) ∘ string          # filter function
+    for (i, p) in enumerate(sort!(filter(filt, collect(keys(fwd)))))
+        fw, rp = fwd[p], rev[p]
+        ax = Axis(f[1, i]; xlabel=string(p), ylabel)
+        isone(i) || hideydecorations!(ax; grid=false)
+        push!(axs, ax)
         knts = knots(rp)
         intvl = rp(max(-zbd, first(knts))) .. rp(min(zbd, last(knts)))
         lines!(ax, intvl, (absv ? abs : identity) ∘ fw)
@@ -26,42 +33,34 @@ function zetaplot(
                 rp.(clamp.(sgncp, first(knts), last(knts))),
                 abs.(sgncp),
             )
+        else
+            xv = filter(x -> x ∈ intvl, fw.x)
+            scatter!(ax, xv, fw.(xv))
+            est = rp(0)
+            slope = (Derivative(1) * fw)(est)
+            ablines!(ax, -(slope * est), slope)
         end
     end
-    f
-end
-
-function zetapanel(ax::Axis, spl::SplineInterpolation, ivl::ClosedInterval)
-    xv = spl.x
-    inds = [x ∈ ivl for x in xv]
-    lines!(ax, ivl, identity ∘ spl)
-    yv = spl.(xv)
-    scatter!(ax, view(xv, inds), view(yv, inds))
-    miny = findmin(abs, yv)
-    est = xv[last(miny)]
-    slope = (Derivative(1) * spl)(est)
-    ablines!(ax, first(miny) - slope * est, slope; linewidth=1)
-end
-
-function zetapanel(ax::Axis, spl::SplineInterpolation) 
-    return zetapanel(ax, spl, first(spl.x) .. last(spl.x))
+    linkyaxes!(axs...)
+    f    
 end
 
 function profiledensity(
     pr::MixedModelProfile;
     resolution=(1200, 500),
     zbd=3,
+    ptyp::Char='σ'
 )
     fwd, rev = pr.fwd, pr.rev
     f = Figure(; resolution)
-    for (i, p) in enumerate(sort!(collect(keys(fwd))))
+    ks = sort!(collect(filter(k -> startswith(string(k), ptyp), keys(fwd))))
+    for (i, p) in enumerate(ks)
         rp, fw = rev[p], fwd[p]
         ax = Axis(f[1, i]; xlabel=string(p), ylabel="pdf")
         knts = knots(rp)
-        intvl = rp(max(-zbd, first(knts)))..rp(min(zbd, last(knts)))
         lines!(
             ax,
-            intvl,
+            rp(max(-zbd, first(knts))) .. rp(min(zbd, last(knts))),
             x -> pdf(Normal(), fw(x)) * (Derivative(1) * fw)(x) 
         )
     end
