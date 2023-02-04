@@ -1,7 +1,7 @@
 name = "MixedModelsMakie"
 uuid = "b12ae82c-6730-437f-aff9-d2c38332a376"
 authors = ["Phillip Alday <me@phillipalday.com>, Douglas Bates <dmbates@gmail.com> and contributors"]
-version = "0.3.17"
+version = "0.3.18"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
@@ -18,7 +18,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 DataFrames = "1"
 Distributions = "0.21, 0.22, 0.23, 0.24, 0.25"
 KernelDensity = "0.6.3"
-Makie = "0.16.3, 0.17, 0.18"
+Makie = "0.16.3, 0.17, 0.18, 0.19"
 MixedModels = "4.1"
 SpecialFunctions = "1, 2"
 StatsBase = "0.31, 0.32, 0.33"
