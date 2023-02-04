@@ -76,7 +76,8 @@ end
         if err isa ArgumentError && occursin("Makie v0.19", sprint(showerror, err))
             text! = Makie.text!
         else
-            text! = (args...; fontsize, kwargs...) -> Makie.text!(args...; textsize=fontsize,
+            text! = (args...; fontsize, kwargs...) -> Makie.text!(args...;
+                                                                  textsize=fontsize,
                                                                   kwargs...)
         end
     end
