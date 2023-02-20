@@ -24,7 +24,7 @@ jobs:
       matrix:
         version: [1.6]
         arch: [x64]
-        os: [ubuntu-18.04] # macos-10.15, windows-2019
+        os: [ubuntu-22.04] # macos-10.15, windows-2019
     steps:
       - name: Checkout
         uses: actions/checkout@v2
