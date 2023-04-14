@@ -72,13 +72,14 @@ end
     local text!
     try
         Makie.text!(Axis(Figure()[1, 1]), "test"; textsize=69)
+        text! = (args...; fontsize, kwargs...) -> Makie.text!(args...;
+                                                              textsize=fontsize,
+                                                              kwargs...)
     catch err
         if err isa ArgumentError && occursin("Makie v0.19", sprint(showerror, err))
             text! = Makie.text!
         else
-            text! = (args...; fontsize, kwargs...) -> Makie.text!(args...;
-                                                                  textsize=fontsize,
-                                                                  kwargs...)
+            rethrow(err)
         end
     end
     for i in 1:4, j in 1:4
