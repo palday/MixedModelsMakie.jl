@@ -67,33 +67,46 @@ zetaplot(args...; kwargs...) = zetaplot!(Figure(), args...; kwargs...)
 """
     profiledensity!(f::FigureLike, pr::MixedModelProfile;
                     ptyp::Char='σ',
-                    zbd=3)
+                    zbd=3,
+                    share_y_scale=true).
 
 Add axes with density plots of the profile ζ for parameters
 starting with `ptyp` from `pr` to `f`.
 
 Valid `ptyp` values are 'β', 'σ', and 'θ'.
+
+If `share_y_scale`, the each facet shares a common y-scale.
 """
 function profiledensity!(
     f::Makie.FigureLike,
     pr::MixedModelProfile;
     zbd=3,
-    ptyp::Char='σ')
+    ptyp::Char='σ',
+    share_y_scale=true)
 
     ptyp in Set(['β', 'σ', 'θ']) ||
         throw(ArgumentError("Invalid `ptyp`: $(ptyp)."))
 
     fwd, rev = pr.fwd, pr.rev
     ks = sort!(collect(filter(k -> startswith(string(k), ptyp), keys(fwd))))
+    axs = sizehint!(Axis[], length(ks))
     for (i, p) in enumerate(ks)
         rp, fw = rev[p], fwd[p]
+
         ax = Axis(f[1, i]; xlabel=string(p), ylabel="pdf")
+        if share_y_scale && i > 1
+            hideydecorations!(ax; grid=false, ticks=false)
+        end
+        push!(axs, ax)
         knts = knots(rp)
         lines!(
             ax,
             rp(max(-zbd, first(knts))) .. rp(min(zbd, last(knts))),
             x -> pdf(Normal(), fw(x)) * (Derivative(1) * fw)(x)
         )
+    end
+    if share_y_scale
+        linkyaxes!(axs...)
     end
     f
 end

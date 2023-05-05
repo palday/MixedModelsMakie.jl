@@ -225,6 +225,10 @@ profiledensity(pr1)
 ```
 
 ```@example Profile
+profiledensity(pr1; share_y_scale=false)
+```
+
+```@example Profile
 profiledensity(pr1; ptyp='σ')
 ```
 
