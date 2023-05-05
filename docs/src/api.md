@@ -207,7 +207,7 @@ using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
 fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy; progress=false)
 pr1 = profile(fm1)
-zetapolot(pr1)
+zetaplot(pr1)
 ```
 
 ```@example Profile
