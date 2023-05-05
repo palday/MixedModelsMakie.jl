@@ -1,18 +1,28 @@
 """
-    zetaplot!(f::Figure, pr::MixedModelProfile; absv=false, ptyp='β', coverage=[.5,.8,.9,.95,.99], zbd=nothing)
+    zetaplot!(f::FigureLike, pr::MixedModelProfile;
+              absv=false,
+              ptyp='β',
+              coverage=[.5,.8,.9,.95,.99],
+              zbd=nothing)
 
-Add axes with plots of the profile ζ (or its absolute value) for parameters starting with `ptyp` from `pr` to `f`.
+Add axes with plots of the profile ζ (or its absolute value) for parameters
+starting with `ptyp` from `pr` to `f`.
 
-If `absv` is `true` then intervals corresponding to coverage levels in `coverage` are added to each panel.
+Valid `ptyp` values are 'β', 'σ', and 'θ'.
+
+If `absv` is `true` then intervals corresponding to coverage levels in
+`coverage` are added to each panel.
 """
 function zetaplot!(
-    f::Figure,
+    f::Makie.FigureLike,
     pr::MixedModelProfile;
     absv::Bool=false,   # plot abs(zeta) vs parameter value and add intervals
     ptyp::Char='β',
     coverage=[0.5, 0.8, 0.9, 0.95, 0.99],
-    zbd=nothing,
+    zbd::Union{Nothing,Number}=nothing,
 )
+    ptyp in Set(['β', 'σ', 'θ']) ||
+        throw(ArgumentError("Invalid `ptyp`: $(ptyp)."))
     axs = Axis[]
     cutoffs = sqrt.(quantile(Chisq(1), coverage))
     zbd = something(zbd, 1.05 * maximum(cutoffs))
@@ -42,17 +52,38 @@ function zetaplot!(
         end
     end
     linkyaxes!(axs...)
-    f    
+    f
 end
 
-function profiledensity(
+"""
+    zetaplot(args...; kwargs...)
+
+Convenience wrapper for `zetaplot!(Figure(), ...)`.
+
+See [`zetaplot!`](@ref).
+"""
+zetaplot(args...; kwargs...) = zetaplot!(Figure(), args...; kwargs...)
+
+"""
+    profiledensity!(f::FigureLike, pr::MixedModelProfile;
+                    ptyp::Char='σ',
+                    zbd=3)
+
+Add axes with density plots of the profile ζ for parameters
+starting with `ptyp` from `pr` to `f`.
+
+Valid `ptyp` values are 'β', 'σ', and 'θ'.
+"""
+function profiledensity!(
+    f::Makie.FigureLike,
     pr::MixedModelProfile;
-    resolution=(1200, 500),
     zbd=3,
-    ptyp::Char='σ'
-)
+    ptyp::Char='σ')
+
+    ptyp in Set(['β', 'σ', 'θ']) ||
+        throw(ArgumentError("Invalid `ptyp`: $(ptyp)."))
+
     fwd, rev = pr.fwd, pr.rev
-    f = Figure(; resolution)
     ks = sort!(collect(filter(k -> startswith(string(k), ptyp), keys(fwd))))
     for (i, p) in enumerate(ks)
         rp, fw = rev[p], fwd[p]
@@ -61,11 +92,20 @@ function profiledensity(
         lines!(
             ax,
             rp(max(-zbd, first(knts))) .. rp(min(zbd, last(knts))),
-            x -> pdf(Normal(), fw(x)) * (Derivative(1) * fw)(x) 
+            x -> pdf(Normal(), fw(x)) * (Derivative(1) * fw)(x)
         )
     end
     f
 end
+
+"""
+    profiledensity(args...; kwargs...)
+
+Convenience wrapper for `profiledensity!(Figure(), ...)`.
+
+See [`profiledensity!`](@ref).
+"""
+profiledensity(args...; kwargs...) = profiledensity!(Figure(), args...; kwargs...)
 
 #= outdated code
 function zetatraces!(ax::Axis, pr::MixedModelProfile, i, j)

@@ -19,6 +19,7 @@ export RanefInfo,
        coefplot,
        coefplot!,
        profiledensity,
+       profiledensity!,
        qqcaterpillar,
        qqcaterpillar!,
        ranefinfo,
@@ -29,8 +30,8 @@ export RanefInfo,
        shrinkageplot!,
        simplelinreg,
        splom!,
-       zetaplot!,
-       zetatraceplot
+       zetaplot,
+       zetaplot!
 
 include("utilities.jl")
 include("shrinkage.jl")
