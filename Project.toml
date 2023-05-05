@@ -1,7 +1,7 @@
 name = "MixedModelsMakie"
 uuid = "b12ae82c-6730-437f-aff9-d2c38332a376"
 authors = ["Phillip Alday <me@phillipalday.com>, Douglas Bates <dmbates@gmail.com> and contributors"]
-version = "0.3.18"
+version = "0.3.19"
 
 [deps]
 AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
