@@ -22,7 +22,7 @@ function zetaplot!(f::Makie.FigureLike,
     ptyp in Set(['β', 'σ', 'θ']) ||
         throw(ArgumentError("Invalid `ptyp`: $(ptyp)."))
     axs = Axis[]
-    cutoffs = sqrt.(quantile(Chisq(1), coverage))
+    cutoffs = sqrt.(quantile.(Chisq(1), coverage))
     zbd = something(zbd, 1.05 * maximum(cutoffs))
     ylabel = absv ? "|ζ|" : "ζ"
     fwd, rev = pr.fwd, pr.rev
