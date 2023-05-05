@@ -13,14 +13,12 @@ Valid `ptyp` values are 'β', 'σ', and 'θ'.
 If `absv` is `true` then intervals corresponding to coverage levels in
 `coverage` are added to each panel.
 """
-function zetaplot!(
-    f::Makie.FigureLike,
-    pr::MixedModelProfile;
-    absv::Bool=false,   # plot abs(zeta) vs parameter value and add intervals
-    ptyp::Char='β',
-    coverage=[0.5, 0.8, 0.9, 0.95, 0.99],
-    zbd::Union{Nothing,Number}=nothing,
-)
+function zetaplot!(f::Makie.FigureLike,
+                   pr::MixedModelProfile;
+                   absv::Bool=false,   # plot abs(zeta) vs parameter value and add intervals
+                   ptyp::Char='β',
+                   coverage=[0.5, 0.8, 0.9, 0.95, 0.99],
+                   zbd::Union{Nothing,Number}=nothing)
     ptyp in Set(['β', 'σ', 'θ']) ||
         throw(ArgumentError("Invalid `ptyp`: $(ptyp)."))
     axs = Axis[]
@@ -39,10 +37,8 @@ function zetaplot!(
         lines!(ax, intvl, (absv ? abs : identity) ∘ fw)
         if absv
             sgncp = repeat(cutoffs; inner=2) .* repeat([-1, 1]; outer=length(cutoffs))
-            linesegments!(
-                rp.(clamp.(sgncp, first(knts), last(knts))),
-                abs.(sgncp),
-            )
+            linesegments!(rp.(clamp.(sgncp, first(knts), last(knts))),
+                          abs.(sgncp))
         else
             xv = filter(x -> x ∈ intvl, fw.x)
             scatter!(ax, xv, fw.(xv))
@@ -52,7 +48,7 @@ function zetaplot!(
         end
     end
     linkyaxes!(axs...)
-    f
+    return f
 end
 
 """
@@ -77,13 +73,11 @@ Valid `ptyp` values are 'β', 'σ', and 'θ'.
 
 If `share_y_scale`, the each facet shares a common y-scale.
 """
-function profiledensity!(
-    f::Makie.FigureLike,
-    pr::MixedModelProfile;
-    zbd=3,
-    ptyp::Char='σ',
-    share_y_scale=true)
-
+function profiledensity!(f::Makie.FigureLike,
+                         pr::MixedModelProfile;
+                         zbd=3,
+                         ptyp::Char='σ',
+                         share_y_scale=true)
     ptyp in Set(['β', 'σ', 'θ']) ||
         throw(ArgumentError("Invalid `ptyp`: $(ptyp)."))
 
@@ -99,16 +93,14 @@ function profiledensity!(
         end
         push!(axs, ax)
         knts = knots(rp)
-        lines!(
-            ax,
-            rp(max(-zbd, first(knts))) .. rp(min(zbd, last(knts))),
-            x -> pdf(Normal(), fw(x)) * (Derivative(1) * fw)(x)
-        )
+        lines!(ax,
+               rp(max(-zbd, first(knts))) .. rp(min(zbd, last(knts))),
+               x -> pdf(Normal(), fw(x)) * (Derivative(1) * fw)(x))
     end
     if share_y_scale
         linkyaxes!(axs...)
     end
-    f
+    return f
 end
 
 """
