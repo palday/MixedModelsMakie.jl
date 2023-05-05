@@ -4,11 +4,9 @@ authors = ["Phillip Alday <me@phillipalday.com>, Douglas Bates <dmbates@gmail.co
 version = "0.3.20"
 
 [deps]
-AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
 BSplineKit = "093aae92-e908-43d7-9660-e50ee39d5a0a"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
-IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953"
 KernelDensity = "5ab0869b-81aa-558d-bb23-cbf5423bbe9b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
