@@ -6,6 +6,6 @@ MixedModels = "ff71e718-51f3-5ec2-a782-8ffcbfa3c316"
 MixedModelsMakie = "b12ae82c-6730-437f-aff9-d2c38332a376"
 
 [compat]
-CairoMakie = "0.6-0.10"
+CairoMakie = "0.6 - 0.10"
 DataFrames = "1"
 Documenter = "0.27"
