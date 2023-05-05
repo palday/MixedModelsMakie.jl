@@ -1,3 +1,4 @@
+using Aqua
 using CairoMakie
 using DataFrames
 using MixedModels
@@ -10,6 +11,12 @@ using MixedModelsMakie: confint_table
 
 const OUTDIR = joinpath(pkgdir(MixedModelsMakie), "test", "output")
 const progress = false
+
+@testset "Aqua" begin
+    # we can't check for unbound type parameters
+    # because we actually need one at one point for _same_family()
+    Aqua.test_all(MixedModels; ambiguities=false, unbound_args=false)
+end
 
 @testset "utilities, types and tables" begin
     include("utils_and_types.jl")
