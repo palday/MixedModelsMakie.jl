@@ -21,7 +21,7 @@ on:
 jobs:
   Documenter:
     name: Documentation
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     # Run on push's or non-draft PRs
     if: (github.event_name == 'push') || (github.event.pull_request.draft == false)
     steps:
