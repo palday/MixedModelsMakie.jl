@@ -137,8 +137,7 @@ end
     save(joinpath(OUTDIR, "ridge_sleepstudy.png"), f)
 end
 
-@testset "shrinkagenorm" begin
-end
+@testset "shrinkagenorm" begin end
 
 @testset "shrinkageplot" begin
     f = shrinkageplot(m1)
