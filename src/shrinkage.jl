@@ -123,7 +123,7 @@ end
                                             m.optsum.initial;
                     uscale=false) where {T}
 
-Returns a NamedTuple of row tables of the change from OLS estimates
+Returns a NamedTuple of Tables.jl-tables of the change from OLS estimates
 to BLUPs from the mixed model.
 
 Each entry in the named tuple corresponds to a single grouping term.
@@ -144,7 +144,7 @@ end
                                           m.optsum.initial;
                   uscale=false, p=2)
 
-Returns a NamedTuple of row tables norm of the change from OLS estimates (across all relevant coefficients)
+Returns a NamedTuple of Tables.jl-tables norm of the change from OLS estimates (across all relevant coefficients)
 to BLUPs from the mixed model.
 
 `p` corresponds to the ``L_p`` norms, i.e. ``p=2`` is the Euclidean metric.
@@ -159,7 +159,7 @@ function shrinkagenorm(m::MixedModel{T},
     reref = _ranef(m, θref; uscale)
 
     sh = map(zip(reref, reest, m.reterms)) do (ref, est, trm)
-        shrinkage = norm.(view(ref, :, j) .- view(est, :, j) for j in axes(est, 2))
+        shrinkage = norm.((view(ref, :, j) .- view(est, :, j) for j in axes(est, 2)), p)
         return merge(NamedTuple{(MixedModels.fname(trm),)}((trm.levels,)),
                      (; shrinkage))
     end
