@@ -195,6 +195,43 @@ qqnorm(fm1; qqline=:fitrobust)
 qqplot(Normal(0, fm1.σ), fm1)
 ```
 
+## Profile Plots
+
+*Requires MixedModels 4.14 or above.*
+
+```@example Profile
+using CairoMakie
+using MixedModels
+using MixedModelsMakie
+
+sleepstudy = MixedModels.dataset(:sleepstudy)
+fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)), sleepstudy; progress=false)
+pr1 = profile(fm1)
+zetaplot(pr1)
+```
+
+```@example Profile
+# show zeta on the absolute value scale with coverage intervals
+zetaplot(pr1; absv=true)
+```
+
+```@example Profile
+# show zeta for the variance components
+zetaplot(pr1; absv=true, ptyp='θ')
+```
+
+```@example Profile
+profiledensity(pr1)
+```
+
+```@example Profile
+profiledensity(pr1; share_y_scale=false)
+```
+
+```@example Profile
+profiledensity(pr1; ptyp='σ')
+```
+
 ## General plots
 
 We also provide a `splom` or scatter-plot matrix plot for data frames with numeric columns (i.e. a matrix of all pairwise plots).

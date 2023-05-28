@@ -1,3 +1,4 @@
+using Aqua
 using CairoMakie
 using DataFrames
 using MixedModels
@@ -11,6 +12,12 @@ using MixedModelsMakie: confint_table
 
 const OUTDIR = joinpath(pkgdir(MixedModelsMakie), "test", "output")
 const progress = false
+
+@testset "Aqua" begin
+    # we can't check for unbound type parameters
+    # because we actually need one at one point for _same_family()
+    Aqua.test_all(MixedModels; ambiguities=false, unbound_args=false)
+end
 
 @testset "utilities, types and tables" begin
     include("utils_and_types.jl")
@@ -147,4 +154,15 @@ end
     splof = @test_logs (:info,
                         r"Ignoring 3 non-numeric columns") splom!(Figure(), df)
     save(joinpath(OUTDIR, "splom_mmec.png"), splof)
+end
+
+@testset "profile" begin
+    pr1 = profile(m1)
+    for ptyp in ['σ', 'θ', 'β'], toggle in [true, false]
+        f = zetaplot(pr1; ptyp, absv=toggle)
+        save(joinpath(OUTDIR, "zetaplot_$(ptyp)_$(toggle).png"), f)
+
+        f = profiledensity(pr1; ptyp, share_y_scale=toggle)
+        save(joinpath(OUTDIR, "profiledensity_$(ptyp)_$(toggle).png"), f)
+    end
 end
