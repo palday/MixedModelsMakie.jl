@@ -1,6 +1,7 @@
 using Aqua
 using CairoMakie
 using DataFrames
+using LinearAlgebra
 using MixedModels
 using MixedModelsMakie
 using Random # we don't depend on exact PRNG vals, so no need for StableRNGs
