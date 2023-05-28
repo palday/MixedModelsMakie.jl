@@ -137,20 +137,13 @@ end
     save(joinpath(OUTDIR, "ridge_sleepstudy.png"), f)
 end
 
-@testset "shrinkagenorm" begin
-    m1 = fit(MixedModel,
-    @formula(1000 / reaction ~ 1 + days + (1 + days | subj)),
-    MixedModels.dataset(:sleepstudy); progress)
-
-m1zc = fit(MixedModel,
-      @formula(1000 / reaction ~ 1 + days + zerocorr(1 + days | subj)),
-      MixedModels.dataset(:sleepstudy); progress)
-
-m2 = fit(MixedModel,
-    @formula(rt_trunc ~ 1 + spkr * prec * load +
-                        (1 + spkr + prec + load | subj) +
-                        (1 + spkr | item)),
-    MixedModels.dataset(:kb07); progress)
+@testset "shrinkagenorm and shrinkagetables" begin
+    for p in 1:3
+        sn = DataFrame(shrinkagenorm(m1; p)[:subj])
+        st = DataFrame(shrinkagetables(m1)[:subj]),
+        st = transform!(st, Not(:subj) => ByRow((x...) -> norm(x, p)) => :shrinkage)
+        @test all(isapprox.(st.shrinkage, sn.shrinkage; atol=0.005))
+    end
 end
 
 @testset "shrinkageplot" begin
