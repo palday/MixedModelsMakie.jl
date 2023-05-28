@@ -99,7 +99,7 @@ end
 
 # """
 #     ridgeplot!(ax::Axis, df::AbstractDataFrame, densvar::Symbol, group::Symbol; normalize=false)
-#     ridgeplot!(f::Figure, args...; pos=(1,1) kwargs...)
+#     ridgeplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, args...; pos=(1,1) kwargs...)
 #     ridgeplot(args...; kwargs...)
 
 # Create a "ridge plot".
@@ -142,7 +142,7 @@ end
 #     ax
 # end
 
-# function ridgeplot!(f::Figure, args...; pos=(1,1), kwargs...)
+# function ridgeplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, args...; pos=(1,1), kwargs...)
 #     ridgeplot!(Axis(f[pos...]), args...; kwargs...)
 #     return f
 # end

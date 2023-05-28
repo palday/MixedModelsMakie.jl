@@ -1,53 +1,3 @@
-"""
-    splomaxes!(f::Union{Makie.FigureLike,Makie.GridLayout}, labels::AbstractVector{<:AbstractString},
-               panel!::Function, args...;
-               extraticks::Bool=false, kwargs...)
-
-Populate f with a set of `(k*(k-1))/2` axes in a lower triangle for all pairs of `labels`,
-where `k` is the length of `labels`.  The `panel!` function should have the signature
-`panel!(ax::Axis, i::Integer, j::Integer, args...; kwargs...)` and should draw the
-[i,j] panel in `ax`.
-"""
-function splomaxes!(f::Union{Makie.FigureLike,Makie.GridLayout},
-                    labels::AbstractVector{<:AbstractString},
-                    panel!::Function, args...; extraticks::Bool=false, kwargs...)
-    k = length(labels)
-    cols = Dict()
-    for i in 2:k                          # strict lower triangle of panels
-        row = Axis[]
-        for j in 1:(i - 1)
-            ax = Axis(f[i - 1, j])
-            panel!(ax, i, j, args...; kwargs...)
-            push!(row, ax)
-            col = get!(cols, j, Axis[])
-            push!(col, ax)
-            if i == k              # add x labels on bottom row
-                ax.xlabel = string(labels[j])
-            elseif extraticks && i == 2
-                ax.xaxisposition = :top
-                hidexdecorations!(ax; grid=false, ticks=false)
-            else
-                hidexdecorations!(ax; grid=false)
-            end
-            if isone(j)            # add y labels on left column
-                ax.ylabel = string(labels[i])
-            elseif extraticks && j == i - 1
-                ax.yaxisposition = :right
-                hideydecorations!(ax; grid=false, ticks=false)
-            else
-                hideydecorations!(ax; grid=false)
-            end
-        end
-        linkyaxes!(row...)
-    end
-
-    foreach(values(cols)) do col
-        return linkxaxes!(col...)
-    end
-
-    return f
-end
-
 getellipsepoints(radius, lambda) = getellipsepoints(0, 0, radius, lambda)
 
 function getellipsepoints(cx, cy, radius, lambda)
@@ -61,7 +11,7 @@ function getellipsepoints(cx, cy, radius, lambda)
 end
 
 function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, remat;
-                           ellipse, ellipse_scale, n_ellipse)
+                           ellipse::Bool, ellipse_scale::Real, n_ellipse::Integer)
     x, y = view(reref, j, :), view(reref, i, :)
     u, v = view(reest, j, :), view(reest, i, :)
     scatter!(ax, x, y; color=(:red, 0.25))   # reference points
@@ -108,7 +58,8 @@ function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
                         gf::Symbol=first(fnames(m)),
                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
                                                 m.optsum.initial;
-                        ellipse=false, ellipse_scale=1, n_ellipse=5) where {T}
+                        ellipse::Bool=false, ellipse_scale::Real=1,
+                        n_ellipse::Integer=5) where {T}
     reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
     if isnothing(reind)
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
@@ -123,7 +74,16 @@ function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
     return f
 end
 
-function _ranef(m::LinearMixedModel, θref)
+"""
+    _ranef(m::MixedModel, θref; uscale::Bool=false)
+
+Compute the conditional modes at θref.
+
+!!! warn
+    This function is **not** thread safe because it temporarily mutates
+    the passed model before restoring its original form.
+"""
+function _ranef(m::LinearMixedModel, θref; uscale::Bool=false)
     vv = try
         ranef(updateL!(setθ!(m, θref)))
     catch e
@@ -135,7 +95,7 @@ function _ranef(m::LinearMixedModel, θref)
     return vv
 end
 
-function _ranef(m::GeneralizedLinearMixedModel, θref)
+function _ranef(m::GeneralizedLinearMixedModel, θref; uscale::Bool=false)
     fast = length(m.θ) == length(m.optsum.final)
     setpar! = fast ? MixedModels.setθ! : MixedModels.setβθ!
     vv = try
@@ -165,28 +125,4 @@ function shrinkageplot(m::MixedModel, args...; kwargs...)
     f = Figure(; resolution=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
 
     return shrinkageplot!(f, m, args...; kwargs...)
-end
-
-"""
-    splom!(f::Union{Makie.FigureLike,Makie.GridLayout}, df::DataFrame)
-
-Create a scatter-plot matrix in `f` from the columns of `df`.
-
-Non-numeric columns are ignored.
-"""
-function splom!(f::Union{Makie.FigureLike,Makie.GridLayout}, df::DataFrame;
-                addcontours::Bool=false)
-    n_cols = ncol(df)
-    df = select(df, findall(col -> eltype(col) <: Number, eachcol(df));
-                copycols=false)
-    n_cols > ncol(df) &&
-        @info "Ignoring $(n_cols - ncol(df)) non-numeric columns."
-    mat = Array(df)
-    function pfunc(ax, i, j)
-        v = view(mat, :, [j, i])
-        scatter!(ax, v; color=(:blue, 0.2))
-        addcontours && contour!(ax, kde(v))
-        return ax
-    end
-    return splomaxes!(f, names(df), pfunc)
 end
