@@ -77,7 +77,7 @@ function ranefinfotable(ri::RanefInfo)
 end
 
 """
-    caterpillar!(f::Figure, r::RanefInfo; orderby=1)
+    caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo; orderby=1)
 
 Add Axes of a caterpillar plot from `r` to `f`.
 
@@ -92,7 +92,7 @@ order they are stored in.
     levels, then you must sort the relevant fields in the `RanefInfo` object before
     calling `caterpillar!`.
 """
-function caterpillar!(f::Figure, r::RanefInfo; orderby=1)
+function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo; orderby=1)
     rr = r.ranef
     y = axes(rr, 1)
     ord = isnothing(orderby) ? y : sortperm(view(rr, :, orderby))
@@ -124,13 +124,14 @@ function caterpillar(m::MixedModel, gf::Symbol=first(fnames(m)))
 end
 
 """
-    qqcaterpillar!(f::Figure, r::RanefInfo; cols=axes(r.cnames, 1))
+    qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo; cols=axes(r.cnames, 1))
 
 Update the figure with a caterpillar plot with the vertical axis on the Normal() quantile scale.
 
 The display can be restricted to a subset of random effects associated with a grouping variable by specifying `cols`, either by indices or term names.
 """
-function qqcaterpillar!(f::Figure, r::RanefInfo; cols=axes(r.cnames, 1))
+function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
+                        cols=axes(r.cnames, 1))
     cols = _cols_to_idx(r, cols)
     cn, rr = r.cnames, r.ranef
     y = zquantile.(ppoints(size(rr, 1)))

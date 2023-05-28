@@ -1,9 +1,9 @@
 """
-    clevelandaxes!(f::Figure, labs, layout)
+    clevelandaxes!(f::Union{Makie.FigureLike,Makie.GridLayout}, labs, layout)
 
 Create a set of axes within `f` with rows, columns determined by `layout` sufficient to hold `labs`
 """
-function clevelandaxes!(f::Figure, labs, layout)
+function clevelandaxes!(f::Union{Makie.FigureLike,Makie.GridLayout}, labs, layout)
     nrow, ncol = layout
     npanel = length(labs)
     axs = sizehint!(Axis[], npanel)

@@ -1,5 +1,5 @@
 """
-    splomaxes!(f::Figure, labels::AbstractVector{<:AbstractString},
+    splomaxes!(f::Union{Makie.FigureLike,Makie.GridLayout}, labels::AbstractVector{<:AbstractString},
                panel!::Function, args...;
                extraticks::Bool=false, kwargs...)
 
@@ -8,7 +8,8 @@ where `k` is the length of `labels`.  The `panel!` function should have the sign
 `panel!(ax::Axis, i::Integer, j::Integer, args...; kwargs...)` and should draw the
 [i,j] panel in `ax`.
 """
-function splomaxes!(f::Figure, labels::AbstractVector{<:AbstractString},
+function splomaxes!(f::Union{Makie.FigureLike,Makie.GridLayout},
+                    labels::AbstractVector{<:AbstractString},
                     panel!::Function, args...; extraticks::Bool=false, kwargs...)
     k = length(labels)
     cols = Dict()
@@ -84,7 +85,7 @@ function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, remat;
 end
 
 """
-    shrinkageplot!(f::Figure, m::MixedModel, gf::Symbol=first(fnames(m)), θref;
+    shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel, gf::Symbol=first(fnames(m)), θref;
                    ellipse=false, ellipse_scale=1, n_ellipse=5)
 
 Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
@@ -102,7 +103,7 @@ unable to see the ellipses, try increasing `ellipse_scale`.
     For degenerate (singular) models, the correlation ellipse will also be degenerate, i.e.,
     collapse to a point or line.
 """
-function shrinkageplot!(f::Figure,
+function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
                         m::MixedModel{T},
                         gf::Symbol=first(fnames(m)),
                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
@@ -167,13 +168,14 @@ function shrinkageplot(m::MixedModel, args...; kwargs...)
 end
 
 """
-    splom!(f::Figure, df::DataFrame)
+    splom!(f::Union{Makie.FigureLike,Makie.GridLayout}, df::DataFrame)
 
 Create a scatter-plot matrix in `f` from the columns of `df`.
 
 Non-numeric columns are ignored.
 """
-function splom!(f::Figure, df::DataFrame; addcontours::Bool=false)
+function splom!(f::Union{Makie.FigureLike,Makie.GridLayout}, df::DataFrame;
+                addcontours::Bool=false)
     n_cols = ncol(df)
     df = select(df, findall(col -> eltype(col) <: Number, eachcol(df));
                 copycols=false)

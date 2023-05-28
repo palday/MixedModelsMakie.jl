@@ -68,6 +68,20 @@ g1 = fit(MixedModel,
 
     f = qqcaterpillar(g1)
     save(joinpath(OUTDIR, "qqcat_verbagg.png"), f)
+
+    let f = Figure(; resolution=(1000, 600))
+        gl = f[1, 1] = GridLayout()
+        re = ranefinfo(m2)
+        qqcaterpillar!(gl, re[:item])
+        Label(gl[end + 1, :], "Item"; font=:bold)
+        gl = f[1, 2] = GridLayout()
+        qqcaterpillar!(gl, re[:subj])
+        Label(gl[end + 1, :], "Subject"; font=:bold)
+        Label(f[0, :], "Conditional Modes")
+        colsize!(f.layout, 1, Auto(0.5))
+        save(joinpath(OUTDIR, "qqcat_kb07_joint.png"), f)
+        f
+    end
 end
 
 @testset "clevelandaxes" begin
