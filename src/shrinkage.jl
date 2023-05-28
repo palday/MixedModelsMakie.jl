@@ -149,7 +149,7 @@ to BLUPs from the mixed model.
 
 `p` corresponds to the ``L_p`` norms, i.e. ``p=2`` is the Euclidean metric.
 
-Each entry in the named tuple corresponds to a single gruoping term.
+Each entry in the named tuple corresponds to a single grouping term.
 """
 function shrinkagenorm(m::MixedModel{T},
                        θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
