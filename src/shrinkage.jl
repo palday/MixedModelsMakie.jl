@@ -116,6 +116,7 @@ function shrinkageplot(m::MixedModel, args...; kwargs...)
 
     return shrinkageplot!(f, m, args...; kwargs...)
 end
+<<<<<<< HEAD
 
 """
     splom!(f::Union{Makie.FigureLike,Makie.GridLayout}, df::DataFrame)
@@ -140,3 +141,5 @@ function splom!(f::Union{Makie.FigureLike,Makie.GridLayout}, df::DataFrame;
     end
     return splomaxes!(f, names(df), pfunc)
 end
+=======
+>>>>>>> 1c56bdb (more moving of splom*)
