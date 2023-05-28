@@ -11,7 +11,7 @@ function getellipsepoints(cx, cy, radius, lambda)
 end
 
 function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, remat;
-                           ellipse, ellipse_scale, n_ellipse)
+                           ellipse::Bool, ellipse_scale::Real, n_ellipse::Integer)
     x, y = view(reref, j, :), view(reref, i, :)
     u, v = view(reest, j, :), view(reest, i, :)
     scatter!(ax, x, y; color=(:red, 0.25))   # reference points
@@ -58,7 +58,7 @@ function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
                         gf::Symbol=first(fnames(m)),
                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
                                                 m.optsum.initial;
-                        ellipse=false, ellipse_scale=1, n_ellipse=5) where {T}
+                        ellipse::Bool=false, ellipse_scale::Real=1, n_ellipse::Integer=5) where {T}
     reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
     if isnothing(reind)
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
@@ -73,7 +73,16 @@ function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
     return f
 end
 
-function _ranef(m::LinearMixedModel, θref)
+"""
+    _ranef(m::MixedModel, θref; uscale::Bool=false)
+
+Compute the conditional modes at θref.
+
+!!! warn
+    This function is **not** thread safe because it temporarily mutates
+    the passed model before restoring its original form.
+"""
+function _ranef(m::LinearMixedModel, θref; uscale::Bool=false)
     vv = try
         ranef(updateL!(setθ!(m, θref)))
     catch e
@@ -85,7 +94,7 @@ function _ranef(m::LinearMixedModel, θref)
     return vv
 end
 
-function _ranef(m::GeneralizedLinearMixedModel, θref)
+function _ranef(m::GeneralizedLinearMixedModel, θref; uscale::Bool=false)
     fast = length(m.θ) == length(m.optsum.final)
     setpar! = fast ? MixedModels.setθ! : MixedModels.setβθ!
     vv = try
