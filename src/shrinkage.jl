@@ -35,7 +35,7 @@ function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, remat;
 end
 
 """
-    shrinkageplot!(f::Figure, m::MixedModel, gf::Symbol=first(fnames(m)), θref;
+    shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel, gf::Symbol=first(fnames(m)), θref;
                    ellipse=false, ellipse_scale=1, n_ellipse=5)
 
 Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
@@ -53,7 +53,7 @@ unable to see the ellipses, try increasing `ellipse_scale`.
     For degenerate (singular) models, the correlation ellipse will also be degenerate, i.e.,
     collapse to a point or line.
 """
-function shrinkageplot!(f::Figure,
+function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
                         m::MixedModel{T},
                         gf::Symbol=first(fnames(m)),
                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
