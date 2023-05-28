@@ -123,8 +123,8 @@ end
 end
 
 @testset "recipes" begin
-    @test_logs (:warn, "qqline=:R is a deprecated value, use qqline=:fitrobust instead.") match_mode = :any qqnorm(m1;
-                                                                                                                   qqline=:R)
+    @test_logs((:warn, "qqline=:R is a deprecated value, use qqline=:fitrobust instead."),
+               (match_mode = :any), qqnorm(m1; qqline=:R))
     f = qqnorm(m1; qqline=:fitrobust)
     save(joinpath(OUTDIR, "qqnorm_sleepstudy_fitrobust.png"), f)
 
@@ -137,7 +137,21 @@ end
     save(joinpath(OUTDIR, "ridge_sleepstudy.png"), f)
 end
 
-@testset "shrinkagenorm" begin end
+@testset "shrinkagenorm" begin
+    m1 = fit(MixedModel,
+    @formula(1000 / reaction ~ 1 + days + (1 + days | subj)),
+    MixedModels.dataset(:sleepstudy); progress)
+
+m1zc = fit(MixedModel,
+      @formula(1000 / reaction ~ 1 + days + zerocorr(1 + days | subj)),
+      MixedModels.dataset(:sleepstudy); progress)
+
+m2 = fit(MixedModel,
+    @formula(rt_trunc ~ 1 + spkr * prec * load +
+                        (1 + spkr + prec + load | subj) +
+                        (1 + spkr | item)),
+    MixedModels.dataset(:kb07); progress)
+end
 
 @testset "shrinkageplot" begin
     f = shrinkageplot(m1)
