@@ -1,5 +1,5 @@
 """
-    clevelandaxes!(f::Figure, labs, layout)
+    clevelandaxes!(f::Union{Makie.FigureLike,Makie.GridLayout}, labs, layout)
 
 Create a set of axes within `f` with rows, columns determined by `layout` sufficient to hold `labs`
 """
@@ -48,13 +48,14 @@ function simplelinreg(x, y)
 end
 
 """
-    splom!(f::Figure, df::DataFrame)
+    splom!(f::Union{Makie.FigureLike,Makie.GridLayout}, df::DataFrame)
 
 Create a scatter-plot matrix in `f` from the columns of `df`.
 
 Non-numeric columns are ignored.
 """
-function splom!(f::Figure, df::DataFrame; addcontours::Bool=false)
+function splom!(f::Union{Makie.FigureLike,Makie.GridLayout}, df::DataFrame;
+                addcontours::Bool=false)
     n_cols = ncol(df)
     df = select(df, findall(col -> eltype(col) <: Number, eachcol(df));
                 copycols=false)
@@ -71,7 +72,7 @@ function splom!(f::Figure, df::DataFrame; addcontours::Bool=false)
 end
 
 """
-    splomaxes!(f::Figure, labels::AbstractVector{<:AbstractString},
+    splomaxes!(f::Union{Makie.FigureLike,Makie.GridLayout}, labels::AbstractVector{<:AbstractString},
                panel!::Function, args...;
                extraticks::Bool=false, kwargs...)
 
@@ -80,7 +81,8 @@ where `k` is the length of `labels`.  The `panel!` function should have the sign
 `panel!(ax::Axis, i::Integer, j::Integer, args...; kwargs...)` and should draw the
 [i,j] panel in `ax`.
 """
-function splomaxes!(f::Figure, labels::AbstractVector{<:AbstractString},
+function splomaxes!(f::Union{Makie.FigureLike,Makie.GridLayout},
+                    labels::AbstractVector{<:AbstractString},
                     panel!::Function, args...; extraticks::Bool=false, kwargs...)
     k = length(labels)
     cols = Dict()

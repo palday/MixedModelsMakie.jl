@@ -58,7 +58,8 @@ function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
                         gf::Symbol=first(fnames(m)),
                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
                                                 m.optsum.initial;
-                        ellipse::Bool=false, ellipse_scale::Real=1, n_ellipse::Integer=5) where {T}
+                        ellipse::Bool=false, ellipse_scale::Real=1,
+                        n_ellipse::Integer=5) where {T}
     reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
     if isnothing(reind)
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
@@ -125,30 +126,3 @@ function shrinkageplot(m::MixedModel, args...; kwargs...)
 
     return shrinkageplot!(f, m, args...; kwargs...)
 end
-<<<<<<< HEAD
-
-"""
-    splom!(f::Union{Makie.FigureLike,Makie.GridLayout}, df::DataFrame)
-
-Create a scatter-plot matrix in `f` from the columns of `df`.
-
-Non-numeric columns are ignored.
-"""
-function splom!(f::Union{Makie.FigureLike,Makie.GridLayout}, df::DataFrame;
-                addcontours::Bool=false)
-    n_cols = ncol(df)
-    df = select(df, findall(col -> eltype(col) <: Number, eachcol(df));
-                copycols=false)
-    n_cols > ncol(df) &&
-        @info "Ignoring $(n_cols - ncol(df)) non-numeric columns."
-    mat = Array(df)
-    function pfunc(ax, i, j)
-        v = view(mat, :, [j, i])
-        scatter!(ax, v; color=(:blue, 0.2))
-        addcontours && contour!(ax, kde(v))
-        return ax
-    end
-    return splomaxes!(f, names(df), pfunc)
-end
-=======
->>>>>>> 1c56bdb (more moving of splom*)
