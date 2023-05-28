@@ -140,7 +140,7 @@ end
 @testset "shrinkagenorm and shrinkagetables" begin
     for p in 1:3
         sn = DataFrame(shrinkagenorm(m1; p)[:subj])
-        st = DataFrame(shrinkagetables(m1)[:subj]),
+        st = DataFrame(shrinkagetables(m1)[:subj])
         st = transform!(st, Not(:subj) => ByRow((x...) -> norm(x, p)) => :shrinkage)
         @test all(isapprox.(st.shrinkage, sn.shrinkage; atol=0.005))
     end
