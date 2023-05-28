@@ -130,7 +130,8 @@ Update the figure with a caterpillar plot with the vertical axis on the Normal()
 
 The display can be restricted to a subset of random effects associated with a grouping variable by specifying `cols`, either by indices or term names.
 """
-function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo; cols=axes(r.cnames, 1))
+function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
+                        cols=axes(r.cnames, 1))
     cols = _cols_to_idx(r, cols)
     cn, rr = r.cnames, r.ranef
     y = zquantile.(ppoints(size(rr, 1)))
