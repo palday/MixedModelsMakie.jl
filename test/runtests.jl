@@ -117,7 +117,6 @@ end
 end
 
 @testset "shrinkagenorm" begin
-
 end
 
 @testset "shrinkageplot" begin
