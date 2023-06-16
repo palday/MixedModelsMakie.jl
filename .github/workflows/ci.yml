@@ -34,16 +34,9 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - name: Cache
-        uses: actions/cache@v1
-        env:
-          cache-name: cache-artifacts
+        uses: julia-actions/cache@v1
         with:
-          path: ~/.julia/artifacts
-          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-test-${{ env.cache-name }}-
-            ${{ runner.os }}-test-
-            ${{ runner.os }}-
+          cache-compiled: "true"
       - name: Build
         uses: julia-actions/julia-buildpkg@v1
       - name: Test
