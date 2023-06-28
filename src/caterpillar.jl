@@ -208,5 +208,10 @@ end
 _cols_to_idx(r, cols) = cols
 _cols_to_idx(r, cols::AbstractVector{<:Symbol}) = _cols_to_idx(r, string.(cols))
 function _cols_to_idx(r, cols::Vector{<:AbstractString})
-    return [i for (i, c) in enumerate(r.cnames) if c in cols]
+    idx = [findfirst(==(c), r.cnames) for c in cols]
+    if any(isnothing, idx)
+        misses = cols[isnothing.(idx)]
+        throw(ArgumentError("Specified columns not found in random effects: $(misses)"))
+    end
+    return idx
 end
