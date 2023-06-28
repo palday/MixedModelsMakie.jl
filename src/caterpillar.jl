@@ -107,9 +107,9 @@ function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
     cols = _cols_to_idx(r, cols)
     rr = view(r.ranef, :, cols)
     sd = view(r.stddev, :, cols)
+    cn = view(r.cnames, cols)
     y = axes(rr, 1)
     ord = isnothing(orderby) ? y : sortperm(view(rr, :, orderby))
-    cn = r.cnames
     axs = [Axis(f[1, j]) for j in axes(rr, 2)]
     linkyaxes!(axs...)
     for (j, ax) in enumerate(axs)
