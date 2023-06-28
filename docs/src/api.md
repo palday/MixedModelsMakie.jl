@@ -237,14 +237,44 @@ profiledensity(pr1; ptyp='σ')
 We also provide a `splom` or scatter-plot matrix plot for data frames with numeric columns (i.e. a matrix of all pairwise plots).
 These plots can be used to visualize the joint distribution of, say, the parameter estimates from a simulation.
 
+```@docs
+splom!
+```
+
 ```@example Splom
 using CairoMakie
 using DataFrames
 using LinearAlgebra
 using MixedModelsMakie
 
-splom!(
-    Figure(; resolution=(800, 800)),
-    DataFrame(rmul!(randn(100, 3), LowerTriangular([1 0 0;1 1 0;-1 -1 1])), [:x, :y, :z]),
-)
+data = rmul!(randn(100, 3), LowerTriangular([+1 +0 +0;
+                                             +1 +1 +0;
+                                             -1 -1 +1]))
+df = DataFrame(data, [:x, :y, :z])
+
+splom!(Figure(; resolution=(800, 800)), df)
+```
+
+Meanwhile, `splomaxes!` provides a lower-level backend for `splom!`
+
+```@docs
+splomaxes!
+```
+
+```@example Splom
+mat = Array(df)
+function pfunc(ax, i, j)
+    # note that this references mat from the outer scope!
+    # [j, i] because:
+    # - i is the row in the figure, which corresponds to the y var in each panel
+    # - j is the col in the figure, which corresponds to the x var in each panel
+    v = view(mat, :, [j, i])
+    scatter!(ax, v; color=(:blue, 0.2))
+    cc = cor(eachcol(v)...)
+    cc = round(cc; digits=2)
+    text!(ax, "r=$(cc)")
+    return ax
+end
+splomaxes!(Figure(; resolution=(800, 800)),
+           names(df), pfunc)
 ```
