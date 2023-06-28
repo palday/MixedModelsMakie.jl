@@ -149,7 +149,7 @@ specifying `cols`, either by indices or term names.
     `orderby` is the ``n``th column of the columns specified by `cols`.
 """
 function caterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
-    return caterpillar!(Figure(; resolution=(1000, 800)), m; kwargs...)
+    return caterpillar!(Figure(; resolution=(1000, 800)), m, gf; kwargs...)
 end
 
 """
