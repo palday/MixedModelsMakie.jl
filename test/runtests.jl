@@ -54,6 +54,11 @@ g1 = fit(MixedModel,
     f = caterpillar(m2, :item)
     save(joinpath(OUTDIR, "cat_kb07_item.png"), f)
 
+    f = caterpillar(m2, :subj; cols=[:("load: yes"), :("prec: maintain")], orderby=2)
+    save(joinpath(OUTDIR, "cat_kb07_subj_ordered_cols.png"), f)
+
+    @test_throws ArgumentError caterpillar(m2, :subj; cols=[:("load: no")])
+
     f = caterpillar(g1)
     save(joinpath(OUTDIR, "cat_verbagg.png"), f)
 
