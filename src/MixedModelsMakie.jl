@@ -29,6 +29,7 @@ export RanefInfo,
        shrinkageplot!,
        simplelinreg,
        splom!,
+       splomaxes!,
        zetaplot,
        zetaplot!
 

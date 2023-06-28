@@ -1,7 +1,7 @@
 name = "MixedModelsMakie"
 uuid = "b12ae82c-6730-437f-aff9-d2c38332a376"
-authors = ["Phillip Alday <me@phillipalday.com>, Douglas Bates <dmbates@gmail.com> and contributors"]
-version = "0.3.21"
+authors = ["Phillip Alday <me@phillipalday.com>", "Douglas Bates <dmbates@gmail.com>", "contributors"]
+version = "0.3.22"
 
 [deps]
 BSplineKit = "093aae92-e908-43d7-9660-e50ee39d5a0a"
