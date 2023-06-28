@@ -262,6 +262,8 @@ splomaxes!
 ```
 
 ```@example Splom
+using Statistics
+
 mat = Array(df)
 function pfunc(ax, i, j)
     # note that this references mat from the outer scope!
