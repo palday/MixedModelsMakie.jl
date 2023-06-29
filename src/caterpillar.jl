@@ -206,7 +206,9 @@ function qqcaterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
 end
 
 _cols_to_idx(::Vector{String}, cols) = cols
-_cols_to_idx(cnames::Vector{String}, cols::AbstractVector{<:Symbol}) = _cols_to_idx(cnames, string.(cols))
+function _cols_to_idx(cnames::Vector{String}, cols::AbstractVector{<:Symbol})
+    return _cols_to_idx(cnames, string.(cols))
+end
 function _cols_to_idx(cnames::Vector{String}, cols::Vector{<:AbstractString})
     idx = [findfirst(==(c), cnames) for c in cols]
     if any(isnothing, idx)

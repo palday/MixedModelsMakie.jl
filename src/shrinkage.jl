@@ -62,7 +62,8 @@ function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
                                                 m.optsum.initial;
                         ellipse::Bool=false, ellipse_scale::Real=1,
-                        n_ellipse::Integer=5, cols::Union{Nothing,AbstractVector}=nothing) where {T}
+                        n_ellipse::Integer=5,
+                        cols::Union{Nothing,AbstractVector}=nothing) where {T}
     reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
     if isnothing(reind)
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
