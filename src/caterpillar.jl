@@ -104,7 +104,7 @@ specifying `cols`, either by indices or term names.
 function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
                       orderby=1, cols=nothing)
     cols = something(cols, axes(r.cnames, 1))
-    cols = _cols_to_idx(r, cols)
+    cols = _cols_to_idx(r.cnames, cols)
     rr = view(r.ranef, :, cols)
     sd = view(r.stddev, :, cols)
     cn = view(r.cnames, cols)
@@ -170,7 +170,7 @@ order they are stored in.
 function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
                         cols=nothing)
     cols = something(cols, axes(r.cnames, 1))
-    cols = _cols_to_idx(r, cols)
+    cols = _cols_to_idx(r.cnames, cols)
     cn, rr = r.cnames, r.ranef
     y = zquantile.(ppoints(size(rr, 1)))
     axs = [Axis(f[1, j]) for j in axes(cols, 1)]
@@ -205,10 +205,10 @@ function qqcaterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
     return qqcaterpillar!(Figure(; resolution=(1000, 800)), m, gf; kwargs...)
 end
 
-_cols_to_idx(r, cols) = cols
-_cols_to_idx(r, cols::AbstractVector{<:Symbol}) = _cols_to_idx(r, string.(cols))
-function _cols_to_idx(r, cols::Vector{<:AbstractString})
-    idx = [findfirst(==(c), r.cnames) for c in cols]
+_cols_to_idx(::Vector{String}, cols) = cols
+_cols_to_idx(cnames::Vector{String}, cols::AbstractVector{<:Symbol}) = _cols_to_idx(cnames, string.(cols))
+function _cols_to_idx(cnames::Vector{String}, cols::Vector{<:AbstractString})
+    idx = [findfirst(==(c), cnames) for c in cols]
     if any(isnothing, idx)
         misses = cols[isnothing.(idx)]
         throw(ArgumentError("Specified columns not found in random effects: $(misses)"))
