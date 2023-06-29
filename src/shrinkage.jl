@@ -10,7 +10,7 @@ function getellipsepoints(cx, cy, radius, lambda)
     return x, y
 end
 
-function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, remat;
+function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, λ;
                            ellipse::Bool, ellipse_scale::Real, n_ellipse::Integer)
     x, y = view(reref, j, :), view(reref, i, :)
     u, v = view(reest, j, :), view(reest, i, :)
@@ -21,7 +21,7 @@ function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, remat;
         # force computation of current limits
         autolimits!(ax)
         lims = ax.finallimits[]
-        cho = remat.λ[[i, j], [j, i]]
+        cho = λ[[i, j], [j, i]]
         rad_outer = ellipse_scale * mean(lims.widths)
         rad_inner = 0
         for radius in LinRange(rad_inner, rad_outer, n_ellipse + 1)
@@ -36,13 +36,16 @@ end
 
 """
     shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel, gf::Symbol=first(fnames(m)), θref;
-                   ellipse=false, ellipse_scale=1, n_ellipse=5)
+                   ellipse=false, ellipse_scale=1, n_ellipse=5, cols::Union{Nothing,AbstractVector}=nothing)
 
 Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
 
 Two sets of conditional means are plotted: those at the estimated parameter values and those at `θref`.
 The default `θref` results in `Λ` being a very large multiple of the identity.  The corresponding
 conditional means can be regarded as unpenalized.
+
+The display can be restricted to a subset of random effects associated with a grouping variable by
+specifying `cols`, either by indices or term names.
 
 Correlation ellipses can be added with `ellipse=true`, with the number of ellipses controlled by
 `n_ellipse`. The ellipses are equally spaced between the outer ellipse and the origin (center).
@@ -59,17 +62,27 @@ function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
                                                 m.optsum.initial;
                         ellipse::Bool=false, ellipse_scale::Real=1,
-                        n_ellipse::Integer=5) where {T}
+                        n_ellipse::Integer=5,
+                        cols::Union{Nothing,AbstractVector}=nothing) where {T}
     reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
     if isnothing(reind)
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
     end
+    r = m.reterms[reind]
+    cols = something(cols, axes(r.cnames, 1))
+    length(cols) < 2 && throw(ArgumentError("At least two columns must be specified."))
+    cols = _cols_to_idx(r.cnames, cols)
     reest = ranef(m)[reind]          # random effects conditional means at estimated θ
     reref = _ranef(m, θref)[reind]   # same at θref
-    remat = m.reterms[reind]
 
-    splomaxes!(f, m.reterms[reind].cnames, _shrinkage_panel!,
-               reref, reest, remat; ellipse, ellipse_scale, n_ellipse)
+    # transpose is stored, so swap
+    reest = view(reest, cols, :)
+    reref = view(reref, cols, :)
+    λ = view(r.λ, cols, cols)
+    cnames = view(r.cnames, cols)
+
+    splomaxes!(f, cnames, _shrinkage_panel!,
+               reref, reest, λ; ellipse, ellipse_scale, n_ellipse)
 
     return f
 end

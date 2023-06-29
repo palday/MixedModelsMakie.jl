@@ -78,9 +78,9 @@ end
 
 """
     caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
-                orderby=1, cols=nothing)
+                orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
     caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::LinearMixedModel,
-                 gf::Symbol=first(fnames(m)); orderby=1, cols=nothing)
+                 gf::Symbol=first(fnames(m)); orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
 
 Add Axes of a caterpillar plot from `r` to `f`.
 
@@ -102,9 +102,9 @@ specifying `cols`, either by indices or term names.
     `orderby` is the ``n``th column of the columns specified by `cols`.
 """
 function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
-                      orderby=1, cols=nothing)
+                      orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
     cols = something(cols, axes(r.cnames, 1))
-    cols = _cols_to_idx(r, cols)
+    cols = _cols_to_idx(r.cnames, cols)
     rr = view(r.ranef, :, cols)
     sd = view(r.stddev, :, cols)
     cn = view(r.cnames, cols)
@@ -130,7 +130,7 @@ function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel
 end
 
 """
-    caterpillar(m::LinearMixedModel, gf::Symbol; orderby=1, cols=nothing)
+    caterpillar(m::LinearMixedModel, gf::Symbol; orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
 
 Returns a `Figure` of a "caterpillar plot" of the random-effects means and prediction intervals
 
@@ -153,9 +153,9 @@ function caterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
 end
 
 """
-    qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo; cols=nothing)
+    qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo; cols::Union{Nothing,AbstractVector}=nothing)
     qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::LinearMixedModel,
-                   gf::Symbol=first(fnames(m)); cols=nothing)
+                   gf::Symbol=first(fnames(m)); cols::Union{Nothing,AbstractVector}=nothing)
 
 Update the figure with a caterpillar plot with the vertical axis on the Normal() quantile scale.
 
@@ -168,9 +168,9 @@ Setting `orderby=nothing` will disable sorting, i.e. return the levels in the
 order they are stored in.
 """
 function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
-                        cols=nothing)
+                        cols::Union{Nothing,AbstractVector}=nothing)
     cols = something(cols, axes(r.cnames, 1))
-    cols = _cols_to_idx(r, cols)
+    cols = _cols_to_idx(r.cnames, cols)
     cn, rr = r.cnames, r.ranef
     y = zquantile.(ppoints(size(rr, 1)))
     axs = [Axis(f[1, j]) for j in axes(cols, 1)]
@@ -194,7 +194,7 @@ function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedMod
 end
 
 """
-    qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing, orderby=1)
+    qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols::Union{Nothing,AbstractVector}=nothing, orderby=1)
 
 Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and prediction intervals.
 
@@ -205,10 +205,12 @@ function qqcaterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
     return qqcaterpillar!(Figure(; resolution=(1000, 800)), m, gf; kwargs...)
 end
 
-_cols_to_idx(r, cols) = cols
-_cols_to_idx(r, cols::AbstractVector{<:Symbol}) = _cols_to_idx(r, string.(cols))
-function _cols_to_idx(r, cols::Vector{<:AbstractString})
-    idx = [findfirst(==(c), r.cnames) for c in cols]
+_cols_to_idx(::Vector{String}, cols) = cols
+function _cols_to_idx(cnames::Vector{String}, cols::AbstractVector{<:Symbol})
+    return _cols_to_idx(cnames, string.(cols))
+end
+function _cols_to_idx(cnames::Vector{String}, cols::Vector{<:AbstractString})
+    idx = [findfirst(==(c), cnames) for c in cols]
     if any(isnothing, idx)
         misses = cols[isnothing.(idx)]
         throw(ArgumentError("Specified columns not found in random effects: $(misses)"))

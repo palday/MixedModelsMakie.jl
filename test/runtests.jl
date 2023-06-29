@@ -154,6 +154,12 @@ end
     f = shrinkageplot(m2; ellipse=true)
     save(joinpath(OUTDIR, "shrinkage_kb07_subj_ellipse.png"), f)
 
+    f = shrinkageplot(m2; ellipse=true, cols=["spkr: old", "prec: maintain", "(Intercept)"])
+    save(joinpath(OUTDIR, "shrinkage_kb07_subj_cols.png"), f)
+
+    @test_throws(ArgumentError("At least two columns must be specified."),
+                 shrinkageplot(m2; ellipse=true, cols=["spkr: old"]))
+
     f = shrinkageplot(m2; ellipse=true, ellipse_scale=2)
     save(joinpath(OUTDIR, "shrinkage_kb07_subj_ellipse_scaled.png"), f)
 
