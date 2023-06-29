@@ -36,7 +36,7 @@ end
 
 """
     shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel, gf::Symbol=first(fnames(m)), θref;
-                   ellipse=false, ellipse_scale=1, n_ellipse=5, cols=nothing)
+                   ellipse=false, ellipse_scale=1, n_ellipse=5, cols::Union{Nothing,AbstractVector}=nothing)
 
 Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
 
@@ -62,13 +62,14 @@ function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
                                                 m.optsum.initial;
                         ellipse::Bool=false, ellipse_scale::Real=1,
-                        n_ellipse::Integer=5, cols=nothing) where {T}
+                        n_ellipse::Integer=5, cols::Union{Nothing,AbstractVector}=nothing) where {T}
     reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
     if isnothing(reind)
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
     end
     r = m.reterms[reind]
     cols = something(cols, axes(r.cnames, 1))
+    length(cols) < 2 && throw(ArgumentError("At least two columns must be specified."))
     cols = _cols_to_idx(r.cnames, cols)
     reest = ranef(m)[reind]          # random effects conditional means at estimated θ
     reref = _ranef(m, θref)[reind]   # same at θref

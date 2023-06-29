@@ -78,9 +78,9 @@ end
 
 """
     caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
-                orderby=1, cols=nothing)
+                orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
     caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::LinearMixedModel,
-                 gf::Symbol=first(fnames(m)); orderby=1, cols=nothing)
+                 gf::Symbol=first(fnames(m)); orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
 
 Add Axes of a caterpillar plot from `r` to `f`.
 
@@ -102,7 +102,7 @@ specifying `cols`, either by indices or term names.
     `orderby` is the ``n``th column of the columns specified by `cols`.
 """
 function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
-                      orderby=1, cols=nothing)
+                      orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
     cols = something(cols, axes(r.cnames, 1))
     cols = _cols_to_idx(r.cnames, cols)
     rr = view(r.ranef, :, cols)
@@ -130,7 +130,7 @@ function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel
 end
 
 """
-    caterpillar(m::LinearMixedModel, gf::Symbol; orderby=1, cols=nothing)
+    caterpillar(m::LinearMixedModel, gf::Symbol; orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
 
 Returns a `Figure` of a "caterpillar plot" of the random-effects means and prediction intervals
 
@@ -153,9 +153,9 @@ function caterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
 end
 
 """
-    qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo; cols=nothing)
+    qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo; cols::Union{Nothing,AbstractVector}=nothing)
     qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::LinearMixedModel,
-                   gf::Symbol=first(fnames(m)); cols=nothing)
+                   gf::Symbol=first(fnames(m)); cols::Union{Nothing,AbstractVector}=nothing)
 
 Update the figure with a caterpillar plot with the vertical axis on the Normal() quantile scale.
 
@@ -168,7 +168,7 @@ Setting `orderby=nothing` will disable sorting, i.e. return the levels in the
 order they are stored in.
 """
 function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
-                        cols=nothing)
+                        cols::Union{Nothing,AbstractVector}=nothing)
     cols = something(cols, axes(r.cnames, 1))
     cols = _cols_to_idx(r.cnames, cols)
     cn, rr = r.cnames, r.ranef
@@ -194,7 +194,7 @@ function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedMod
 end
 
 """
-    qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols=nothing, orderby=1)
+    qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols::Union{Nothing,AbstractVector}=nothing, orderby=1)
 
 Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and prediction intervals.
 
