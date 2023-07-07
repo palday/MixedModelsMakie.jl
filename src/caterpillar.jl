@@ -78,9 +78,12 @@ end
 
 """
     caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
-                orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
+                orderby=1, cols::Union{Nothing,AbstractVector}=nothing,
+                dotcolor=(:red, 0.2), barcolor=:black)
     caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::LinearMixedModel,
-                 gf::Symbol=first(fnames(m)); orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
+                 gf::Symbol=first(fnames(m)); orderby=1,
+                 cols::Union{Nothing,AbstractVector}=nothing,
+                 dotcolor=(:red, 0.2), barcolor=:black)
 
 Add Axes of a caterpillar plot from `r` to `f`.
 
@@ -102,7 +105,8 @@ specifying `cols`, either by indices or term names.
     `orderby` is the ``n``th column of the columns specified by `cols`.
 """
 function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
-                      orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
+                      orderby=1, cols::Union{Nothing,AbstractVector}=nothing,
+                      dotcolor=(:red, 0.2), barcolor=:black)
     cols = something(cols, axes(r.cnames, 1))
     cols = _cols_to_idx(r.cnames, cols)
     rr = view(r.ranef, :, cols)
@@ -114,8 +118,8 @@ function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
     linkyaxes!(axs...)
     for (j, ax) in enumerate(axs)
         xvals = view(rr, ord, j)
-        scatter!(ax, xvals, y; color=(:red, 0.2))
-        errorbars!(ax, xvals, y, 1.960 * view(sd, ord, j); direction=:x)
+        scatter!(ax, xvals, y; color=dotcolor)
+        errorbars!(ax, xvals, y, 1.960 * view(sd, ord, j); direction=:x, color=barcolor)
         ax.xlabel = cn[j]
         ax.yticks = y
         j > 1 && hideydecorations!(ax; grid=false)
@@ -130,7 +134,9 @@ function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel
 end
 
 """
-    caterpillar(m::LinearMixedModel, gf::Symbol; orderby=1, cols::Union{Nothing,AbstractVector}=nothing)
+    caterpillar(m::LinearMixedModel, gf::Symbol; orderby=1,
+                cols::Union{Nothing,AbstractVector}=nothing,
+                dotcolor=(:red, 0.2), barcolor=:black)
 
 Returns a `Figure` of a "caterpillar plot" of the random-effects means and prediction intervals
 
@@ -147,15 +153,21 @@ specifying `cols`, either by indices or term names.
 
 !!! note
     `orderby` is the ``n``th column of the columns specified by `cols`.
+
+See also [`caterpillar!`](@ref)
 """
 function caterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
     return caterpillar!(Figure(; resolution=(1000, 800)), m, gf; kwargs...)
 end
 
 """
-    qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo; cols::Union{Nothing,AbstractVector}=nothing)
+    qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
+                   cols::Union{Nothing,AbstractVector}=nothing,
+                   dotcolor=(:red, 0.2), barcolor=:black)
     qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::LinearMixedModel,
-                   gf::Symbol=first(fnames(m)); cols::Union{Nothing,AbstractVector}=nothing)
+                   gf::Symbol=first(fnames(m));
+                   cols::Union{Nothing,AbstractVector}=nothing,
+                   dotcolor=(:red, 0.2), barcolor=:black)
 
 Update the figure with a caterpillar plot with the vertical axis on the Normal() quantile scale.
 
@@ -168,7 +180,8 @@ Setting `orderby=nothing` will disable sorting, i.e. return the levels in the
 order they are stored in.
 """
 function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
-                        cols::Union{Nothing,AbstractVector}=nothing)
+                        cols::Union{Nothing,AbstractVector}=nothing,
+                        dotcolor=(:red, 0.2), barcolor=:black)
     cols = something(cols, axes(r.cnames, 1))
     cols = _cols_to_idx(r.cnames, cols)
     cn, rr = r.cnames, r.ranef
@@ -180,8 +193,9 @@ function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInf
         xvals = rr[:, k]
         ord = sortperm(xvals)
         xvals = xvals[ord]
-        scatter!(ax, xvals, y; color=(:red, 0.2))
-        errorbars!(ax, xvals, y, 1.960 * view(r.stddev, ord, k); direction=:x)
+        scatter!(ax, xvals, y; color=dotcolor)
+        errorbars!(ax, xvals, y, 1.960 * view(r.stddev, ord, k); direction=:x,
+                   color=barcolor)
         ax.xlabel = string(cn[k])
         j > 1 && hideydecorations!(ax; grid=false)
     end
@@ -194,12 +208,16 @@ function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedMod
 end
 
 """
-    qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m)); cols::Union{Nothing,AbstractVector}=nothing, orderby=1)
+    qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m));
+                  cols::Union{Nothing,AbstractVector}=nothing, orderby=1,
+                  dotcolor=(:red, 0.2), barcolor=:black)
 
 Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and prediction intervals.
 
 The display can be restricted to a subset of random effects associated with a grouping variable by
 specifying `cols`, either by indices or term names.
+
+See also [`qqcaterpillar!`](@ref).
 """
 function qqcaterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
     return qqcaterpillar!(Figure(; resolution=(1000, 800)), m, gf; kwargs...)
