@@ -194,7 +194,8 @@ function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInf
         ord = sortperm(xvals)
         xvals = xvals[ord]
         scatter!(ax, xvals, y; color=dotcolor)
-        errorbars!(ax, xvals, y, 1.960 * view(r.stddev, ord, k); direction=:x, color=barcolor)
+        errorbars!(ax, xvals, y, 1.960 * view(r.stddev, ord, k); direction=:x,
+                   color=barcolor)
         ax.xlabel = string(cn[k])
         j > 1 && hideydecorations!(ax; grid=false)
     end
