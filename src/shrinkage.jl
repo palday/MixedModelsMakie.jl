@@ -11,12 +11,14 @@ function getellipsepoints(cx, cy, radius, lambda)
 end
 
 function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, λ;
-                           ellipse::Bool, ellipse_scale::Real, n_ellipse::Integer)
+                           ellipse::Bool, ellipse_scale::Real, n_ellipse::Integer,
+                           shrunk_dotcolor, ref_dotcolor,
+                           ellipse_color, ellipse_linestyle)
     x, y = view(reref, j, :), view(reref, i, :)
     u, v = view(reest, j, :), view(reest, i, :)
-    scatter!(ax, x, y; color=(:red, 0.25))   # reference points
+    scatter!(ax, x, y; color=ref_dotcolor)   # reference points
     arrows!(ax, x, y, u .- x, v .- y)        # first so arrow heads don't obscure pts
-    plt = scatter!(ax, u, v; color=(:blue, 0.25))  # conditional means at estimates
+    plt = scatter!(ax, u, v; color=shrunk_dotcolor)  # conditional means at estimates
     if ellipse
         # force computation of current limits
         autolimits!(ax)
@@ -26,7 +28,7 @@ function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, λ;
         rad_inner = 0
         for radius in LinRange(rad_inner, rad_outer, n_ellipse + 1)
             ex, ey = getellipsepoints(radius, cho)
-            lines!(ax, ex, ey; color=:green, linestyle=:dash)
+            lines!(ax, ex, ey; color=ellipse_color, linestyle=ellipse_linestyle)
         end
         # preserve the limits from before the ellipse
         limits!(ax, lims)
@@ -35,8 +37,12 @@ function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, λ;
 end
 
 """
-    shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel, gf::Symbol=first(fnames(m)), θref;
-                   ellipse=false, ellipse_scale=1, n_ellipse=5, cols::Union{Nothing,AbstractVector}=nothing)
+    shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel,
+                   gf::Symbol=first(fnames(m)), θref;
+                   ellipse=false, ellipse_scale=1, n_ellipse=5,
+                   cols::Union{Nothing,AbstractVector}=nothing,
+                   shrunk_dotcolor=(:blue, 0.25), ref_dotcolor=(:red, 0.25),
+                   ellipse_color=:green, ellipse_linestyle=:dash)
 
 Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
 
@@ -63,7 +69,9 @@ function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
                                                 m.optsum.initial;
                         ellipse::Bool=false, ellipse_scale::Real=1,
                         n_ellipse::Integer=5,
-                        cols::Union{Nothing,AbstractVector}=nothing) where {T}
+                        cols::Union{Nothing,AbstractVector}=nothing,
+                        shrunk_dotcolor=(:blue, 0.25), ref_dotcolor=(:red, 0.25),
+                        ellipse_color=:green, ellipse_linestyle=:dash) where {T}
     reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
     if isnothing(reind)
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
@@ -82,7 +90,9 @@ function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
     cnames = view(r.cnames, cols)
 
     splomaxes!(f, cnames, _shrinkage_panel!,
-               reref, reest, λ; ellipse, ellipse_scale, n_ellipse)
+               reref, reest, λ; ellipse, ellipse_scale, n_ellipse,
+               shrunk_dotcolor, ref_dotcolor,
+               ellipse_color, ellipse_linestyle)
 
     return f
 end
