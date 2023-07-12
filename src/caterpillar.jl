@@ -79,13 +79,19 @@ end
 """
     caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
                 orderby=1, cols::Union{Nothing,AbstractVector}=nothing,
-                dotcolor=(:red, 0.2), barcolor=:black)
-    caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::LinearMixedModel,
+                dotcolor=(:red, 0.2), barcolor=:black,
+                vline_at_zero::Bool=false)
+    caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel,
                  gf::Symbol=first(fnames(m)); orderby=1,
                  cols::Union{Nothing,AbstractVector}=nothing,
-                 dotcolor=(:red, 0.2), barcolor=:black)
+                 dotcolor=(:red, 0.2), barcolor=:black,
+                 vline_at_zero::Bool=false)
 
 Add Axes of a caterpillar plot from `r` to `f`.
+
+When passing a `MixedModel`, `gf` specifies which grouping variable is displayed.
+Alternatively, [`ranefinfo`](@ref) may be used to construct the [`RanefInfo`](@ref) object directly.
+Constructing `RanefInfo` directly can be used to avoid re-computing the conditional variances.
 
 The order of the levels on the vertical axes is increasing `orderby` column
 of `r.ranef`, usually the `(Intercept)` random effects.
@@ -106,7 +112,8 @@ specifying `cols`, either by indices or term names.
 """
 function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
                       orderby=1, cols::Union{Nothing,AbstractVector}=nothing,
-                      dotcolor=(:red, 0.2), barcolor=:black)
+                      dotcolor=(:red, 0.2), barcolor=:black,
+                      vline_at_zero::Bool=false)
     cols = something(cols, axes(r.cnames, 1))
     cols = _cols_to_idx(r.cnames, cols)
     rr = view(r.ranef, :, cols)
@@ -123,6 +130,7 @@ function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
         ax.xlabel = cn[j]
         ax.yticks = y
         j > 1 && hideydecorations!(ax; grid=false)
+        vline_at_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
     end
     axs[1].yticks = (y, string.(r.levels[ord]))
     return f
@@ -134,27 +142,16 @@ function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel
 end
 
 """
-    caterpillar(m::LinearMixedModel, gf::Symbol; orderby=1,
-                cols::Union{Nothing,AbstractVector}=nothing,
-                dotcolor=(:red, 0.2), barcolor=:black)
+    caterpillar(m::MixedModel, gf::Symbol; kwargs...)
 
 Returns a `Figure` of a "caterpillar plot" of the random-effects means and prediction intervals
 
 A "caterpillar plot" is a horizontal error-bar plot of conditional means and standard deviations
 of the random effects.
 
-The order of the levels on the vertical axes is increasing `orderby` column
-of `r.ranef`, usually the `(Intercept)` random effects.
-Setting `orderby=nothing` will disable sorting, i.e. return the levels in the
-order they are stored in.
+`gf` specifies which grouping variable is displayed.
 
-The display can be restricted to a subset of random effects associated with a grouping variable by
-specifying `cols`, either by indices or term names.
-
-!!! note
-    `orderby` is the ``n``th column of the columns specified by `cols`.
-
-See also [`caterpillar!`](@ref)
+`kwargs...` are passed on to [`caterpillar!`](@ref).
 """
 function caterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
     return caterpillar!(Figure(; resolution=(1000, 800)), m, gf; kwargs...)
@@ -164,12 +161,17 @@ end
     qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
                    cols::Union{Nothing,AbstractVector}=nothing,
                    dotcolor=(:red, 0.2), barcolor=:black)
-    qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::LinearMixedModel,
+    qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel,
                    gf::Symbol=first(fnames(m));
                    cols::Union{Nothing,AbstractVector}=nothing,
-                   dotcolor=(:red, 0.2), barcolor=:black)
+                   dotcolor=(:red, 0.2), barcolor=:black,
+                   vline_at_zero::Bool=false)
 
 Update the figure with a caterpillar plot with the vertical axis on the Normal() quantile scale.
+
+When passing a `MixedModel`, `gf` specifies which grouping variable is displayed.
+Alternatively, [`ranefinfo`](@ref) may be used to construct the [`RanefInfo`](@ref) object directly.
+Constructing `RanefInfo` directly can be used to avoid re-computing the conditional variances.
 
 The display can be restricted to a subset of random effects associated with a grouping variable by
 specifying `cols`, either by indices or term names.
@@ -181,7 +183,8 @@ order they are stored in.
 """
 function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
                         cols::Union{Nothing,AbstractVector}=nothing,
-                        dotcolor=(:red, 0.2), barcolor=:black)
+                        dotcolor=(:red, 0.2), barcolor=:black,
+                        vline_at_zero::Bool=false)
     cols = something(cols, axes(r.cnames, 1))
     cols = _cols_to_idx(r.cnames, cols)
     cn, rr = r.cnames, r.ranef
@@ -198,6 +201,7 @@ function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInf
                    color=barcolor)
         ax.xlabel = string(cn[k])
         j > 1 && hideydecorations!(ax; grid=false)
+        vline_at_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
     end
     return f
 end
@@ -208,16 +212,14 @@ function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedMod
 end
 
 """
-    qqcaterpillar(m::LinearMixedModel, gf::Symbol=first(fnames(m));
-                  cols::Union{Nothing,AbstractVector}=nothing, orderby=1,
-                  dotcolor=(:red, 0.2), barcolor=:black)
+    qqcaterpillar(m::MixedModel, gf::Symbol=first(fnames(m));
+                  kwargs...)
 
 Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and prediction intervals.
 
-The display can be restricted to a subset of random effects associated with a grouping variable by
-specifying `cols`, either by indices or term names.
+`gf` specifies which grouping variable is displayed.
 
-See also [`qqcaterpillar!`](@ref).
+`kwargs...` are passed on to [`qqcaterpillar!`](@ref).
 """
 function qqcaterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
     return qqcaterpillar!(Figure(; resolution=(1000, 800)), m, gf; kwargs...)

@@ -45,7 +45,7 @@ g1 = fit(MixedModel,
          Bernoulli(); progress)
 
 @testset "[qq]caterpillar" begin
-    f = caterpillar(m1)
+    f = caterpillar(m1; vline_at_zero=true)
     save(joinpath(OUTDIR, "cat_sleepstudy.png"), f)
 
     f = caterpillar(m2, :subj)
@@ -62,7 +62,7 @@ g1 = fit(MixedModel,
     f = caterpillar(g1)
     save(joinpath(OUTDIR, "cat_verbagg.png"), f)
 
-    f = qqcaterpillar(m1)
+    f = qqcaterpillar(m1; vline_at_zero=true)
     save(joinpath(OUTDIR, "qqcat_sleepstudy.png"), f)
 
     f = qqcaterpillar(m2, :subj)
