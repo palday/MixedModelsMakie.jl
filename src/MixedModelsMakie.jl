@@ -44,7 +44,7 @@ include("xyplot.jl")
 include("recipes.jl")
 
 @setup_workload begin
-    model = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)),
+    model = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days | subj)),
                 MixedModels.dataset(:sleepstudy))
     @compile_workload begin
         caterpillar(model)
