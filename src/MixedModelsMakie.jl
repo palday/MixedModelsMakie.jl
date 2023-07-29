@@ -7,6 +7,7 @@ using Distributions
 using KernelDensity
 using Makie
 using MixedModels
+using PrecompileTools
 using Printf
 using SpecialFunctions
 using StatsBase
@@ -41,5 +42,20 @@ include("profile.jl")
 include("ridge.jl")
 include("xyplot.jl")
 include("recipes.jl")
+
+@setup_workload begin
+    model = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days|subj)),
+                MixedModels.dataset(:sleepstudy))
+    @compile_workload begin
+        caterpillar(model)
+        coefplot(model)
+        qqcaterpillar(model)
+        qqnorm(model)
+        shrinkageplot(model; ellipse=true)
+        # not covered:
+        # profile plots
+        # bootstrap plots (e.g. ridgeplot)
+    end
+end
 
 end # module
