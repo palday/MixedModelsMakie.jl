@@ -70,6 +70,17 @@ function Makie.plot!(ax::Axis, P::Type{<:RidgePlot}, allattrs::Makie.Attributes,
         ylims!(ax, 0, nticks + 1)
         allattrs.vline_at_zero[] && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
     end
+
+    # set x limits for small coeficients
+    df = DataFrame(x.β)
+    show_intercept || filter!(:coefname => !=(Symbol("(Intercept)")), df)
+    coef_extrema = extrema(df.β)
+    cr = (coef_extrema[2] - coef_extrema[1]) # coeficient range
+    if cr<20
+        cr = cr*0.1
+        xlims!(ax, coef_extrema[1]-cr, coef_extrema[2]+cr)
+    end
+
     return plot
 end
 
