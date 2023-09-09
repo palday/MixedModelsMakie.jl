@@ -44,7 +44,7 @@ function zetaplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
             scatter!(ax, xv, fw.(xv))
             est = rp(0)
             slope = (Derivative(1) * fw)(est)
-            ablines!(ax, -(slope * est), slope)
+            ablines!(ax, -(slope * est), slope; color=:black, linestyle=:dash)
         end
     end
     linkyaxes!(axs...)
