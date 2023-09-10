@@ -3,8 +3,8 @@ function _coefnames(x; show_intercept=true)
     return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
 end
 
-function _coefnames(x::MixedModelBootstrap; show_intercept=true)
-    cn = collect(string.(propertynames(first(x.fits).β)))
+function _coefnames(x::MixedModelBootstrap, param=:β; show_intercept=true)
+    cn = collect(string.(propertynames(getproperty(first(x.fits), param))))
     return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
 end
 
