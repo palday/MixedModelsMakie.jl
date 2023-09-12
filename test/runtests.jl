@@ -36,8 +36,8 @@ m2 = fit(MixedModel,
                              (1 + spkr | item)),
          MixedModels.dataset(:kb07); progress)
 
-b1 = parametricbootstrap(MersenneTwister(42), 100, m1; hide_progress=!progress)
-
+b1 = parametricbootstrap(MersenneTwister(42), 500, m1; progress,
+                         optsum_overrides=(; ftol_rel=1e-6))
 g1 = fit(MixedModel,
          @formula(r2 ~ 1 + anger + gender + btype + situ +
                        (1 | subj) + (1 + gender | item)),
@@ -139,6 +139,15 @@ end
 @testset "ridgeplot" begin
     f = ridgeplot(b1)
     save(joinpath(OUTDIR, "ridge_sleepstudy.png"), f)
+end
+
+@testset "ridge2d" begin
+    @test_throws(ArgumentError("No parameters x found."),
+                 ridge2d(b1; ptype=:x))
+    @test_throws(ArgumentError("Only 1 ρ-paramater found: 2D plots require at least 2."),
+                 ridge2d(b1; ptype=:ρ))
+    save(joinpath(OUTDIR, "ridge2d_beta.png"), ridge2d(b1))
+    save(joinpath(OUTDIR, "ridge2d_sigma.png"), ridge2d(b1; ptype=:σ))
 end
 
 @testset "shrinkageplot" begin

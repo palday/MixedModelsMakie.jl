@@ -50,6 +50,15 @@ ridgeplot
 ridgeplot(boot)
 ```
 
+## Ridge 2D Plots
+
+```@docs
+ridge2d
+```
+
+```@example Coefplot
+ridge2d(boot)
+```
 
 ## Random effects and group-level predictions
 

@@ -24,6 +24,8 @@ export RanefInfo,
        qqcaterpillar!,
        ranefinfo,
        ranefinfotable,
+       ridge2d,
+       ridge2d!,
        ridgeplot,
        ridgeplot!,
        shrinkageplot,
@@ -40,6 +42,7 @@ include("caterpillar.jl")
 include("coefplot.jl")
 include("profile.jl")
 include("ridge.jl")
+include("ridge2d.jl")
 include("xyplot.jl")
 include("recipes.jl")
 
