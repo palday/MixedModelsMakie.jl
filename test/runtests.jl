@@ -37,7 +37,7 @@ m2 = fit(MixedModel,
          MixedModels.dataset(:kb07); progress)
 
 b1 = parametricbootstrap(MersenneTwister(42), 500, m1; progress,
-                         optsum_overrides=(;ftol_rel=1e-6))
+                         optsum_overrides=(; ftol_rel=1e-6))
 g1 = fit(MixedModel,
          @formula(r2 ~ 1 + anger + gender + btype + situ +
                        (1 | subj) + (1 + gender | item)),
