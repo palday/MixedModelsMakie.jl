@@ -15,7 +15,7 @@ Create a ridge plot for the bootstrap samples of the fixed effects.
 
 Densities are normalized so that the maximum density is always 1.
 
-The highest density interval correspoding to `conf_level` is marked with a bar at the bottom of each density.
+The highest density interval corresponding to `conf_level` is marked with a bar at the bottom of each density.
 Setting `conf_level=missing` removes the markings for the highest density interval.
 
 !!! note

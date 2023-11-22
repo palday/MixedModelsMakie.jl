@@ -27,7 +27,7 @@ function ridge2d!(f::Union{Makie.FigureLike,Makie.GridLayout}, bs::MixedModelBoo
     isempty(cnames) &&
         throw(ArgumentError("No parameters $ptype found."))
     length(cnames) == 1 &&
-        throw(ArgumentError("Only 1 $ptype-paramater found: 2D plots require at least 2."))
+        throw(ArgumentError("Only 1 $ptype-parameter found: 2D plots require at least 2."))
     splomaxes!(f, cnames, _ridge2d_panel!, Symbol.(cnames), tbl)
     return f
 end
