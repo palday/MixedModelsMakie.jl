@@ -1,7 +1,7 @@
 name = "MixedModelsMakie"
 uuid = "b12ae82c-6730-437f-aff9-d2c38332a376"
 authors = ["Phillip Alday <me@phillipalday.com>", "Douglas Bates <dmbates@gmail.com>", "contributors"]
-version = "0.3.28"
+version = "0.3.29"
 
 [deps]
 BSplineKit = "093aae92-e908-43d7-9660-e50ee39d5a0a"
@@ -17,7 +17,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
-BSplineKit = "0.14, 0.15, 0.16"
+BSplineKit = "0.14, 0.15, 0.16, 0.17"
 DataFrames = "1"
 Distributions = "0.21, 0.22, 0.23, 0.24, 0.25"
 KernelDensity = "0.6.3"
