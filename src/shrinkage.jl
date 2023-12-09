@@ -145,7 +145,7 @@ conditional means can be regarded as unpenalized.
 `args...` and `kwargs...` are passed on to [`shrinkageplot!`](@ref)
 """
 function shrinkageplot(m::MixedModel, args...; kwargs...)
-    f = Figure(; resolution=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
+    f = Figure(; size=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
 
     return shrinkageplot!(f, m, args...; kwargs...)
 end

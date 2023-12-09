@@ -29,7 +29,7 @@ function ridgeplot(x::MixedModelBootstrap;
                    show_intercept=true,
                    attributes...)
     # need to guarantee a min height of 200
-    fig = Figure(; resolution=(640, max(200, 100 * _npreds(x; show_intercept))))
+    fig = Figure(; size=(640, max(200, 100 * _npreds(x; show_intercept))))
     ax = Axis(fig[1, 1])
     if !ismissing(conf_level)
         pl = coefplot!(ax, x; conf_level, vline_at_zero, show_intercept, attributes...)

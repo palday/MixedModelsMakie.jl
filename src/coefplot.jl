@@ -17,7 +17,7 @@ function coefplot(x::Union{MixedModel,MixedModelBootstrap};
                   show_intercept=true,
                   attributes...)
     # need to guarantee a min height of 150
-    fig = Figure(; resolution=(640, max(150, 75 * _npreds(x; show_intercept))))
+    fig = Figure(; size=(640, max(150, 75 * _npreds(x; show_intercept))))
     ax = Axis(fig[1, 1])
     pl = coefplot!(ax, x; conf_level, vline_at_zero, show_intercept, attributes...)
     return Makie.FigureAxisPlot(fig, ax, pl)

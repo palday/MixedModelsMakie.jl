@@ -122,7 +122,7 @@ function zetatraces!(ax::Axis, pr::MixedModelProfile, i, j)
     return ax
 end
 
-function zetatraceplot(pr::MixedModelProfile; figure=(; resolution=(800,800)))
+function zetatraceplot(pr::MixedModelProfile; figure=(; size=(800,800)))
     (; fecnames) = pr
     f = Figure(; figure)
     p = length(fecnames)

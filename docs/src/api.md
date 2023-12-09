@@ -97,15 +97,15 @@ gm0 = fit(MixedModel,
 
 subjre = ranefinfo(fm1)[:subj]
 
-caterpillar!(Figure(; resolution=(800,600)), subjre)
+caterpillar!(Figure(; size=(800,600)), subjre)
 ```
 
 ```@example Caterpillar
-caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=2)
+caterpillar!(Figure(; size=(800,600)), subjre; orderby=2)
 ```
 
 ```@example Caterpillar
-caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=nothing)
+caterpillar!(Figure(; size=(800,600)), subjre; orderby=nothing)
 ```
 
 ```@example Caterpillar
@@ -129,11 +129,11 @@ qqcaterpillar(gm0, :item)
 ```
 
 ```@example Caterpillar
-qqcaterpillar!(Figure(; resolution=(400,300)), subjre; cols=[1])
+qqcaterpillar!(Figure(; size=(400,300)), subjre; cols=[1])
 ```
 
 ```@example Caterpillar
-qqcaterpillar!(Figure(; resolution=(400,300)), subjre; cols=[:days])
+qqcaterpillar!(Figure(; size=(400,300)), subjre; cols=[:days])
 ```
 
 ### Shrinkage Plots
@@ -159,7 +159,7 @@ shrinkageplot(fm1; ellipse=true)
 ```
 
 ```@example Shrinkage
-shrinkageplot!(Figure(; resolution=(400,400)), fm1)
+shrinkageplot!(Figure(; size=(400,400)), fm1)
 ```
 
 ```@example Shrinkage
@@ -261,7 +261,7 @@ data = rmul!(randn(100, 3), LowerTriangular([+1 +0 +0;
                                              -1 -1 +1]))
 df = DataFrame(data, [:x, :y, :z])
 
-splom!(Figure(; resolution=(800, 800)), df)
+splom!(Figure(; size=(800, 800)), df)
 ```
 
 Meanwhile, `splomaxes!` provides a lower-level backend for `splom!`
@@ -286,6 +286,6 @@ function pfunc(ax, i, j)
     text!(ax, "r=$(cc)")
     return ax
 end
-splomaxes!(Figure(; resolution=(800, 800)),
+splomaxes!(Figure(; size=(800, 800)),
            names(df), pfunc)
 ```
