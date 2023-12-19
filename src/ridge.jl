@@ -32,7 +32,8 @@ function ridgeplot(x::MixedModelBootstrap;
     fig = Figure(; size=(640, max(200, 100 * _npreds(x; show_intercept))))
     ax = Axis(fig[1, 1])
     if !ismissing(conf_level)
-        pl = coefplot!(ax, x; conf_level, vline_at_zero, show_intercept, color=:black, attributes...)
+        pl = coefplot!(ax, x; conf_level, vline_at_zero, show_intercept, color=:black,
+                       attributes...)
     end
     pl = ridgeplot!(ax, x; vline_at_zero, conf_level, show_intercept, attributes...)
     return Makie.FigureAxisPlot(fig, ax, pl)
