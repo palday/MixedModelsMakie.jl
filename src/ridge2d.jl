@@ -34,7 +34,7 @@ end
 
 """$(@doc ridge2d!)"""
 function ridge2d(bs::MixedModelBootstrap, args...; kwargs...)
-    f = Figure(; resolution=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
+    f = Figure(; size=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
 
     return ridge2d!(f, bs, args...; kwargs...)
 end

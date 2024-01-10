@@ -74,7 +74,7 @@ g1 = fit(MixedModel,
     f = qqcaterpillar(g1)
     save(joinpath(OUTDIR, "qqcat_verbagg.png"), f)
 
-    let f = Figure(; resolution=(1000, 600))
+    let f = Figure(; size=(1000, 600))
         gl = f[1, 1] = GridLayout()
         re = ranefinfo(m2)
         qqcaterpillar!(gl, re[:item])

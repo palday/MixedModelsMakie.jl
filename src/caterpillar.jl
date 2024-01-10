@@ -154,7 +154,7 @@ of the random effects.
 `kwargs...` are passed on to [`caterpillar!`](@ref).
 """
 function caterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
-    return caterpillar!(Figure(; resolution=(1000, 800)), m, gf; kwargs...)
+    return caterpillar!(Figure(; size=(1000, 800)), m, gf; kwargs...)
 end
 
 """
@@ -222,7 +222,7 @@ Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and pr
 `kwargs...` are passed on to [`qqcaterpillar!`](@ref).
 """
 function qqcaterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
-    return qqcaterpillar!(Figure(; resolution=(1000, 800)), m, gf; kwargs...)
+    return qqcaterpillar!(Figure(; size=(1000, 800)), m, gf; kwargs...)
 end
 
 _cols_to_idx(::Vector{String}, cols) = cols
