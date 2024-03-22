@@ -36,6 +36,10 @@ export RanefInfo,
        zetaplot,
        zetaplot!
 
+# from https://github.com/MakieOrg/Makie.jl/issues/2992
+const Indexable = Union{Makie.Figure,Makie.GridLayout,Makie.GridPosition,
+                        Makie.GridSubposition}
+
 include("utilities.jl")
 include("shrinkage.jl")
 include("caterpillar.jl")
@@ -48,7 +52,7 @@ include("recipes.jl")
 
 @setup_workload begin
     model = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days | subj)),
-                MixedModels.dataset(:sleepstudy))
+                MixedModels.dataset(:sleepstudy); progress=false)
     @compile_workload begin
         caterpillar(model)
         coefplot(model)

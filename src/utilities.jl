@@ -1,16 +1,16 @@
 function _coefnames(x; show_intercept=true)
-    cn = coefnames(x)
+    cn = fixefnames(x)
     return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
 end
 
 function _coefnames(x::MixedModelBootstrap; show_intercept=true)
-    cn = collect(string.(propertynames(first(x.fits).β)))
+    cn = [string(k) for (k, v) in pairs(first(x.fits).β) if !isequal(v, -0.0)]
     return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
 end
 
 """
-    confint_table(x::StatsBase.StatisticalModel, level=0.95)
-    confint_table(x::MixedModelBootstrap, level=0.95)
+    confint_table(x::MixedModel, level=0.95; show_intercept=true)
+    confint_table(x::MixedModelBootstrap, level=0.95; show_intercept=true)
 
 Return a DataFrame of coefficient names, point estimates and confidence intervals.
 
@@ -26,26 +26,33 @@ The returned table has the following columns:
 - `lower`: the lower edge of the confidence interval
 - `upper`: the upper edge of the confidence interval
 
+!!! note
+    This function is internal and may be removed in a future release
+    without being considered a breaking change.
 """
-function confint_table(x::StatsBase.StatisticalModel, level=0.95)
+function confint_table(x::MixedModel, level=0.95; show_intercept=true)
     # taking from the lower tail
     semultiple = zquantile((1 - level) / 2)
     se = stderror(x)
+    est = coef(x)
 
-    return DataFrame(;
-                     coefname=coefnames(x),
-                     estimate=coef(x),
-                     lower=coef(x) + semultiple * se,
-                     upper=coef(x) - semultiple * se)
+    df = DataFrame(;
+                   coefname=coefnames(x),
+                   estimate=coef(x),
+                   # signs are 'swapped' b/c semultiple comes from the lower tail
+                   lower=est + semultiple * se,
+                   upper=est - semultiple * se)
+    return filter!(:coefname => in(_coefnames(x; show_intercept)), df)
 end
 
-function confint_table(x::MixedModelBootstrap, level=0.95)
+function confint_table(x::MixedModelBootstrap, level=0.95; show_intercept=true)
     df = transform!(select!(DataFrame(x.β), Not(:iter)),
                     :coefname => ByRow(string) => :coefname)
     ci(x) = shortestcovint(x, level)
-    return combine(groupby(df, :coefname),
-                   :β => mean => :estimate,
-                   :β => NamedTuple{(:lower, :upper)} ∘ ci => [:lower, :upper])
+    df = combine(groupby(df, :coefname),
+                 :β => mean => :estimate,
+                 :β => NamedTuple{(:lower, :upper)} ∘ ci => [:lower, :upper])
+    return filter!(:coefname => in(_coefnames(x; show_intercept)), df)
 end
 
 _npreds(x; show_intercept=true) = length(_coefnames(x; show_intercept))

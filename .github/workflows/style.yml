@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        julia-version: [1.8]
+        julia-version: [1.9]
     steps:
       - uses: julia-actions/setup-julia@latest
         with:

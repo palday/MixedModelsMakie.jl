@@ -1,3 +1,19 @@
+"""
+    ridge2d(bs::MixedModelBootstrap; ptype=:β, kwargs...)
+    ridge2d!(f::$(Indexable), bs::MixedModelBootstrap; ptype=:β)
+
+Plot pairwise bivariate scatter plots with overlain densities for a bootstrap sample.
+
+`ptype` specifies the set of parameters to examine, e.g. `:β`, `:σ`, `:ρ`.
+
+The mutating methods return the original object.
+"""
+function ridge2d(bs::MixedModelBootstrap, args...; kwargs...)
+    f = Figure(; size=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
+
+    return ridge2d!(f, bs, args...; kwargs...)
+end
+
 function _ridge2d_panel!(ax::Axis, i::Int, j::Int, cnames::Vector{Symbol}, tbl)
     x = Tables.getcolumn(tbl, cnames[j])
     y = Tables.getcolumn(tbl, cnames[i])
@@ -10,17 +26,11 @@ function _ridge2d_panel!(ax::Axis, i::Int, j::Int, cnames::Vector{Symbol}, tbl)
     return plt
 end
 
-"""
-    ridge2d!(f::Union{Makie.FigureLike,Makie.GridLayout}, bs::MixedModelBootstrap; 
-             ptype=:β)
+# No Axis variant here because we always need to great a subgrid
+# we don't yet expose any further configuration options / attributes
 
-Plot pairwise bivariate scatter plots with overlain densities for a bootstrap sample.
-
-
-`ptype` specifies the set of parameters to examine, e.g. `:β`, `:σ`, `:ρ`.
-"""
-function ridge2d!(f::Union{Makie.FigureLike,Makie.GridLayout}, bs::MixedModelBootstrap;
-                  ptype=:β)
+"""$(@doc ridge2d)"""
+function ridge2d!(f::Indexable, bs::MixedModelBootstrap; ptype=:β)
     tbl = bs.tbl
     cnames = [string(x) for x in propertynames(tbl)[2:end]]
     filter!(startswith(string(ptype)), cnames)
@@ -30,11 +40,4 @@ function ridge2d!(f::Union{Makie.FigureLike,Makie.GridLayout}, bs::MixedModelBoo
         throw(ArgumentError("Only 1 $ptype-parameter found: 2D plots require at least 2."))
     splomaxes!(f, cnames, _ridge2d_panel!, Symbol.(cnames), tbl)
     return f
-end
-
-"""$(@doc ridge2d!)"""
-function ridge2d(bs::MixedModelBootstrap, args...; kwargs...)
-    f = Figure(; size=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
-
-    return ridge2d!(f, bs, args...; kwargs...)
 end

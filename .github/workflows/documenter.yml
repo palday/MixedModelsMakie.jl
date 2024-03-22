@@ -25,7 +25,7 @@ jobs:
     # Run on push's or non-draft PRs
     if: (github.event_name == 'push') || (github.event.pull_request.draft == false)
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v1
         with:
           version: 1
