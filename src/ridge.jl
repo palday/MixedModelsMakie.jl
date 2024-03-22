@@ -19,7 +19,7 @@ The mutating methods return the original object.
 function ridgeplot(x::MixedModelBootstrap; show_intercept=true, kwargs...)
     # need to guarantee a min height of 200
     fig = Figure(; size=(640, max(200, 100 * _npreds(x; show_intercept))))
-    return ridgeplot!(fig, x,; show_intercept, kwargs...)
+    return ridgeplot!(fig, x; show_intercept, kwargs...)
 end
 
 """$(@doc ridgeplot)"""
@@ -40,21 +40,23 @@ _color(p::Pair) = first(p)
 
 """$(@doc ridgeplot)"""
 function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
-                   conf_level=0.95,
-                   vline_at_zero=true,
-                   show_intercept=true,
-                   attributes...)
+                    conf_level=0.95,
+                    vline_at_zero=true,
+                    show_intercept=true,
+                    attributes...)
     xlabel = if !ismissing(conf_level)
-        @sprintf "Normalized bootstrap density and %g%% confidence interval" (conf_level * 100)
+        @sprintf "Normalized bootstrap density and %g%% confidence interval" (conf_level *
+                                                                              100)
     else
         "Normalized bootstrap density"
     end
 
     if !ismissing(conf_level)
-        coefplot!(ax, x; conf_level, vline_at_zero, show_intercept, color=:black, attributes...)
+        coefplot!(ax, x; conf_level, vline_at_zero, show_intercept, color=:black,
+                  attributes...)
     end
 
-    attributes = merge((;xlabel, color=:black), attributes)
+    attributes = merge((; xlabel, color=:black), attributes)
     band_attributes = merge(attributes, (; color=(_color(attributes.color), 0.3)))
 
     ax.xlabel = attributes.xlabel
@@ -77,7 +79,7 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
         band!(ax, lower, upper; band_attributes...)
         lines!(ax, upper; attributes...)
     end
-    
+
     # check conf_level so that we don't double print
     # if coefplot took care of it for us
     if ismissing(conf_level)

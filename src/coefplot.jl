@@ -37,11 +37,11 @@ function coefplot!(ax::Axis, x::Union{MixedModel,MixedModelBootstrap};
     xvals = ci.estimate
     xlabel = @sprintf "Estimate and %g%% confidence interval" conf_level * 100
 
-    attributes = merge((;xlabel), attributes)
+    attributes = merge((; xlabel), attributes)
     ax.xlabel = attributes.xlabel
 
     scatter!(ax, xvals, y; attributes...)
-    errorbars!(ax, xvals, y, xvals .- ci.lower, ci.upper .- xvals; 
+    errorbars!(ax, xvals, y, xvals .- ci.lower, ci.upper .- xvals;
                direction=:x, attributes...)
     vline_at_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
 
