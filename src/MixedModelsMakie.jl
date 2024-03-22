@@ -36,6 +36,8 @@ export RanefInfo,
        zetaplot,
        zetaplot!
 
+const Indexable = Union{Makie.FigureLike,Makie.GridLayout}
+
 include("utilities.jl")
 include("shrinkage.jl")
 include("caterpillar.jl")

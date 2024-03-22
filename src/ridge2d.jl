@@ -19,7 +19,7 @@ Plot pairwise bivariate scatter plots with overlain densities for a bootstrap sa
 
 `ptype` specifies the set of parameters to examine, e.g. `:β`, `:σ`, `:ρ`.
 """
-function ridge2d!(f::Union{Makie.FigureLike,Makie.GridLayout}, bs::MixedModelBootstrap;
+function ridge2d!(f::Indexable, bs::MixedModelBootstrap;
                   ptype=:β)
     tbl = bs.tbl
     cnames = [string(x) for x in propertynames(tbl)[2:end]]
