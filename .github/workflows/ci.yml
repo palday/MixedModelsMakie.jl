@@ -22,7 +22,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        version: [1.8]
+        version: [1.9]
         arch: [x64]
         os: [ubuntu-22.04] # macos-10.15, windows-2019
     steps:
@@ -44,7 +44,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Percy Upload
-        if: ${{ matrix.version == '1.8' }}
+        if: ${{ matrix.version == '1.9' }}
         run: |
           ls ./test/output/ # useful for debugging
           npx @percy/cli upload ./test/output
