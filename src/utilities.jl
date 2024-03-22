@@ -1,10 +1,12 @@
-function _coefnames(x; show_intercept=true)
+function _coefnames(x::MixedModel, ptype::Nothing=nothing; show_intercept=true)
     cn = fixefnames(x)
     return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
 end
 
-function _coefnames(x::MixedModelBootstrap; show_intercept=true)
-    cn = [string(k) for (k, v) in pairs(first(x.fits).β) if !isequal(v, -0.0)]
+function _coefnames(x::MixedModelBootstrap, ptype; show_intercept=true)
+    ptype = something(ptype, :β)
+    nt = getproperty(first(x.fits), ptype)
+    cn = [string(k) for (k, v) in pairs(nt) if !isequal(v, -0.0)]
     return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
 end
 
@@ -30,7 +32,8 @@ The returned table has the following columns:
     This function is internal and may be removed in a future release
     without being considered a breaking change.
 """
-function confint_table(x::MixedModel, level=0.95; show_intercept=true)
+function confint_table(x::MixedModel, level=0.95; ptype=nothing, show_intercept=true)
+    isnothing(ptype) || throw(ArgumentError("`ptype` not supported for MixedModel"))
     # taking from the lower tail
     semultiple = zquantile((1 - level) / 2)
     se = stderror(x)
@@ -45,17 +48,23 @@ function confint_table(x::MixedModel, level=0.95; show_intercept=true)
     return filter!(:coefname => in(_coefnames(x; show_intercept)), df)
 end
 
-function confint_table(x::MixedModelBootstrap, level=0.95; show_intercept=true)
-    df = transform!(select!(DataFrame(x.β), Not(:iter)),
-                    :coefname => ByRow(string) => :coefname)
+function confint_table(x::MixedModelBootstrap, level=0.95; ptype=:β, show_intercept=true)
+    ptype = something(ptype, :β)
+    ptype in (:β, :σs) || throw(ArgumentError("ptype $(ptype) not supported"))
+    df = DataFrame(getproperty(x, ptype))
+    rename!(c -> replace(c, "column" => "coefname"), df)
+    transform!(select!(df, Not(:iter)),
+               :coefname => ByRow(string) => :coefname)
     ci(x) = shortestcovint(x, level)
+    # drop trailing s
+    var = replace(string(ptype), "s" => "")
     df = combine(groupby(df, :coefname),
-                 :β => mean => :estimate,
-                 :β => NamedTuple{(:lower, :upper)} ∘ ci => [:lower, :upper])
-    return filter!(:coefname => in(_coefnames(x; show_intercept)), df)
+                 var => mean => :estimate,
+                 var => NamedTuple{(:lower, :upper)} ∘ ci => [:lower, :upper])
+    return filter!(:coefname => in(_coefnames(x, ptype; show_intercept)), df)
 end
 
-_npreds(x; show_intercept=true) = length(_coefnames(x; show_intercept))
+_npreds(args...; kwargs...) = length(_coefnames(args...; kwargs...))
 
 """
     ppoints(n::Integer)
