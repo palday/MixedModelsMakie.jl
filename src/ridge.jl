@@ -1,7 +1,9 @@
 """
-    ridgeplot(x::MixedModelBootstrap;
-              conf_level=0.95, vline_at_zero=true, show_intercept=true,
-              attributes...)
+    ridgeplot(x::Union{MixedModel,MixedModelBootstrap}; kwargs...)::Figure
+    ridgeplot!(fig::$(Indexable), x::Union{MixedModel,MixedModelBootstrap}; 
+              kwargs...)
+    ridgeplot!(ax::Axis, Union{MixedModel,MixedModelBootstrap};
+              conf_level=0.95, vline_at_zero=true, show_intercept=true, attributes...)
 
 Create a ridge plot for the bootstrap samples of the fixed effects.
 
@@ -10,29 +12,33 @@ Densities are normalized so that the maximum density is always 1.
 The highest density interval corresponding to `conf_level` is marked with a bar at the bottom of each density.
 Setting `conf_level=missing` removes the markings for the highest density interval.
 
-!!! note
-    This functionality is implemented using [Makie recipes](https://makie.juliaplots.org/v0.15.0/recipes.html)
-    and thus there are also additional auto-generated methods for `ridgeplot` and `ridgeplot!` that may be useful
-    when constructing more complex figures.
+`attributes` are passed onto [`coefplot`](@ref), `band!` and `lines!`.
+
+The mutating methods return the original object.
 """
-function ridgeplot(x::MixedModelBootstrap;
-                   conf_level=0.95,
-                   vline_at_zero=true,
-                   show_intercept=true,
-                   attributes...)
+function ridgeplot(x::MixedModelBootstrap; show_intercept=true, kwargs...)
     # need to guarantee a min height of 200
     fig = Figure(; size=(640, max(200, 100 * _npreds(x; show_intercept))))
-    ax = Axis(fig[1, 1])
-    if !ismissing(conf_level)
-        coefplot!(ax, x; conf_level, vline_at_zero, show_intercept, color=:black,
-                  attributes...)
-    end
-    ridgeplot!(ax, x; vline_at_zero, conf_level, show_intercept, attributes...)
-    return Makie.FigureAxis(fig, ax)
+    return ridgeplot!(fig, x,; show_intercept, kwargs...)
 end
 
-# Indexable
+"""$(@doc ridgeplot)"""
+function ridgeplot!(fig::Indexable, x::MixedModelBootstrap; kwargs...)
+    ax = Axis(fig[1, 1])
+    ridgeplot!(ax, x; kwargs...)
+    return fig
+end
 
+"""
+    _color(s::Symbol)
+    _color(p::Pair)
+    
+Extract the color part out of either a color name or a `(color, alpha)` pair.
+"""
+_color(s) = s
+_color(p::Pair) = first(p)
+
+"""$(@doc ridgeplot)"""
 function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
                    conf_level=0.95,
                    vline_at_zero=true,
@@ -43,10 +49,17 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
     else
         "Normalized bootstrap density"
     end
-    
-    attributes = merge((;xlabel), attributes)
 
-    df = transform!(DataFrame(boot.β), :coefname => ByRow(string) => :coefname)
+    if !ismissing(conf_level)
+        coefplot!(ax, x; conf_level, vline_at_zero, show_intercept, color=:black, attributes...)
+    end
+
+    attributes = merge((;xlabel, color=:black), attributes)
+    band_attributes = merge(attributes, (; color=(_color(attributes.color), 0.3)))
+
+    ax.xlabel = attributes.xlabel
+
+    df = transform!(DataFrame(x.β), :coefname => ByRow(string) => :coefname)
     show_intercept || filter!(:coefname => !=("(Intercept)"), df)
     group = :coefname
     densvar = :β
@@ -61,8 +74,8 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
         dd = 0.95 * row.kde.density ./ maximum(row.kde.density)
         lower = Point2f.(row.kde.x, offset)
         upper = Point2f.(row.kde.x, dd .+ offset)
-        band!(ax, lower, upper; color=(:black, 0.3))
-        lines!(ax, upper; color=(:black, 1.0))
+        band!(ax, lower, upper; band_attributes...)
+        lines!(ax, upper; attributes...)
     end
     
     # check conf_level so that we don't double print

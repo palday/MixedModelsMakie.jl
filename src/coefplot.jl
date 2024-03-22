@@ -38,6 +38,7 @@ function coefplot!(ax::Axis, x::Union{MixedModel,MixedModelBootstrap};
     xlabel = @sprintf "Estimate and %g%% confidence interval" conf_level * 100
 
     attributes = merge((;xlabel), attributes)
+    ax.xlabel = attributes.xlabel
 
     scatter!(ax, xvals, y; attributes...)
     errorbars!(ax, xvals, y, xvals .- ci.lower, ci.upper .- xvals; 
