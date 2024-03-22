@@ -22,8 +22,6 @@ jobs:
   Documenter:
     name: Documentation
     runs-on: ubuntu-22.04
-    # Run on push's or non-draft PRs
-    if: (github.event_name == 'push') || (github.event.pull_request.draft == false)
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v1
