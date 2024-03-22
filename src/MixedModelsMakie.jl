@@ -36,7 +36,8 @@ export RanefInfo,
        zetaplot,
        zetaplot!
 
-const Indexable = Union{Makie.FigureLike,Makie.GridLayout}
+# from https://github.com/MakieOrg/Makie.jl/issues/2992
+const Indexable = Union{Makie.Figure,Makie.GridLayout,Makie.GridPosition,Makie.GridSubposition}
 
 include("utilities.jl")
 include("shrinkage.jl")
