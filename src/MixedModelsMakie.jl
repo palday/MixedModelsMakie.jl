@@ -52,7 +52,7 @@ include("recipes.jl")
 
 @setup_workload begin
     model = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days | subj)),
-                MixedModels.dataset(:sleepstudy))
+                MixedModels.dataset(:sleepstudy); progress=false)
     @compile_workload begin
         caterpillar(model)
         coefplot(model)
