@@ -36,7 +36,7 @@ function confint_table(x::MixedModel, level=0.95; show_intercept=true)
     se = stderror(x)
     est = coef(x)
 
-    df = DataFrame(; 
+    df = DataFrame(;
                    coefname=coefnames(x),
                    estimate=coef(x),
                    # signs are 'swapped' b/c semultiple comes from the lower tail
@@ -49,10 +49,10 @@ function confint_table(x::MixedModelBootstrap, level=0.95; show_intercept=true)
     df = transform!(select!(DataFrame(x.β), Not(:iter)),
                     :coefname => ByRow(string) => :coefname)
     ci(x) = shortestcovint(x, level)
-    df =  combine(groupby(df, :coefname),
-                  :β => mean => :estimate,
-                  :β => NamedTuple{(:lower, :upper)} ∘ ci => [:lower, :upper])
-   return filter!(:coefname => in(_coefnames(x; show_intercept)), df)               
+    df = combine(groupby(df, :coefname),
+                 :β => mean => :estimate,
+                 :β => NamedTuple{(:lower, :upper)} ∘ ci => [:lower, :upper])
+    return filter!(:coefname => in(_coefnames(x; show_intercept)), df)
 end
 
 _npreds(x; show_intercept=true) = length(_coefnames(x; show_intercept))
