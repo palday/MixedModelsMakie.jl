@@ -1,6 +1,6 @@
 """
     coefplot(x::Union{MixedModel,MixedModelBootstrap}; kwargs...)::Figure
-    coefplot!(fig::$(Indexable), x::Union{MixedModel,MixedModelBootstrap}; 
+    coefplot!(fig::$(Indexable), x::Union{MixedModel,MixedModelBootstrap};
               kwargs...)
     coefplot!(ax::Axis, Union{MixedModel,MixedModelBootstrap};
               conf_level=0.95, vline_at_zero=true, show_intercept=true, attributes...)
@@ -13,13 +13,13 @@ Inestimable coefficients (coefficients removed by pivoting in the rank deficient
 
 The mutating methods return the original object.
 
-!!! note 
-    Inestimable coefficients (coefficients removed by pivoting in the rank deficient case) 
+!!! note
+    Inestimable coefficients (coefficients removed by pivoting in the rank deficient case)
     are excluded.
 """
-function coefplot(x::Union{MixedModel,MixedModelBootstrap}; show_intercept=true, kwargs...)
+function coefplot(x::Union{MixedModel,MixedModelBootstrap}; show_intercept=true, ptype=nothing, kwargs...)
     # need to guarantee a min height of 150
-    fig = Figure(; size=(640, max(150, 75 * _npreds(x; show_intercept))))
+    fig = Figure(; size=(640, max(150, 75 * _npreds(x, ptype; show_intercept))))
     coefplot!(fig, x; kwargs...)
     return fig
 end
@@ -36,8 +36,9 @@ function coefplot!(ax::Axis, x::Union{MixedModel,MixedModelBootstrap};
                    conf_level=0.95,
                    vline_at_zero=true,
                    show_intercept=true,
+                   ptype=nothing,
                    attributes...)
-    ci = confint_table(x, conf_level; show_intercept)
+    ci = confint_table(x, conf_level; show_intercept, ptype)
     y = nrow(ci):-1:1
     xvals = ci.estimate
     xlabel = @sprintf "Estimate and %g%% confidence interval" conf_level * 100
@@ -51,8 +52,8 @@ function coefplot!(ax::Axis, x::Union{MixedModel,MixedModelBootstrap};
     vline_at_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
 
     reset_limits!(ax)
-    cn = _coefnames(x; show_intercept)
-    nticks = _npreds(x; show_intercept)
+    cn = _coefnames(x, ptype; show_intercept)
+    nticks = _npreds(x, ptype; show_intercept)
     ax.yticks = (nticks:-1:1, cn)
     ylims!(ax, 0, nticks + 1)
     return ax
