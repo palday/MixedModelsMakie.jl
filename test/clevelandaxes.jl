@@ -17,6 +17,7 @@ catch err
     end
 end
 for i in 1:4, j in 1:4
+    local x, y
     x = randn(MersenneTwister(i), n)
     y = randn(MersenneTwister(j), n)
     scatter!(f[i, j], x, y)
