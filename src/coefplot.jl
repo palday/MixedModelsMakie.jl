@@ -7,9 +7,15 @@
 
 Create a coefficient plot of the fixed-effects and associated confidence intervals.
 
+Inestimable coefficients (coefficients removed by pivoting in the rank deficient case) are excluded.
+
 `attributes` are passed onto `scatter!` and `errorbars!`.
 
 The mutating methods return the original object.
+
+!!! note 
+    Inestimable coefficients (coefficients removed by pivoting in the rank deficient case) 
+    are excluded.
 """
 function coefplot(x::Union{MixedModel,MixedModelBootstrap}; show_intercept=true, kwargs...)
     # need to guarantee a min height of 150
@@ -31,8 +37,7 @@ function coefplot!(ax::Axis, x::Union{MixedModel,MixedModelBootstrap};
                    vline_at_zero=true,
                    show_intercept=true,
                    attributes...)
-    ci = confint_table(x, conf_level)
-    show_intercept || filter!(:coefname => !=("(Intercept)"), ci)
+    ci = confint_table(x, conf_level; show_intercept)
     y = nrow(ci):-1:1
     xvals = ci.estimate
     xlabel = @sprintf "Estimate and %g%% confidence interval" conf_level * 100

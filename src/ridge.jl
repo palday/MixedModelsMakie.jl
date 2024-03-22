@@ -15,6 +15,10 @@ Setting `conf_level=missing` removes the markings for the highest density interv
 `attributes` are passed onto [`coefplot`](@ref), `band!` and `lines!`.
 
 The mutating methods return the original object.
+
+!!! note 
+    Inestimable coefficients (coefficients removed by pivoting in the rank deficient case) 
+    are excluded.
 """
 function ridgeplot(x::MixedModelBootstrap; show_intercept=true, kwargs...)
     # need to guarantee a min height of 200
@@ -62,12 +66,10 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
     ax.xlabel = attributes.xlabel
 
     df = transform!(DataFrame(x.β), :coefname => ByRow(string) => :coefname)
-    show_intercept || filter!(:coefname => !=("(Intercept)"), df)
+    filter!(:coefname => in(_coefnames(x; show_intercept)), df)
     group = :coefname
     densvar = :β
     gdf = groupby(df, group)
-
-    y = length(gdf):-1:1
 
     dens = combine(gdf, densvar => kde => :kde)
 
