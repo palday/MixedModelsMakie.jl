@@ -7,6 +7,6 @@ MixedModelsMakie = "b12ae82c-6730-437f-aff9-d2c38332a376"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
-CairoMakie = "0.6 - 0.10"
+CairoMakie = "0.6 - 0.11"
 DataFrames = "1"
 Documenter = "0.27"

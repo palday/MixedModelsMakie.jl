@@ -50,6 +50,15 @@ ridgeplot
 ridgeplot(boot)
 ```
 
+## Ridge 2D Plots
+
+```@docs
+ridge2d
+```
+
+```@example Coefplot
+ridge2d(boot)
+```
 
 ## Random effects and group-level predictions
 
@@ -88,15 +97,15 @@ gm0 = fit(MixedModel,
 
 subjre = ranefinfo(fm1)[:subj]
 
-caterpillar!(Figure(; resolution=(800,600)), subjre)
+caterpillar!(Figure(; size=(800,600)), subjre)
 ```
 
 ```@example Caterpillar
-caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=2)
+caterpillar!(Figure(; size=(800,600)), subjre; orderby=2)
 ```
 
 ```@example Caterpillar
-caterpillar!(Figure(; resolution=(800,600)), subjre; orderby=nothing)
+caterpillar!(Figure(; size=(800,600)), subjre; orderby=nothing)
 ```
 
 ```@example Caterpillar
@@ -120,11 +129,11 @@ qqcaterpillar(gm0, :item)
 ```
 
 ```@example Caterpillar
-qqcaterpillar!(Figure(; resolution=(400,300)), subjre; cols=[1])
+qqcaterpillar!(Figure(; size=(400,300)), subjre; cols=[1])
 ```
 
 ```@example Caterpillar
-qqcaterpillar!(Figure(; resolution=(400,300)), subjre; cols=[:days])
+qqcaterpillar!(Figure(; size=(400,300)), subjre; cols=[:days])
 ```
 
 ### Shrinkage Plots
@@ -150,7 +159,7 @@ shrinkageplot(fm1; ellipse=true)
 ```
 
 ```@example Shrinkage
-shrinkageplot!(Figure(; resolution=(400,400)), fm1)
+shrinkageplot!(Figure(; size=(400,400)), fm1)
 ```
 
 ```@example Shrinkage
@@ -172,7 +181,7 @@ These are especially useful for diagnostics and model checking.
 The methods for `qqnorm` and `qqplot` are implemented using [Makie recipes](https://makie.juliaplots.org/v0.15.0/recipes.html).
 In other words, these are convenience wrappers for calling the relevant plotting methods on `residuals(model)`.
 
-Specify the type of line on the QQ plots with the `qqline` keyword-argument. The default for `qqnorm` is `:fitrobust`, which delivers an R-style line connecting the first and third quartiles. The default for `qqplot` is `:identity`, which plots the line with slope = 1 and intercept = 0. The final possiblity is `:fit`, which plots the line of best fit (i.e. regressing the quantiles of the residuals onto the quantiles of the reference distribution).
+Specify the type of line on the QQ plots with the `qqline` keyword-argument. The default for `qqnorm` is `:fitrobust`, which delivers an R-style line connecting the first and third quartiles. The default for `qqplot` is `:identity`, which plots the line with slope = 1 and intercept = 0. The final possibility is `:fit`, which plots the line of best fit (i.e. regressing the quantiles of the residuals onto the quantiles of the reference distribution).
 
 The reference distribution for `qqnorm` is the standard normal, which differs from [the behavior in previous versions of Makie](https://github.com/JuliaPlots/Makie.jl/pull/1277).
 
@@ -252,7 +261,7 @@ data = rmul!(randn(100, 3), LowerTriangular([+1 +0 +0;
                                              -1 -1 +1]))
 df = DataFrame(data, [:x, :y, :z])
 
-splom!(Figure(; resolution=(800, 800)), df)
+splom!(Figure(; size=(800, 800)), df)
 ```
 
 Meanwhile, `splomaxes!` provides a lower-level backend for `splom!`
@@ -277,6 +286,6 @@ function pfunc(ax, i, j)
     text!(ax, "r=$(cc)")
     return ax
 end
-splomaxes!(Figure(; resolution=(800, 800)),
+splomaxes!(Figure(; size=(800, 800)),
            names(df), pfunc)
 ```
