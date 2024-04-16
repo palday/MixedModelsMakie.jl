@@ -10,8 +10,9 @@ end
 
 @testset "Simple linear regression" begin
     a, b = 1, 2
-    x = collect(1:10)
-    y = randn(MersenneTwister(42), 10) * 0.1
+    n = 100
+    x = 1:n
+    y = randn(MersenneTwister(42), n) * 0.1
     @. y += a + b * x
     result = simplelinreg(x, y)
     @test result isa Tuple
