@@ -32,7 +32,7 @@ jobs:
         with:
           version: ${{ matrix.version }}
       - name: Cache
-        uses: julia-actions/cache@v1
+        uses: julia-actions/cache@v2
         with:
           cache-compiled: "true"
       - name: Build
