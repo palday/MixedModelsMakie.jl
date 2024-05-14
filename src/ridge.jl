@@ -1,6 +1,6 @@
 """
     ridgeplot(x::Union{MixedModel,MixedModelBootstrap}; kwargs...)::Figure
-    ridgeplot!(fig::$(Indexable), x::Union{MixedModel,MixedModelBootstrap}; 
+    ridgeplot!(fig::$(Indexable), x::Union{MixedModel,MixedModelBootstrap};
               kwargs...)
     ridgeplot!(ax::Axis, Union{MixedModel,MixedModelBootstrap};
               conf_level=0.95, vline_at_zero=true, show_intercept=true, attributes...)
@@ -16,8 +16,8 @@ Setting `conf_level=missing` removes the markings for the highest density interv
 
 The mutating methods return the original object.
 
-!!! note 
-    Inestimable coefficients (coefficients removed by pivoting in the rank deficient case) 
+!!! note
+    Inestimable coefficients (coefficients removed by pivoting in the rank deficient case)
     are excluded.
 """
 function ridgeplot(x::MixedModelBootstrap; show_intercept=true, kwargs...)
@@ -36,7 +36,7 @@ end
 """
     _color(s::Symbol)
     _color(p::Pair)
-    
+
 Extract the color part out of either a color name or a `(color, alpha)` pair.
 """
 _color(s) = s
@@ -60,10 +60,10 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
                   attributes...)
     end
 
-    attributes = merge((; xlabel, color=:black), attributes)
+    attributes = merge((; color=:black), attributes)
     band_attributes = merge(attributes, (; color=(_color(attributes.color), 0.3)))
 
-    ax.xlabel = attributes.xlabel
+    ax.xlabel = xlabel
 
     df = transform!(DataFrame(x.β), :coefname => ByRow(string) => :coefname)
     filter!(:coefname => in(_coefnames(x; show_intercept)), df)

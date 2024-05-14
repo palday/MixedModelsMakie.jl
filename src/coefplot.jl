@@ -1,6 +1,6 @@
 """
     coefplot(x::Union{MixedModel,MixedModelBootstrap}; kwargs...)::Figure
-    coefplot!(fig::$(Indexable), x::Union{MixedModel,MixedModelBootstrap}; 
+    coefplot!(fig::$(Indexable), x::Union{MixedModel,MixedModelBootstrap};
               kwargs...)
     coefplot!(ax::Axis, Union{MixedModel,MixedModelBootstrap};
               conf_level=0.95, vline_at_zero=true, show_intercept=true, attributes...)
@@ -13,8 +13,8 @@ Inestimable coefficients (coefficients removed by pivoting in the rank deficient
 
 The mutating methods return the original object.
 
-!!! note 
-    Inestimable coefficients (coefficients removed by pivoting in the rank deficient case) 
+!!! note
+    Inestimable coefficients (coefficients removed by pivoting in the rank deficient case)
     are excluded.
 """
 function coefplot(x::Union{MixedModel,MixedModelBootstrap}; show_intercept=true, kwargs...)
@@ -42,8 +42,7 @@ function coefplot!(ax::Axis, x::Union{MixedModel,MixedModelBootstrap};
     xvals = ci.estimate
     xlabel = @sprintf "Estimate and %g%% confidence interval" conf_level * 100
 
-    attributes = merge((; xlabel), attributes)
-    ax.xlabel = attributes.xlabel
+    ax.xlabel = xlabel
 
     scatter!(ax, xvals, y; attributes...)
     errorbars!(ax, xvals, y, xvals .- ci.lower, ci.upper .- xvals;
