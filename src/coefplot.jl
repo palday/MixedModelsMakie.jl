@@ -20,7 +20,7 @@ The mutating methods return the original object.
 function coefplot(x::Union{MixedModel,MixedModelBootstrap}; show_intercept=true, kwargs...)
     # need to guarantee a min height of 150
     fig = Figure(; size=(640, max(150, 75 * _npreds(x; show_intercept))))
-    coefplot!(fig, x; kwargs...)
+    coefplot!(fig, x; show_intercept, kwargs...)
     return fig
 end
 
