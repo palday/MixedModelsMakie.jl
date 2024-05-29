@@ -1,5 +1,5 @@
 """
-    zetaplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, pr::MixedModelProfile;
+    zetaplot!(f::Indexable, pr::MixedModelProfile;
               absv=false,
               ptyp='β',
               coverage=[.5,.8,.9,.95,.99],
@@ -13,7 +13,7 @@ Valid `ptyp` values are 'β', 'σ', and 'θ'.
 If `absv` is `true` then intervals corresponding to coverage levels in
 `coverage` are added to each panel.
 """
-function zetaplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
+function zetaplot!(f::Indexable,
                    pr::MixedModelProfile;
                    absv::Bool=false,   # plot abs(zeta) vs parameter value and add intervals
                    ptyp::Char='β',
@@ -61,7 +61,7 @@ See [`zetaplot!`](@ref).
 zetaplot(args...; kwargs...) = zetaplot!(Figure(), args...; kwargs...)
 
 """
-    profiledensity!(f::Union{Makie.FigureLike,Makie.GridLayout}, pr::MixedModelProfile;
+    profiledensity!(f::Indexable, pr::MixedModelProfile;
                     ptyp::Char='σ',
                     zbd=3,
                     share_y_scale=true).
@@ -73,7 +73,7 @@ Valid `ptyp` values are 'β', 'σ', and 'θ'.
 
 If `share_y_scale`, the each facet shares a common y-scale.
 """
-function profiledensity!(f::Union{Makie.FigureLike,Makie.GridLayout},
+function profiledensity!(f::Indexable,
                          pr::MixedModelProfile;
                          zbd=3,
                          ptyp::Char='σ',

@@ -77,11 +77,11 @@ function ranefinfotable(ri::RanefInfo)
 end
 
 """
-    caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
+    caterpillar!(f::Indexable, r::RanefInfo;
                 orderby=1, cols::Union{Nothing,AbstractVector}=nothing,
                 dotcolor=(:red, 0.2), barcolor=:black,
                 vline_at_zero::Bool=false)
-    caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel,
+    caterpillar!(f::Indexable, m::MixedModel,
                  gf::Symbol=first(fnames(m)); orderby=1,
                  cols::Union{Nothing,AbstractVector}=nothing,
                  dotcolor=(:red, 0.2), barcolor=:black,
@@ -110,7 +110,7 @@ specifying `cols`, either by indices or term names.
 !!! note
     `orderby` is the ``n``th column of the columns specified by `cols`.
 """
-function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
+function caterpillar!(f::Indexable, r::RanefInfo;
                       orderby=1, cols::Union{Nothing,AbstractVector}=nothing,
                       dotcolor=(:red, 0.2), barcolor=:black,
                       vline_at_zero::Bool=false)
@@ -136,7 +136,7 @@ function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
     return f
 end
 
-function caterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel,
+function caterpillar!(f::Indexable, m::MixedModel,
                       gf::Symbol=first(fnames(m)); kwargs...)
     return caterpillar!(f, ranefinfo(m, gf); kwargs...)
 end
@@ -158,10 +158,10 @@ function caterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
 end
 
 """
-    qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
+    qqcaterpillar!(f::Indexable, r::RanefInfo;
                    cols::Union{Nothing,AbstractVector}=nothing,
                    dotcolor=(:red, 0.2), barcolor=:black)
-    qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel,
+    qqcaterpillar!(f::Indexable, m::MixedModel,
                    gf::Symbol=first(fnames(m));
                    cols::Union{Nothing,AbstractVector}=nothing,
                    dotcolor=(:red, 0.2), barcolor=:black,
@@ -181,7 +181,7 @@ of `r.ranef`, usually the `(Intercept)` random effects.
 Setting `orderby=nothing` will disable sorting, i.e. return the levels in the
 order they are stored in.
 """
-function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInfo;
+function qqcaterpillar!(f::Indexable, r::RanefInfo;
                         cols::Union{Nothing,AbstractVector}=nothing,
                         dotcolor=(:red, 0.2), barcolor=:black,
                         vline_at_zero::Bool=false)
@@ -206,7 +206,7 @@ function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, r::RanefInf
     return f
 end
 
-function qqcaterpillar!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel,
+function qqcaterpillar!(f::Indexable, m::MixedModel,
                         gf::Symbol=first(fnames(m)); kwargs...)
     return qqcaterpillar!(f, ranefinfo(m, gf); kwargs...)
 end
