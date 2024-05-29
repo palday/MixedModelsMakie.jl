@@ -37,7 +37,7 @@ function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, λ;
 end
 
 """
-    shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel,
+    shrinkageplot!(f::Indexable, m::MixedModel,
                    gf::Symbol=first(fnames(m)), θref;
                    ellipse=false, ellipse_scale=1, n_ellipse=5,
                    cols::Union{Nothing,AbstractVector}=nothing,
@@ -62,7 +62,7 @@ unable to see the ellipses, try increasing `ellipse_scale`.
     For degenerate (singular) models, the correlation ellipse will also be degenerate, i.e.,
     collapse to a point or line.
 """
-function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
+function shrinkageplot!(f::Indexable,
                         m::MixedModel{T},
                         gf::Symbol=first(fnames(m)),
                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
