@@ -44,10 +44,11 @@ g1 = fit(MixedModel,
 
 rng = MersenneTwister(0)
 x = rand(rng, 100)
-data = (x=x, x2=1.5 .* x, y=rand(rng, [0, 1], 100), z=repeat('A':'T', 5))
-mr = @suppress fit(MixedModel, @formula(y ~ x + x2 + (1 | z)), data; progress)
-br = parametricbootstrap(MersenneTwister(42), 500, mr; progress,
-                         optsum_overrides=(; ftol_rel=1e-6))
+a = rand(rng, 100)
+data = (; x, x2=1.5 .* x, a, y=rand(rng, [0, 1], 100), g=repeat('A':'T', 5))
+mr = @suppress fit(MixedModel, @formula(y ~ a + x + x2 + (1 | g)), data; progress)
+br = @suppress parametricbootstrap(MersenneTwister(42), 500, mr; progress,
+                                   optsum_overrides=(; ftol_rel=1e-6))
 
 @testset ExtendedTestSet "MixedModelsMakie.jl" begin
     @testset "Aqua" begin
