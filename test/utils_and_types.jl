@@ -35,7 +35,7 @@ m1 = fit(MixedModel,
     @test wald.upper ≈ boot.upper rtol = 0.05
 
     @test all(splat(isapprox),
-                zip(MixedModelsMakie.confint_table(mr).estimate, fixef(mr)))
+              zip(MixedModelsMakie.confint_table(mr).estimate, fixef(mr)))
 
     @test fixefnames(mr) == MixedModelsMakie.confint_table(mr).coefname
     @test fixefnames(mr) == MixedModelsMakie.confint_table(br).coefname
