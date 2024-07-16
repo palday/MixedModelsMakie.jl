@@ -33,6 +33,12 @@ m1 = fit(MixedModel,
     @test wald.estimate ≈ boot.estimate rtol = 0.05
     @test wald.lower ≈ boot.lower rtol = 0.05
     @test wald.upper ≈ boot.upper rtol = 0.05
+
+    @test all(splat(isapprox),
+              zip(MixedModelsMakie.confint_table(mr).estimate, fixef(mr)))
+
+    @test fixefnames(mr) == MixedModelsMakie.confint_table(mr).coefname
+    @test fixefnames(mr) == MixedModelsMakie.confint_table(br).coefname
 end
 
 @testset "ranefinfo" begin
