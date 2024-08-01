@@ -5,7 +5,7 @@
     ridgeplot!(ax::Axis, Union{MixedModel,MixedModelBootstrap};
               conf_level=0.95, vline_at_zero=true, show_intercept=true,
               scatter_attributes=(;),
-              errorbar_attributes=(;),
+              errorbars_attributes=(;),
               band_attributes=(;),
               lines_attributes=(;),
               attributes...)
@@ -18,7 +18,7 @@ The highest density interval corresponding to `conf_level` is marked with a bar 
 Setting `conf_level=missing` removes the markings for the highest density interval.
 
 `attributes` are passed onto [`coefplot`](@ref), `band!` and `lines!`.
-`scatter_attributes` and `errorbar_attributes` are passed only onto [`coefplot`](@ref).
+`scatter_attributes` and `errorbars_attributes` are passed only onto [`coefplot`](@ref).
 `band_attributes` and `lines_attributes` are passed only onto `band!` and
 `linesbars!`, respectively.
 (Starting with Makie 0.21, unsupported attributes for a
@@ -59,7 +59,7 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
                     vline_at_zero=true,
                     show_intercept=true,
                     scatter_attributes=(;),
-                    errorbar_attributes=(;),
+                    errorbars_attributes=(;),
                     band_attributes=(;),
                     lines_attributes=(;),
                     attributes...)
@@ -72,7 +72,7 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
 
     if !ismissing(conf_level)
         coefplot!(ax, x; conf_level, vline_at_zero, show_intercept, color=:black,
-                  scatter_attributes, errorbar_attributes, attributes...)
+                  scatter_attributes, errorbars_attributes, attributes...)
     end
 
     attributes = merge((; color=:black), attributes)
@@ -93,8 +93,8 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
         dd = 0.95 * row.kde.density ./ maximum(row.kde.density)
         lower = Point2f.(row.kde.x, offset)
         upper = Point2f.(row.kde.x, dd .+ offset)
-        band!(ax, lower, upper; band_attributes..., attributes...)
-        lines!(ax, upper; lines_attributes..., attributes...)
+        band!(ax, lower, upper; attributes..., band_attributes...)
+        lines!(ax, upper; attributes..., lines_attributes...)
     end
 
     # check conf_level so that we don't double print

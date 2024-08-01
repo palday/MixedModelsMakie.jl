@@ -5,7 +5,7 @@
     coefplot!(ax::Axis, Union{MixedModel,MixedModelBootstrap};
               conf_level=0.95, vline_at_zero=true, show_intercept=true,
               scatter_attributes=(;),
-              errorbar_attributes=(;),
+              errorbars_attributes=(;),
               attributes...)
 
 Create a coefficient plot of the fixed-effects and associated confidence intervals.
@@ -13,7 +13,7 @@ Create a coefficient plot of the fixed-effects and associated confidence interva
 Inestimable coefficients (coefficients removed by pivoting in the rank deficient case) are excluded.
 
 `attributes` are passed onto both `scatter!` and `errorbars!`, while
-`scatter_attributes` and `errorbar_attributes` are passed only onto `scatter!` and
+`scatter_attributes` and `errorbars_attributes` are passed only onto `scatter!` and
 `errorbars!`, respectively. (Starting with Makie 0.21, unsupported attributes for a
 given plottype are no longer silently ignored, so it's necessary so separate out the
 attributes that are only valid for a single plot type.)
@@ -44,7 +44,7 @@ function coefplot!(ax::Axis, x::Union{MixedModel,MixedModelBootstrap};
                    vline_at_zero=true,
                    show_intercept=true,
                    scatter_attributes=(;),
-                   errorbar_attributes=(;),
+                   errorbars_attributes=(;),
                    attributes...)
     ci = confint_table(x, conf_level; show_intercept)
     y = nrow(ci):-1:1
@@ -55,7 +55,7 @@ function coefplot!(ax::Axis, x::Union{MixedModel,MixedModelBootstrap};
 
     scatter!(ax, xvals, y; attributes..., scatter_attributes...)
     errorbars!(ax, xvals, y, xvals .- ci.lower, ci.upper .- xvals;
-               direction=:x, attributes..., errorbar_attributes...)
+               direction=:x, attributes..., errorbars_attributes...)
     vline_at_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
 
     reset_limits!(ax)
