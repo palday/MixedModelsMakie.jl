@@ -3,7 +3,12 @@
     ridgeplot!(fig::$(Indexable), x::Union{MixedModel,MixedModelBootstrap};
               kwargs...)
     ridgeplot!(ax::Axis, Union{MixedModel,MixedModelBootstrap};
-              conf_level=0.95, vline_at_zero=true, show_intercept=true, attributes...)
+              conf_level=0.95, vline_at_zero=true, show_intercept=true,
+              scatter_attributes=(;),
+              errorbar_attributes=(;),
+              band_attributes=(;),
+              lines_attributes=(;),
+              attributes...)
 
 Create a ridge plot for the bootstrap samples of the fixed effects.
 
@@ -13,6 +18,12 @@ The highest density interval corresponding to `conf_level` is marked with a bar 
 Setting `conf_level=missing` removes the markings for the highest density interval.
 
 `attributes` are passed onto [`coefplot`](@ref), `band!` and `lines!`.
+`scatter_attributes` and `errorbar_attributes` are passed only onto [`coefplot`](@ref).
+`band_attributes` and `lines_attributes` are passed only onto `band!` and
+`linesbars!`, respectively.
+(Starting with Makie 0.21, unsupported attributes for a
+given plottype are no longer silently ignored, so it's necessary so separate out the
+attributes that are only valid for a single plot type.)
 
 The mutating methods return the original object.
 
@@ -47,6 +58,10 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
                     conf_level=0.95,
                     vline_at_zero=true,
                     show_intercept=true,
+                    scatter_attributes=(;),
+                    errorbar_attributes=(;),
+                    band_attributes=(;),
+                    lines_attributes=(;),
                     attributes...)
     xlabel = if !ismissing(conf_level)
         @sprintf "Normalized bootstrap density and %g%% confidence interval" (conf_level *
@@ -57,11 +72,11 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
 
     if !ismissing(conf_level)
         coefplot!(ax, x; conf_level, vline_at_zero, show_intercept, color=:black,
-                  attributes...)
+                  scatter_attributes, errorbar_attributes, attributes...)
     end
 
     attributes = merge((; color=:black), attributes)
-    band_attributes = merge(attributes, (; color=(_color(attributes.color), 0.3)))
+    band_attributes = merge((; color=(_color(attributes.color), 0.3)), band_attributes)
 
     ax.xlabel = xlabel
 
@@ -78,8 +93,8 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
         dd = 0.95 * row.kde.density ./ maximum(row.kde.density)
         lower = Point2f.(row.kde.x, offset)
         upper = Point2f.(row.kde.x, dd .+ offset)
-        band!(ax, lower, upper; band_attributes...)
-        lines!(ax, upper; attributes...)
+        band!(ax, lower, upper; band_attributes..., attributes...)
+        lines!(ax, upper; lines_attributes..., attributes...)
     end
 
     # check conf_level so that we don't double print
@@ -96,75 +111,3 @@ function ridgeplot!(ax::Axis, x::MixedModelBootstrap;
 
     return ax
 end
-
-# """
-#     ridgeplot!(ax::Axis, df::AbstractDataFrame, densvar::Symbol, group::Symbol; normalize=false)
-#     ridgeplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, args...; pos=(1,1) kwargs...)
-#     ridgeplot(args...; kwargs...)
-
-# Create a "ridge plot".
-
-# A ridge plot is stacked plot of densities for a given variable (`densvar`) grouped by a different variable (`group`). Because densities can very widely in scale, it is sometimes useful to `normalize` the densities so that each density has a maximum of 1.
-
-# The non-mutating method creates a Figure before calling the method for Figure.
-# The method for Figure places the ridge plot in the grid position specified by `pos`, default is (1,1).
-# """
-# function ridgeplot!(ax::Axis, df::AbstractDataFrame, densvar::Symbol, group::Symbol; sort_by_group=false, vline_at_zero=true, normalize=false)
-#     # `normalize` makes it so that the max density is always 1
-#     # `normalize` works on the density not the area/mass
-#     gdf = groupby(df, group)
-#     dens = combine(gdf, densvar => kde => :kde)
-#     sort_by_group && sort!(dens, group)
-#     spacing = normalize ? 1.0 :  0.9 * maximum(dens[!, :kde]) do val
-#         return maximum(val.density)
-#     end
-
-#     nticks = length(gdf)
-
-#     for (idx, row) in enumerate(eachrow(dens))
-#         dd = normalize ? row.kde.density ./ maximum(row.kde.density) : row.kde.density
-
-#         offset =  idx * spacing
-
-#         lower = Node(Point2f.(row.kde.x, offset))
-#         upper = Node(Point2f.(row.kde.x, dd .+ offset))
-#         band!(ax, lower, upper; color=(:black, 0.3))
-#         lines!(ax, upper; color=(:black, 1.0))
-#     end
-
-#     vline_at_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
-
-#     ax.yticks[] = (1:spacing:(nticks*spacing), string.(dens[!, group]))
-#     ylims!(ax, 0, (nticks + 2) * spacing)
-#     ax.xlabel[] = string(densvar)
-#     ax.ylabel[] = string(group)
-
-#     ax
-# end
-
-# function ridgeplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, args...; pos=(1,1), kwargs...)
-#     ridgeplot!(Axis(f[pos...]), args...; kwargs...)
-#     return f
-# end
-
-# """
-#     ridgeplot(args...; kwargs...)
-
-# See [ridgeplot!](@ref).
-# """
-# ridgeplot(args...; kwargs...) = ridgeplot!(Figure(), args...; kwargs...)
-
-# """
-#     ridgeplot!(Union{Figure, Axis}, bstrp::MixedModelBootstrap, args...; show_intercept=true, kwargs...)
-#     ridgeplot(bstrp::MixedModelBootstrap, args...; show_intercept=true, kwargs...)
-
-# Convenience methods that call `DataFrame(bstrp.β)` and pass that onto the primary `ridgeplot[!]` methods.
-# By default, the intercept is shown, but this can be disabled.
-# """
-# function ridgeplot!(axis::Axis, bstrp::MixedModelBootstrap, args...;
-#                     show_intercept=true,  normalize=true, kwargs...)
-
-#     df = DataFrame(bstrp.β)
-#     show_intercept || filter!(:coefname => !=(Symbol("(Intercept)")), df)
-#     ridgeplot!(axis, df, :β, :coefname, args...; sort_by_group=false, normalize, kwargs...)
-# end
