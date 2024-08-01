@@ -149,3 +149,50 @@ function shrinkageplot(m::MixedModel, args...; kwargs...)
 
     return shrinkageplot!(f, m, args...; kwargs...)
 end
+
+function regressionplot(m::LinearMixedModel, args...; kwargs...)
+    f = Figure(; size=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
+
+    return regressionplot!(f, m, args...; kwargs...)
+end
+
+function regressionplot!(f::Indexable,
+                        m::LinearMixedModel{T},
+                        gf::Symbol=first(fnames(m)),
+                        θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
+                                                m.optsum.initial;
+                        cols::Union{Nothing,Symbol}=nothing,
+                        shrunk_dotcolor=(:blue, 0.25), ref_dotcolor=(:red, 0.25)) where {T}
+    reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
+    if isnothing(reind)
+        throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
+    end
+    r = m.reterms[reind]
+    cols = something(cols, first(axes(r.cnames, 1)))
+    length(cols) < 2 && throw(ArgumentError("At least two columns must be specified."))
+    cols = _cols_to_idx(r.cnames, cols)
+    reest = ranef(m)[reind]          # random effects conditional means at estimated θ
+    reref = _ranef(m, θref)[reind]   # same at θref
+
+    # transpose is stored, so swap
+    reest = view(reest, cols, :)
+    reref = view(reref, cols, :)
+    λ = view(r.λ, cols, cols)
+    cnames = view(r.cnames, cols)
+
+    splomaxes!(f, cnames, _shrinkage_panel!,
+               reref, reest, λ; ellipse, ellipse_scale, n_ellipse,
+               shrunk_dotcolor, ref_dotcolor,
+               ellipse_color, ellipse_linestyle)
+
+    return f
+end
+
+function _regression_panel!(ax::Axis, i::Int, j::Int, reref, reest, λ;
+                           shrunk_dotcolor, ref_dotcolor)
+    x, y = view(reref, j, :), view(reref, i, :)
+    u, v = view(reest, j, :), view(reest, i, :)
+    scatter!(ax, x, y; color=ref_dotcolor)   # reference points
+    plt = scatter!(ax, u, v; color=shrunk_dotcolor)  # conditional means at estimates
+    return plt
+end
