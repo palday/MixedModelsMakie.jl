@@ -1,7 +1,7 @@
 name = "MixedModelsMakie"
 uuid = "b12ae82c-6730-437f-aff9-d2c38332a376"
 authors = ["Phillip Alday <me@phillipalday.com>", "Douglas Bates <dmbates@gmail.com>", "contributors"]
-version = "0.4.5"
+version = "0.4.6"
 
 [deps]
 BSplineKit = "093aae92-e908-43d7-9660-e50ee39d5a0a"
@@ -18,7 +18,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 Aqua = "0.5, 0.6"
-BSplineKit = "0.15, 0.16, 0.17"
+BSplineKit = "0.15, 0.16, 0.17, 0.18"
 CairoMakie = "0.11, 0.12, 0.13"
 DataFrames = "1"
 Distributions = "0.25"
