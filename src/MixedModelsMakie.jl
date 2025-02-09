@@ -12,6 +12,9 @@ using Printf
 using SpecialFunctions
 using StatsBase
 
+# why, BSplineKit, do you export fit???
+using MixedModels: fit
+
 export RanefInfo,
        caterpillar,
        caterpillar!,
