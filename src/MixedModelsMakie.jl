@@ -43,6 +43,13 @@ export RanefInfo,
 const Indexable = Union{Makie.Figure,Makie.GridLayout,Makie.GridPosition,
                         Makie.GridSubposition}
 
+if isdefined(Makie, :arrows2d!)
+    function arrows!(args...; kwargs...)
+        return arrows2d!(args...; shaftwidth=1, tipwidth=5, minshaftlength=0, kwargs...)
+    end
+    # arrows!(args...; kwargs...) = Makie.arrows!(args...; kwargs...)
+end
+
 include("utilities.jl")
 include("shrinkage.jl")
 include("caterpillar.jl")
