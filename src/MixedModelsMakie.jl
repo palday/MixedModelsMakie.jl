@@ -44,7 +44,8 @@ const Indexable = Union{Makie.Figure,Makie.GridLayout,Makie.GridPosition,
                         Makie.GridSubposition}
 
 if isdefined(Makie, :arrows2d!)
-    const arrows! = Makie.arrows2d!
+    arrows!(args...; kwargs...) = arrows2d!(args...;  shaftwidth=1, tipwidth=5, minshaftlength=0, kwargs...)
+    # arrows!(args...; kwargs...) = Makie.arrows!(args...; kwargs...)
 end
 
 include("utilities.jl")
