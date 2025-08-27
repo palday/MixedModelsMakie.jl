@@ -1,7 +1,7 @@
 name = "MixedModelsMakie"
 uuid = "b12ae82c-6730-437f-aff9-d2c38332a376"
 authors = ["Phillip Alday <me@phillipalday.com>", "Douglas Bates <dmbates@gmail.com>", "contributors"]
-version = "0.4.9"
+version = "0.4.10"
 
 [deps]
 BSplineKit = "093aae92-e908-43d7-9660-e50ee39d5a0a"
@@ -24,7 +24,7 @@ DataFrames = "1"
 Distributions = "0.25"
 KernelDensity = "0.6.3"
 Makie = "0.20, 0.21, 0.22, 0.23, 0.24"
-MixedModels = "4.14"
+MixedModels = "4.14, 5"
 PrecompileTools = "1"
 Random = "1"
 SpecialFunctions = "1, 2"
