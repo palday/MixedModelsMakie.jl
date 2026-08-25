@@ -47,6 +47,8 @@ Every plot type follows this pattern:
 - [src/profile.jl](src/profile.jl) — profile likelihood ζ plots with BSplineKit interpolation; density plots of profile ζ values.
 - [src/xyplot.jl](src/xyplot.jl) — general-purpose utilities: `clevelandaxes!` (multi-panel grid layout), `splom!`/`splomaxes!` (scatter-plot matrix accepting custom panel functions), `simplelinreg`.
 - [src/utilities.jl](src/utilities.jl) — shared helpers: `confint_table` (extracts CIs to DataFrame), `_coefnames`, `ppoints`, `zquantile`, `_extract_title!`.
+- [src/upset.jl](src/upset.jl) — UpSet plots of categorical predictor intersection structure. Model-based API recovers predictor levels from the contrast matrix (`_obs_predictor_cols`); table-based API auto-detects non-numeric columns. `gf` is a positional argument (like `shrinkageplot`).
+- [src/nesting.jl](src/nesting.jl) — nesting/crossing matrix for a model's grouping factors, using only `ReMat.refs`/`.levels` (no data needed). Correlation-matrix-style layout: diagonal names each factor, lower triangle heatmaps the co-occurrence table (reordered to reveal block-diagonal nesting), upper triangle badges the pairwise classification (nested/identical/complete or partial crossing).
 - [src/recipes.jl](src/recipes.jl) — `convert_arguments` extensions for Makie's `QQNorm`/`QQPlot` to accept `MixedModel` objects.
 
 ### Testing
