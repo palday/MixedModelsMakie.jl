@@ -42,6 +42,12 @@ m2 = fit(MixedModel,
                              (1 + spkr | item)),
          MixedModels.dataset(:kb07); progress)
 
+m2int = fit(MixedModel,
+            @formula(rt_trunc ~ 1 + spkr * prec * load +
+                                (1 | subj) +
+                                (1 | item)),
+            MixedModels.dataset(:kb07); progress)
+
 b0 = parametricbootstrap(MersenneTwister(42), 500, m0; progress,
                          optsum_overrides=(; ftol_rel=1e-6))
 b1 = parametricbootstrap(MersenneTwister(42), 500, m1; progress,

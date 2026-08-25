@@ -77,9 +77,21 @@ function shrinkageplot!(f::Indexable,
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
     end
     r = m.reterms[reind]
+    user_specified_single = !isnothing(cols) && length(cols) == 1
     cols = something(cols, axes(r.cnames, 1))
-    length(cols) < 2 && throw(ArgumentError("At least two columns must be specified."))
     cols = _cols_to_idx(r.cnames, cols)
+
+    if length(cols) == 1
+        colname = r.cnames[only(cols)]
+        msg = if user_specified_single
+            "You only specified a single column."
+        else
+            "Grouping variable (\"$(gf)\") only has a single " *
+            "predictor associated with it (\"$(colname)\")."
+        end
+        msg *= " You need at least two."
+        throw(ArgumentError(msg))
+    end
     reest = ranef(m)[reind]          # random effects conditional means at estimated θ
     reref = _ranef(m, θref)[reind]   # same at θref
 
