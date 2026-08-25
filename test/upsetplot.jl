@@ -4,7 +4,7 @@ kb07data = MixedModels.dataset(:kb07)
 f = upsetplot(m2)
 @test save(joinpath(OUTDIR, "upset_kb07_subj.png"), f)
 
-f = upsetplot(m2; gf=:item)
+f = upsetplot(m2, :item)
 @test save(joinpath(OUTDIR, "upset_kb07_item.png"), f)
 
 # g1: verbagg (GLMM), gender + btype + situ categorical fixed effects
@@ -18,7 +18,7 @@ let f = Figure()
 end
 
 # Observation counts (gf=nothing)
-f = upsetplot(m2; gf=nothing)
+f = upsetplot(m2, nothing)
 @test save(joinpath(OUTDIR, "upset_kb07_obs.png"), f)
 
 # Table-based: auto-exclude numeric rt_trunc; restrict to condition columns
@@ -39,7 +39,7 @@ end
 @test_throws ArgumentError upsetplot(DataFrame(; x=rand(10), y=rand(10)))
 
 # Error: unknown grouping factor
-@test_throws ArgumentError upsetplot(m2; gf=:nonexistent)
+@test_throws ArgumentError upsetplot(m2, :nonexistent)
 
 # Error: model has no categorical fixed effects (m1 uses only continuous `days`)
 @test_throws ArgumentError upsetplot(m1)

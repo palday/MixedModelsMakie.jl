@@ -288,12 +288,12 @@ gm1 = fit(MixedModel,
 # gender is between-subjects; btype and situ are within-subjects.
 # Marginal cells that collapse gender are empty (no subject has both genders),
 # while marginals that collapse btype or situ are non-empty.
-upsetplot(gm1; gf=:subj, show_empty=false)
+upsetplot(gm1, :subj, show_empty=false)
 ```
 
 ```@example UpSet
 # Observation counts instead of subject counts
-upsetplot(gm1; gf=nothing, show_empty=false)
+upsetplot(gm1, nothing, show_empty=false)
 ```
 
 ```@example UpSet
@@ -304,7 +304,7 @@ upsetplot(verbagg; cols=Not([:subj, :item]), gf=:subj, show_empty=false)
 
 ```@example UpSet
 # Sort by degree (full factorial cells first, then marginals) rather than by count
-upsetplot(gm1; gf=:subj, sortby=:degree, show_empty=false)
+upsetplot(gm1, :subj, sortby=:degree, show_empty=false)
 ```
 
 ## General plots

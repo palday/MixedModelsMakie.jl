@@ -234,7 +234,7 @@ function _upset_core(pred_names, pred_levels, pred_cols::AbstractVector,
 end
 
 """
-    _upset_data(m::MixedModel; gf)
+    _upset_data(m::MixedModel, gf=first(fnames(m)))
 
 Build UpSet data structures from a fitted model.
 
@@ -242,7 +242,7 @@ Predictor names, levels, and per-observation values are recovered from the
 model's formula, design matrix, and contrast coding — no original data frame
 is needed. Grouping-factor membership comes from the random-effects terms.
 """
-function _upset_data(m::MixedModel; gf::Union{Symbol,Nothing})
+function _upset_data(m::MixedModel, gf::Union{Symbol,Nothing}=first(fnames(m)))
     pred_names, pred_levels = _categorical_terms(m)
     isempty(pred_names) &&
         throw(ArgumentError("No categorical fixed-effect predictors found in model"))
@@ -386,8 +386,8 @@ function _upsetplot_render!(f::Indexable, info::NamedTuple;
 end
 
 """
-    upsetplot!(f::Indexable, m::MixedModel;
-               gf::Union{Symbol,Nothing}=first(fnames(m)),
+    upsetplot!(f::Indexable, m::MixedModel,
+               gf::Union{Symbol,Nothing}=first(fnames(m));
                sortby::Symbol=:count,
                show_empty::Bool=true,
                filled_color=:black,
@@ -409,10 +409,10 @@ is needed.
   active in each cell, connected by a vertical line
 - middle-left: set-size bar chart (e.g., subjects per individual condition level)
 """
-function upsetplot!(f::Indexable, m::MixedModel;
-                    gf::Union{Symbol,Nothing}=first(fnames(m)),
+function upsetplot!(f::Indexable, m::MixedModel,
+                    gf::Union{Symbol,Nothing}=first(fnames(m));
                     kwargs...)
-    info = _upset_data(m; gf)
+    info = _upset_data(m, gf)
     return _upsetplot_render!(f, info; kwargs...)
 end
 
@@ -442,8 +442,8 @@ function upsetplot!(f::Indexable, data;
 end
 
 """
-    upsetplot(m::MixedModel;
-              gf::Union{Symbol,Nothing}=first(fnames(m)),
+    upsetplot(m::MixedModel,
+              gf::Union{Symbol,Nothing}=first(fnames(m));
               kwargs...)
 
 Return a `Figure` with an UpSet plot showing which levels of grouping factor `gf`
@@ -457,9 +457,8 @@ is needed.
 
 `kwargs` are forwarded to [`upsetplot!`](@ref).
 """
-function upsetplot(m::MixedModel;
-                   gf::Union{Symbol,Nothing}=first(fnames(m)), kwargs...)
-    return upsetplot!(Figure(; size=(1000, 800)), m; gf, kwargs...)
+function upsetplot(m::MixedModel, args...; kwargs...)
+    return upsetplot!(Figure(; size=(1000, 800)), m, args...; kwargs...)
 end
 
 """
