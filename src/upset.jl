@@ -144,7 +144,8 @@ function _upset_core(pred_names, pred_levels, df::DataFrame,
         for other_combo in Iterators.product(other_level_seqs...)
             other_strs = [string(other_combo[k]) for k in eachindex(other_pis)]
 
-            group = [ci for (ci, cv) in enumerate(cell_combo_strs)
+            group = [ci
+                     for (ci, cv) in enumerate(cell_combo_strs)
                      if all(cv[other_pis[k]] == other_strs[k] for k in eachindex(other_pis))]
 
             label_parts = [string(pred_names[other_pis[k]], ": ", other_strs[k])
@@ -182,9 +183,9 @@ function _upset_core(pred_names, pred_levels, df::DataFrame,
         end
     end
 
-    all_labels  = vcat(cell_labels, marginal_labels)
-    all_combo   = vcat(combo_matrix, marginal_combo)
-    all_counts  = vcat(cell_counts, marginal_counts)
+    all_labels = vcat(cell_labels, marginal_labels)
+    all_combo = vcat(combo_matrix, marginal_combo)
+    all_counts = vcat(cell_counts, marginal_counts)
     all_degrees = vcat(cell_degrees, marginal_degrees)
 
     return (; gf_levels, set_labels, cell_labels=all_labels, combo_matrix=all_combo,
@@ -228,18 +229,20 @@ Non-numeric columns (after applying the `cols` selector) are treated as
 categorical predictors. The `gf` column, if specified, is excluded from the
 predictor set and used as a grouping factor for counting unique levels.
 """
-function _upset_data_from_table(data; cols=All(), gf::Union{AbstractString,Symbol,Nothing}=nothing)
+function _upset_data_from_table(data; cols=All(),
+                                gf::Union{AbstractString,Symbol,Nothing}=nothing)
     df = DataFrame(data)
     gf = gf === nothing ? nothing : Symbol(gf)
     candidate_names = propertynames(select(df, cols))
-    cat_names = [n for n in candidate_names
+    cat_names = [n
+                 for n in candidate_names
                  if !(nonmissingtype(eltype(df[!, n])) <: Number) && n !== gf]
     isempty(cat_names) &&
         throw(ArgumentError("No categorical columns found in data after filtering"))
 
-    pred_names  = string.(cat_names)
+    pred_names = string.(cat_names)
     pred_levels = [sort!(unique(string.(skipmissing(df[!, n])))) for n in cat_names]
-    gf_levels   = gf !== nothing ? sort!(unique(df[!, gf])) : nothing
+    gf_levels = gf !== nothing ? sort!(unique(df[!, gf])) : nothing
 
     return _upset_core(pred_names, pred_levels, df, gf, gf_levels)
 end
@@ -268,13 +271,13 @@ function _upsetplot_render!(f::Indexable, info::NamedTuple;
         throw(ArgumentError("sortby must be :count or :degree, got :$sortby"))
     end
     perm = show_empty ? perm : filter(i -> info.cell_counts[i] > 0, perm)
-    cell_counts  = info.cell_counts[perm]
+    cell_counts = info.cell_counts[perm]
     combo_matrix = info.combo_matrix[perm, :]
     n_shown = length(cell_counts)
 
-    ax_bar    = Axis(f[1, 2]; ylabel="Intersection size")
+    ax_bar = Axis(f[1, 2]; ylabel="Intersection size")
     ax_matrix = Axis(f[2, 2])
-    ax_sets   = Axis(f[2, 1]; xlabel="Set size")
+    ax_sets = Axis(f[2, 1]; xlabel="Set size")
 
     hidexdecorations!(ax_bar; grid=false)
     hidexdecorations!(ax_matrix; grid=false)
