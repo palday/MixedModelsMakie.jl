@@ -307,6 +307,57 @@ upsetplot(verbagg; cols=Not([:subj, :item]), gf=:subj, show_empty=false)
 upsetplot(gm1, :subj, sortby=:degree, show_empty=false)
 ```
 
+## Nesting/Crossing Plots
+
+Grouping factors in a mixed model (e.g. `subj`, `item`, `school`, `class`) can be
+**nested** — every level of one occurs with exactly one level of another, as with
+students nested within classrooms — or **crossed** — levels of both factors
+co-occur relatively freely, as with subjects and items in a repeated-measures
+design. `nestingplot` shows this structure for every pair of grouping factors in a
+model, using only their level assignments (`ReMat.refs`) — no original data frame
+is needed, matching the model-based approach used by [`upsetplot`](@ref).
+
+The plot is laid out like a correlation matrix:
+- **diagonal**: each grouping factor's name and number of levels.
+- **lower triangle**: a heatmap of the co-occurrence contingency table between the
+  row and column factor. Levels are reordered (for display only) to group each
+  level with its most common partner, so nested structure appears as a
+  block-diagonal pattern and crossed structure appears as a dense or scattered
+  rectangle.
+- **upper triangle**: a text badge classifying the same pair — one factor nested
+  in the other (`A ⊂ B`), `identical` (the two names partition observations the
+  same way, e.g. two labels for one grouping factor), or crossed, further split
+  into `complete` (every combination of levels is observed) and `partial` (only
+  some combinations are, with the observed density reported). This split matters
+  in practice: a completely-crossed subject × item design supports estimating
+  both by-subject and by-item slopes for every condition, while a partially
+  crossed (e.g. Latin-square) design may not.
+
+```@docs
+nestingplot
+```
+
+```@docs
+nestingplot!
+```
+
+```@example Nesting
+using CairoMakie
+CairoMakie.activate!(; type="svg")
+using MixedModels
+using MixedModelsMakie
+
+kb07 = MixedModels.dataset(:kb07)
+gm2 = fit(MixedModel,
+          @formula(rt_trunc ~ 1 + spkr * prec * load +
+                              (1 + spkr + prec + load | subj) +
+                              (1 + spkr | item)),
+          kb07; progress=false)
+
+# subj and item are nearly (but not perfectly) crossed in this design
+nestingplot(gm2)
+```
+
 ## General plots
 
 We also provide a `splom` or scatter-plot matrix plot for data frames with numeric columns (i.e. a matrix of all pairwise plots).

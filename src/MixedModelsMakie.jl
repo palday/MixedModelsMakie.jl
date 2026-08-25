@@ -22,6 +22,8 @@ export RanefInfo,
        clevelandaxes!,
        coefplot,
        coefplot!,
+       nestingplot,
+       nestingplot!,
        profiledensity,
        profiledensity!,
        qqcaterpillar,
@@ -57,6 +59,7 @@ include("utilities.jl")
 include("shrinkage.jl")
 include("caterpillar.jl")
 include("coefplot.jl")
+include("nesting.jl")
 include("profile.jl")
 include("ridge.jl")
 include("ridge2d.jl")

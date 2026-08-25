@@ -31,4 +31,6 @@ include("setup_tests.jl")
     @testset "profile" include("profile.jl")
 
     @testset "upsetplot" include("upsetplot.jl")
+
+    @testset "nestingplot" include("nestingplot.jl")
 end
