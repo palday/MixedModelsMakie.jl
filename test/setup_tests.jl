@@ -12,7 +12,7 @@ using TestSetExtensions
 using MixedModelsMakie: confint_table
 
 const OUTDIR = joinpath(pkgdir(MixedModelsMakie), "test", "output")
-const progress = false
+const progress = isinteractive()
 
 function save(path, obj, args...; kwargs...)
     isfile(path) && rm(path)
@@ -20,9 +20,17 @@ function save(path, obj, args...; kwargs...)
     return isfile(path)
 end
 
+m0 = fit(MixedModel,
+         @formula(1000 / reaction ~ 1 + days + (1 | subj)),
+         MixedModels.dataset(:sleepstudy); progress)
+
 m1 = fit(MixedModel,
          @formula(1000 / reaction ~ 1 + days + (1 + days | subj)),
          MixedModels.dataset(:sleepstudy); progress)
+
+m1_speed = fit(MixedModel,
+               @formula(1000 / reaction ~ 1 + days + (1 + days | subj)),
+               MixedModels.dataset(:sleepstudy); progress)
 
 m1zc = fit(MixedModel,
            @formula(1000 / reaction ~ 1 + days + zerocorr(1 + days | subj)),
@@ -34,6 +42,8 @@ m2 = fit(MixedModel,
                              (1 + spkr | item)),
          MixedModels.dataset(:kb07); progress)
 
+b0 = parametricbootstrap(MersenneTwister(42), 500, m0; progress,
+                         optsum_overrides=(; ftol_rel=1e-6))
 b1 = parametricbootstrap(MersenneTwister(42), 500, m1; progress,
                          optsum_overrides=(; ftol_rel=1e-6))
 g1 = fit(MixedModel,

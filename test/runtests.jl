@@ -4,7 +4,10 @@ include("setup_tests.jl")
     @testset "Aqua" begin
         # we can't check for unbound type parameters
         # because we actually need one at one point for _same_family()
-        Aqua.test_all(MixedModels; ambiguities=false, unbound_args=false)
+        Aqua.test_all(MixedModelsMakie;
+                      ambiguities=false,
+                      unbound_args=false,
+                      piracies=(; treat_as_own=[MixedModel]))
     end
 
     @testset "utilities, types and tables" include("utils_and_types.jl")

@@ -72,6 +72,31 @@ end
 
 _npreds(x; show_intercept=true) = length(_coefnames(x; show_intercept))
 
+function _place_legend!(figure, axis, position; kwargs...)
+    if position === true
+        position = :bottom
+    elseif position === false
+        return figure
+    end
+    if position === :bottom || position === :top
+        orientation = :horizontal
+        x = position === :top ? 0 : 2
+        y = 1
+    elseif position === :left || position === :right
+        orientation = :vertical
+        x = 1
+        y = position === :left ? 0 : 2
+    else
+        throw(ArgumentError("Invalid legend position: $position"))
+    end
+    figure[x, y] = Legend(figure, axis;
+                          orientation,
+                          tell_width=false,
+                          tell_height=false,
+                          kwargs...)
+    return figure
+end
+
 """
     ppoints(n::Integer)
 

@@ -20,13 +20,9 @@ end
     @test b ≈ result[2] atol = 0.05
 end
 
-m1 = fit(MixedModel,
-         @formula(1000 / reaction ~ 1 + days + (1 + days | subj)),
-         MixedModels.dataset(:sleepstudy); progress)
-
 @testset "confint_table" begin
-    wald = confint_table(m1, 0.68)
-    bsamp = parametricbootstrap(MersenneTwister(42), 1000, m1; progress)
+    wald = confint_table(m1_speed, 0.68)
+    bsamp = parametricbootstrap(MersenneTwister(42), 1000, m1_speed; progress)
     boot = confint_table(bsamp, 0.68)
 
     @test wald.coefname == boot.coefname
@@ -42,7 +38,7 @@ m1 = fit(MixedModel,
 end
 
 @testset "ranefinfo" begin
-    reinfo = ranefinfo(m1)
+    reinfo = ranefinfo(m1_speed)
     @test isone(length(reinfo))
     @test keys(reinfo) == (:subj,)
     re1 = only(reinfo)
