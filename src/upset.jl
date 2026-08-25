@@ -230,7 +230,7 @@ predictor set and used as a grouping factor for counting unique levels.
 """
 function _upset_data_from_table(data; cols=All(), gf::Union{AbstractString,Symbol,Nothing}=nothing)
     df = DataFrame(data)
-    gf = Symbol(gf)
+    gf = gf === nothing ? nothing : Symbol(gf)
     candidate_names = propertynames(select(df, cols))
     cat_names = [n for n in candidate_names
                  if !(nonmissingtype(eltype(df[!, n])) <: Number) && n !== gf]
@@ -309,8 +309,7 @@ function _upsetplot_render!(f::Indexable, info::NamedTuple;
         end
     end
 
-    isempty(empty_xs) ||sortby, show_empty, filled_color,
-                              empty_color, bar_color, dot_size
+    isempty(empty_xs) ||
         scatter!(ax_matrix, empty_xs, empty_ys; color=empty_color, markersize=dot_size)
     isempty(filled_xs) ||
         scatter!(ax_matrix, filled_xs, filled_ys; color=filled_color, markersize=dot_size)
