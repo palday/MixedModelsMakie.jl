@@ -45,3 +45,12 @@ end
 
 # Error: model has no categorical fixed effects (m1 uses only continuous `days`)
 @test_throws ArgumentError upsetplot(m1, sleepdata)
+
+# Error: too many factorial cells (high-cardinality columns included)
+@test_throws ArgumentError upsetplot(kb07data; cols=Not(:rt_trunc))
+
+# Warning: high-cardinality columns detected
+@test_logs((:warn, r"subj has 56 distinct levels"),
+           (:warn, r"item has 32 distinct levels"),
+           match_mode = :any,
+           @test_throws ArgumentError upsetplot(kb07data; cols=Not(:rt_trunc)))
