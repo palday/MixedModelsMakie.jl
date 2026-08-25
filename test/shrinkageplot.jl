@@ -13,8 +13,14 @@ f = shrinkageplot(m2; ellipse=true)
 f = shrinkageplot(m2; ellipse=true, cols=["spkr: old", "prec: maintain", "(Intercept)"])
 @test save(joinpath(OUTDIR, "shrinkage_kb07_subj_cols.png"), f)
 
-@test_throws(ArgumentError("At least two columns must be specified."),
+@test_throws(ArgumentError("You only specified a single column. You need at least two."),
              shrinkageplot(m2; ellipse=true, cols=["spkr: old"]))
+
+@test_throws(ArgumentError("Grouping variable (\"subj\") only has a single predictor associated with it (\"(Intercept)\"). You need at least two."),
+             shrinkageplot(m2int; ellipse=false))
+
+@test_throws(ArgumentError("Grouping variable (\"item\") only has a single predictor associated with it (\"(Intercept)\"). You need at least two."),
+             shrinkageplot(m2int, :item))
 
 f = shrinkageplot(m2; ellipse=true, ellipse_scale=2)
 @test save(joinpath(OUTDIR, "shrinkage_kb07_subj_ellipse_scaled.png"), f)
