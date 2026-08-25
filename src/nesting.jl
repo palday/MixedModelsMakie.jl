@@ -97,14 +97,14 @@ function _block_order(tab::AbstractMatrix{<:Integer})
 end
 
 """
-    _nesting_data(m::MixedModel; gfs=nothing)
+    _nesting_data(m::MixedModel, gfs::Tuple=())
 
 Build pairwise co-occurrence tables and relationship classifications for the
 distinct grouping factors in `m`.
 
-`gfs`, if given, restricts and orders the grouping factors to show (by name or
-by index into `fnames(m)`); otherwise every distinct grouping factor is used,
-in the order it first appears.
+`gfs`, if non-empty, restricts and orders the grouping factors to show (by
+name or by index into `fnames(m)`); otherwise every distinct grouping factor
+is used, in the order it first appears.
 
 Returns a `NamedTuple` with fields `names` (`Vector{String}`), `nlevels`
 (levels per factor), `levels` (level labels per factor, as `Vector{String}`),
@@ -113,10 +113,9 @@ rows indexed by factor `i` and columns by factor `j`), and `relationships`
 (`Dict{Tuple{Int,Int},NamedTuple}`, same keys, as returned by
 [`_nesting_relationship`](@ref)).
 """
-function _nesting_data(m::MixedModel;
-                       gfs::Union{Nothing,AbstractVector}=nothing)
+function _nesting_data(m::MixedModel, gfs::Tuple=())
     idxs = _distinct_reterms(m)
-    if gfs !== nothing
+    if !isempty(gfs)
         fn = fnames(m)
         wanted = [g isa Integer ? idxs[g] : findfirst(==(Symbol(g)), fn) for g in gfs]
         any(isnothing, wanted) &&
@@ -176,7 +175,7 @@ function _nesting_incidence_table(info::NamedTuple)
 end
 
 """
-    nestingtable(m::MixedModel; gfs::Union{Nothing,AbstractVector}=nothing)
+    nestingtable(m::MixedModel, gfs::Union{Symbol,AbstractString,Integer}...)
 
 Return the co-occurrence table underlying [`nestingplot`](@ref), in long
 format: one row per combination of a level of grouping factor `A` and a level
@@ -190,8 +189,8 @@ of grouping factor `B`, for every pair of distinct grouping factors in `m`
 See [`nestingstructure`](@ref) for the pairwise nested/crossed classification
 instead of the raw counts.
 """
-function nestingtable(m::MixedModel; gfs::Union{Nothing,AbstractVector}=nothing)
-    return _nesting_incidence_table(_nesting_data(m; gfs))
+function nestingtable(m::MixedModel, gfs::Union{Symbol,AbstractString,Integer}...)
+    return _nesting_incidence_table(_nesting_data(m, gfs))
 end
 
 """
@@ -224,7 +223,7 @@ function _nesting_structure_table(info::NamedTuple)
 end
 
 """
-    nestingstructure(m::MixedModel; gfs::Union{Nothing,AbstractVector}=nothing)
+    nestingstructure(m::MixedModel, gfs::Union{Symbol,AbstractString,Integer}...)
 
 Return the pairwise nested/crossed classification underlying [`nestingplot`](@ref)'s
 upper-triangle badges: one row per pair of distinct grouping factors in `m`
@@ -240,8 +239,8 @@ upper-triangle badges: one row per pair of distinct grouping factors in `m`
 See [`nestingtable`](@ref) for the raw per-level co-occurrence counts instead
 of this per-pair summary.
 """
-function nestingstructure(m::MixedModel; gfs::Union{Nothing,AbstractVector}=nothing)
-    return _nesting_structure_table(_nesting_data(m; gfs))
+function nestingstructure(m::MixedModel, gfs::Union{Symbol,AbstractString,Integer}...)
+    return _nesting_structure_table(_nesting_data(m, gfs))
 end
 
 """
@@ -315,8 +314,8 @@ function _nestingplot_render!(f::Indexable, info::NamedTuple;
 end
 
 """
-    nestingplot!(f::Indexable, m::MixedModel;
-                 gfs::Union{Nothing,AbstractVector}=nothing,
+    nestingplot!(f::Indexable, m::MixedModel,
+                 gfs::Union{Symbol,AbstractString,Integer}...;
                  colormap=:Blues, fontsize::Real=14)
 
 Add a nesting/crossing matrix for the grouping factors of `m` to `f`.
@@ -342,21 +341,21 @@ The classification only depends on the grouping factors' level assignments
 (`ReMat.refs`), not on the original data, matching the model-based approach
 used by [`upsetplot`](@ref).
 """
-function nestingplot!(f::Indexable, m::MixedModel;
-                      gfs::Union{Nothing,AbstractVector}=nothing,
+function nestingplot!(f::Indexable, m::MixedModel,
+                      gfs::Union{Symbol,AbstractString,Integer}...;
                       colormap=:Blues, fontsize::Real=14)
-    info = _nesting_data(m; gfs)
+    info = _nesting_data(m, gfs)
     return _nestingplot_render!(f, info; colormap, fontsize)
 end
 
 """
-    nestingplot(m::MixedModel;
-                gfs::Union{Nothing,AbstractVector}=nothing,
+    nestingplot(m::MixedModel, gfs::Union{Symbol,AbstractString,Integer}...;
                 colormap=:Blues, fontsize::Real=14)
 
 Return a `Figure` with a nesting/crossing matrix for the grouping factors of
 `m`. See [`nestingplot!`](@ref) for details.
 """
-function nestingplot(m::MixedModel; kwargs...)
-    return nestingplot!(Figure(; size=(800, 800)), m; kwargs...)
+function nestingplot(m::MixedModel, gfs::Union{Symbol,AbstractString,Integer}...;
+                     kwargs...)
+    return nestingplot!(Figure(; size=(800, 800)), m, gfs...; kwargs...)
 end

@@ -54,7 +54,7 @@ f = nestingplot(g1)
 @test save(joinpath(OUTDIR, "nesting_verbagg.png"), f)
 
 # gfs restricts/orders the grouping factors shown
-f = nestingplot(m2; gfs=[:item, :subj])
+f = nestingplot(m2, :item, :subj)
 @test save(joinpath(OUTDIR, "nesting_kb07_gfs.png"), f)
 
 # Mutating form into a GridPosition
@@ -87,7 +87,7 @@ end
 
 # Errors
 @test_throws ArgumentError nestingplot(m1) # only one distinct grouping factor
-@test_throws ArgumentError nestingplot(m2; gfs=[:subj, :nonexistent])
+@test_throws ArgumentError nestingplot(m2, :subj, :nonexistent)
 
 @testset "nestingtable" begin
     nt = nestingtable(m2)
@@ -99,12 +99,12 @@ end
 
     # gfs restricts which factors are compared (factor_a/factor_b assignment
     # is positional, not gfs order, so only check the *set* of factors shown)
-    nt2 = nestingtable(m2; gfs=[:item, :subj])
+    nt2 = nestingtable(m2, :item, :subj)
     @test Set(vcat(nt2.factor_a, nt2.factor_b)) == Set(["subj", "item"])
 
     # errors mirror nestingplot
     @test_throws ArgumentError nestingtable(m1)
-    @test_throws ArgumentError nestingtable(m2; gfs=[:subj, :nonexistent])
+    @test_throws ArgumentError nestingtable(m2, :subj, :nonexistent)
 
     # exact nesting is visible as zero-count rows for non-matching pairs
     let rng = MersenneTwister(1)
@@ -138,12 +138,12 @@ end
     @test only(ns.density) ≈ 1789 / 1792
 
     # gfs restricts which factors are compared
-    ns2 = nestingstructure(m2; gfs=[:item, :subj])
+    ns2 = nestingstructure(m2, :item, :subj)
     @test Set(vcat(ns2.factor_a, ns2.factor_b)) == Set(["subj", "item"])
 
     # errors mirror nestingplot
     @test_throws ArgumentError nestingstructure(m1)
-    @test_throws ArgumentError nestingstructure(m2; gfs=[:subj, :nonexistent])
+    @test_throws ArgumentError nestingstructure(m2, :subj, :nonexistent)
 
     # exact nesting is correctly classified
     let rng = MersenneTwister(1)
