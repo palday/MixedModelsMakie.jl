@@ -307,6 +307,18 @@ upsetplot(verbagg; cols=Not([:subj, :item]), gf=:subj, show_empty=false)
 upsetplot(gm1, :subj, sortby=:degree, show_empty=false)
 ```
 
+The same incidence data drawn by `upsetplot` can be pulled out as a table with
+[`upsettable`](@ref), for cases where you want to filter, sort, or re-analyze it
+directly rather than (or in addition to) plotting it:
+
+```@docs
+upsettable
+```
+
+```@example UpSet
+upsettable(gm1, :subj)
+```
+
 ## Nesting/Crossing Plots
 
 Grouping factors in a mixed model (e.g. `subj`, `item`, `school`, `class`) can be
@@ -344,6 +356,7 @@ nestingplot!
 ```@example Nesting
 using CairoMakie
 CairoMakie.activate!(; type="svg")
+using DataFrames
 using MixedModels
 using MixedModelsMakie
 
@@ -356,6 +369,39 @@ gm2 = fit(MixedModel,
 
 # subj and item are nearly (but not perfectly) crossed in this design
 nestingplot(gm2)
+```
+
+As with `upsetplot`, the data underlying `nestingplot` is available as tables.
+[`nestingtable`](@ref) gives the raw co-occurrence counts in long format, with one
+row per pair of levels — including zero-count rows for combinations that never
+co-occur, since those absences are exactly what reveal nesting or partial
+crossing:
+
+```@docs
+nestingtable
+```
+
+```@example Nesting
+nestingtable(gm2)
+```
+
+Filtering to `count == 0` finds specific missing combinations, e.g. the subjects
+who never saw a particular item:
+
+```@example Nesting
+filter(:count => iszero, nestingtable(gm2))
+```
+
+[`nestingstructure`](@ref) gives the pairwise nested/crossed classification and
+density shown in `nestingplot`'s upper-triangle badges — one row per pair of
+grouping factors, rather than one row per pair of levels:
+
+```@docs
+nestingstructure
+```
+
+```@example Nesting
+nestingstructure(gm2)
 ```
 
 ## General plots

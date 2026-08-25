@@ -107,10 +107,11 @@ by index into `fnames(m)`); otherwise every distinct grouping factor is used,
 in the order it first appears.
 
 Returns a `NamedTuple` with fields `names` (`Vector{String}`), `nlevels`
-(levels per factor), `tables` (`Dict{Tuple{Int,Int},Matrix{Int}}`, keyed
-`(i, j)` with `i > j`, rows indexed by factor `i` and columns by factor `j`),
-and `relationships` (`Dict{Tuple{Int,Int},NamedTuple}`, same keys, as returned
-by [`_nesting_relationship`](@ref)).
+(levels per factor), `levels` (level labels per factor, as `Vector{String}`),
+`tables` (`Dict{Tuple{Int,Int},Matrix{Int}}`, keyed `(i, j)` with `i > j`,
+rows indexed by factor `i` and columns by factor `j`), and `relationships`
+(`Dict{Tuple{Int,Int},NamedTuple}`, same keys, as returned by
+[`_nesting_relationship`](@ref)).
 """
 function _nesting_data(m::MixedModel;
                        gfs::Union{Nothing,AbstractVector}=nothing)
@@ -129,7 +130,8 @@ function _nesting_data(m::MixedModel;
 
     names = string.(fnames(m)[idxs])
     reterms = m.reterms[idxs]
-    nlevels = [length(r.levels) for r in reterms]
+    levels = [string.(r.levels) for r in reterms]
+    nlevels = length.(levels)
 
     tables = Dict{Tuple{Int,Int},Matrix{Int}}()
     relationships = Dict{Tuple{Int,Int},NamedTuple}()
@@ -139,7 +141,107 @@ function _nesting_data(m::MixedModel;
         relationships[(i, j)] = _nesting_relationship(tab)
     end
 
-    return (; names, nlevels, tables, relationships)
+    return (; names, nlevels, levels, tables, relationships)
+end
+
+"""
+    _nesting_incidence_table(info::NamedTuple)
+
+Convert the `info` NamedTuple (as returned by [`_nesting_data`](@ref)) into a
+`DataFrame` in long format: one row per combination of a level of factor `A`
+and a level of factor `B`, for every pair of grouping factors. Includes rows
+with `count == 0` for combinations that never co-occur, since those absences
+are exactly what reveal nesting or partial crossing.
+"""
+function _nesting_incidence_table(info::NamedTuple)
+    factor_a = String[]
+    level_a = String[]
+    factor_b = String[]
+    level_b = String[]
+    count = Int[]
+
+    for (i, j) in sort!(collect(keys(info.tables)))
+        tab = info.tables[(i, j)]
+        la, lb = info.levels[i], info.levels[j]
+        for a in axes(tab, 1), b in axes(tab, 2)
+            push!(factor_a, info.names[i])
+            push!(level_a, la[a])
+            push!(factor_b, info.names[j])
+            push!(level_b, lb[b])
+            push!(count, tab[a, b])
+        end
+    end
+
+    return DataFrame(; factor_a, level_a, factor_b, level_b, count)
+end
+
+"""
+    nestingtable(m::MixedModel; gfs::Union{Nothing,AbstractVector}=nothing)
+
+Return the co-occurrence table underlying [`nestingplot`](@ref), in long
+format: one row per combination of a level of grouping factor `A` and a level
+of grouping factor `B`, for every pair of distinct grouping factors in `m`
+(restricted/ordered by `gfs`, as in `nestingplot`). Columns:
+- `factor_a`, `level_a`, `factor_b`, `level_b`: the pair of levels
+- `count`: the number of observations sharing that pair of levels (`0` for
+  combinations that never co-occur — these absences are what reveal nesting
+  or partial crossing)
+
+See [`nestingstructure`](@ref) for the pairwise nested/crossed classification
+instead of the raw counts.
+"""
+function nestingtable(m::MixedModel; gfs::Union{Nothing,AbstractVector}=nothing)
+    return _nesting_incidence_table(_nesting_data(m; gfs))
+end
+
+"""
+    _nesting_structure_table(info::NamedTuple)
+
+Convert the `info` NamedTuple (as returned by [`_nesting_data`](@ref)) into a
+`DataFrame`: one row per pair of distinct grouping factors, with the pairwise
+classification computed by [`_nesting_relationship`](@ref).
+"""
+function _nesting_structure_table(info::NamedTuple)
+    factor_a = String[]
+    factor_b = String[]
+    n_levels_a = Int[]
+    n_levels_b = Int[]
+    relationship = Symbol[]
+    density = Float64[]
+
+    for (i, j) in sort!(collect(keys(info.relationships)))
+        rel = info.relationships[(i, j)]
+        push!(factor_a, info.names[i])
+        push!(factor_b, info.names[j])
+        push!(n_levels_a, info.nlevels[i])
+        push!(n_levels_b, info.nlevels[j])
+        push!(relationship, rel.rel)
+        push!(density, rel.density)
+    end
+
+    return DataFrame(; factor_a, factor_b, n_levels_a, n_levels_b, relationship,
+                     density)
+end
+
+"""
+    nestingstructure(m::MixedModel; gfs::Union{Nothing,AbstractVector}=nothing)
+
+Return the pairwise nested/crossed classification underlying [`nestingplot`](@ref)'s
+upper-triangle badges: one row per pair of distinct grouping factors in `m`
+(restricted/ordered by `gfs`, as in `nestingplot`), with:
+- `factor_a`, `factor_b`: the pair of grouping factors
+- `n_levels_a`, `n_levels_b`: their numbers of levels
+- `relationship`: one of `:identical`, `:a_nested_in_b`, `:b_nested_in_a`,
+  `:complete_crossing`, or `:partial_crossing` (see
+  [`_nesting_relationship`](@ref) for the exact definitions)
+- `density`: the fraction of the `n_levels_a × n_levels_b` grid of
+  combinations that is actually observed (`1.0` for `:complete_crossing`)
+
+See [`nestingtable`](@ref) for the raw per-level co-occurrence counts instead
+of this per-pair summary.
+"""
+function nestingstructure(m::MixedModel; gfs::Union{Nothing,AbstractVector}=nothing)
+    return _nesting_structure_table(_nesting_data(m; gfs))
 end
 
 """

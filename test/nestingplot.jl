@@ -88,3 +88,79 @@ end
 # Errors
 @test_throws ArgumentError nestingplot(m1) # only one distinct grouping factor
 @test_throws ArgumentError nestingplot(m2; gfs=[:subj, :nonexistent])
+
+@testset "nestingtable" begin
+    nt = nestingtable(m2)
+    @test names(nt) == ["factor_a", "level_a", "factor_b", "level_b", "count"]
+    # one row per (level of subj) x (level of item) combination
+    @test nrow(nt) == length(m2.reterms[1].levels) * length(m2.reterms[2].levels)
+    # co-occurrence counts sum to the number of observations
+    @test sum(nt.count) == nobs(m2)
+
+    # gfs restricts which factors are compared (factor_a/factor_b assignment
+    # is positional, not gfs order, so only check the *set* of factors shown)
+    nt2 = nestingtable(m2; gfs=[:item, :subj])
+    @test Set(vcat(nt2.factor_a, nt2.factor_b)) == Set(["subj", "item"])
+
+    # errors mirror nestingplot
+    @test_throws ArgumentError nestingtable(m1)
+    @test_throws ArgumentError nestingtable(m2; gfs=[:subj, :nonexistent])
+
+    # exact nesting is visible as zero-count rows for non-matching pairs
+    let rng = MersenneTwister(1)
+        n_school, n_class, n_student = 4, 3, 10
+        school = String[]
+        class = String[]
+        y = Float64[]
+        for s in 1:n_school, c in 1:n_class, _ in 1:n_student
+            push!(school, "school$s")
+            push!(class, "school$(s)_class$(c)")
+            push!(y, randn(rng))
+        end
+        data = (; y, school, class)
+        mnest = fit(MixedModel, @formula(y ~ 1 + (1 | school) + (1 | class)), data;
+                    progress)
+        ntnest = nestingtable(mnest)
+        @test nrow(ntnest) == n_school * (n_school * n_class)
+        @test count(iszero, ntnest.count) > 0
+        @test count(!iszero, ntnest.count) == n_school * n_class
+    end
+end
+
+@testset "nestingstructure" begin
+    ns = nestingstructure(m2)
+    @test names(ns) ==
+          ["factor_a", "factor_b", "n_levels_a", "n_levels_b", "relationship",
+           "density"]
+    # one row per pair of grouping factors
+    @test nrow(ns) == 1
+    @test only(ns.relationship) === :partial_crossing
+    @test only(ns.density) ≈ 1789 / 1792
+
+    # gfs restricts which factors are compared
+    ns2 = nestingstructure(m2; gfs=[:item, :subj])
+    @test Set(vcat(ns2.factor_a, ns2.factor_b)) == Set(["subj", "item"])
+
+    # errors mirror nestingplot
+    @test_throws ArgumentError nestingstructure(m1)
+    @test_throws ArgumentError nestingstructure(m2; gfs=[:subj, :nonexistent])
+
+    # exact nesting is correctly classified
+    let rng = MersenneTwister(1)
+        n_school, n_class, n_student = 4, 3, 10
+        school = String[]
+        class = String[]
+        y = Float64[]
+        for s in 1:n_school, c in 1:n_class, _ in 1:n_student
+            push!(school, "school$s")
+            push!(class, "school$(s)_class$(c)")
+            push!(y, randn(rng))
+        end
+        data = (; y, school, class)
+        mnest = fit(MixedModel, @formula(y ~ 1 + (1 | school) + (1 | class)), data;
+                    progress)
+        nsnest = nestingstructure(mnest)
+        rel = only(nsnest.relationship)
+        @test rel === :b_nested_in_a || rel === :a_nested_in_b
+    end
+end

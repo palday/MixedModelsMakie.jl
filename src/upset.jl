@@ -309,6 +309,54 @@ function _upset_data_from_table(data; cols=All(),
 end
 
 """
+    _upset_incidence_table(info::NamedTuple)
+
+Convert the `info` NamedTuple (as returned by [`_upset_data`](@ref) or
+[`_upset_data_from_table`](@ref)) into a `DataFrame`: one row per combination
+cell, with `cell`, `degree`, and `count` columns, plus one `Bool` column per
+set giving its raw label (e.g. `"gender: M"`).
+"""
+function _upset_incidence_table(info::NamedTuple)
+    df = DataFrame(; cell=info.cell_labels, degree=info.cell_degrees,
+                   count=info.cell_counts)
+    for (si, label) in enumerate(info.set_labels)
+        df[!, Symbol(label)] = info.combo_matrix[:, si]
+    end
+    return df
+end
+
+"""
+    upsettable(m::MixedModel, gf::Union{Symbol,Nothing}=first(fnames(m)))
+
+Return the incidence table underlying [`upsetplot`](@ref): one row per
+combination cell (every full factorial cell of the categorical fixed-effect
+predictors, plus marginal cells that collapse a single predictor), with:
+- `cell`: a label for the combination
+- `degree`: the number of predictors involved (one fewer for marginal cells)
+- `count`: the number of observations (or grouping-factor levels, if `gf` is
+  given) falling in the cell
+- one `Bool` column per set (an individual condition level, e.g.
+  `"gender: M"`) indicating whether that set is active in the cell
+
+Pass `gf=nothing` to count observations instead of grouping-factor levels,
+matching [`upsetplot`](@ref).
+"""
+function upsettable(m::MixedModel, gf::Union{Symbol,Nothing}=first(fnames(m)))
+    return _upset_incidence_table(_upset_data(m, gf))
+end
+
+"""
+    upsettable(data; cols=All(), gf::Union{Symbol,Nothing}=nothing)
+
+Return the incidence table underlying [`upsetplot`](@ref), built directly
+from a Tables.jl-compatible table. See [`upsetplot`](@ref) for the meaning of
+`cols` and `gf`.
+"""
+function upsettable(data; cols=All(), gf::Union{Symbol,Nothing}=nothing)
+    return _upset_incidence_table(_upset_data_from_table(data; cols, gf))
+end
+
+"""
     _upsetplot_render!(f::Indexable, info::NamedTuple; kwargs...)
 
 Render the UpSet combination matrix, intersection bar chart, and set-size bar

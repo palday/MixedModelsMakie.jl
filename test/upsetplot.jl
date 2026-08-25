@@ -52,3 +52,22 @@ end
            (:warn, r"item has 32 distinct levels"),
            match_mode = :any,
            @test_throws ArgumentError upsetplot(kb07data; cols=Not(:rt_trunc)))
+
+@testset "upsettable" begin
+    ut = upsettable(g1)
+    @test names(ut)[1:3] == ["cell", "degree", "count"]
+    @test Symbol("gender: M") in propertynames(ut)
+    @test all(x -> x isa Bool, ut[!, Symbol("gender: M")])
+    # counts and cell order match the data underlying upsetplot itself
+    @test ut.count == MixedModelsMakie._upset_data(g1).cell_counts
+
+    # gf=nothing counts observations instead of grouping-factor levels
+    ut_obs = upsettable(g1, nothing)
+    @test ut_obs.count != ut.count
+
+    # table-based method matches the model-based one in shape
+    ut_tab = upsettable(kb07data; cols=Not([:subj, :item]))
+    @test names(ut_tab)[1:3] == ["cell", "degree", "count"]
+
+    @test_throws ArgumentError upsettable(m1) # no categorical fixed effects
+end
