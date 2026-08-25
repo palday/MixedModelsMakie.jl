@@ -51,11 +51,16 @@ function _upset_core(pred_names, pred_levels, df::DataFrame,
         end
     end
 
-    # Cells = full factorial: one level per predictor (rows of matrix).
-    # Store combo_strs for later marginal grouping.
+    n_expected = prod(length.(pred_levels))
+    if n_expected > 1000
+        dims = join(["$(p) ($(length(l)))" for (p, l) in zip(pred_names, pred_levels)],
+                    " × ")
+        throw(ArgumentError("Full factorial has $n_expected cells ($dims); the plot would be unreadable. " *
+                            "Use `cols` to select fewer or lower-cardinality predictors."))
+    end
+
     cell_labels = String[]
     cell_set_indices = Vector{Int}[]
-    cell_checks = Vector{Pair{Int,String}}[]
     cell_combo_strs = Vector{String}[]
 
     for combo in Iterators.product(pred_levels...)
@@ -63,10 +68,10 @@ function _upset_core(pred_names, pred_levels, df::DataFrame,
         parts = [string(pred_names[j], ": ", strs[j]) for j in eachindex(pred_names)]
         push!(cell_labels, join(parts, " & "))
         push!(cell_set_indices, [set_index[(j, strs[j])] for j in eachindex(pred_names)])
-        push!(cell_checks, [j => strs[j] for j in eachindex(pred_names)])
         push!(cell_combo_strs, strs)
     end
     n_cells = length(cell_labels)
+    cell_lookup = Dict(Tuple(strs) => ci for (ci, strs) in enumerate(cell_combo_strs))
 
     # Structural combination matrix: (n_cells × n_sets)
     combo_matrix = falses(n_cells, n_sets)
@@ -89,12 +94,11 @@ function _upset_core(pred_names, pred_levels, df::DataFrame,
         for obs_i in 1:nrow(df)
             gi = get(gf_index, gf_col[obs_i], nothing)
             isnothing(gi) && continue
-            obs_vals = [string(pred_cols[j][obs_i]) for j in eachindex(pred_names)]
+            obs_vals = Tuple(string(pred_cols[j][obs_i]) for j in eachindex(pred_names))
 
-            for (ci, checks) in enumerate(cell_checks)
-                if all(obs_vals[j] == lv for (j, lv) in checks)
-                    cell_membership[gi, ci] = true
-                end
+            ci = get(cell_lookup, obs_vals, nothing)
+            if ci !== nothing
+                cell_membership[gi, ci] = true
             end
 
             for j in eachindex(pred_names)
@@ -111,13 +115,11 @@ function _upset_core(pred_names, pred_levels, df::DataFrame,
         set_counts = zeros(Int, n_sets)
 
         for obs_i in 1:nrow(df)
-            obs_vals = [string(pred_cols[j][obs_i]) for j in eachindex(pred_names)]
+            obs_vals = Tuple(string(pred_cols[j][obs_i]) for j in eachindex(pred_names))
 
-            for (ci, checks) in enumerate(cell_checks)
-                if all(obs_vals[j] == lv for (j, lv) in checks)
-                    cell_counts[ci] += 1
-                    break
-                end
+            ci = get(cell_lookup, obs_vals, nothing)
+            if ci !== nothing
+                cell_counts[ci] += 1
             end
 
             for j in eachindex(pred_names)
@@ -242,6 +244,15 @@ function _upset_data_from_table(data; cols=All(),
 
     pred_names = string.(cat_names)
     pred_levels = [sort!(unique(string.(skipmissing(df[!, n])))) for n in cat_names]
+
+    for (n, lvs) in zip(cat_names, pred_levels)
+        if length(lvs) > 10
+            @warn "Column $n has $(length(lvs)) distinct levels and may be an " *
+                  "identifier column rather than a categorical predictor. " *
+                  "Consider excluding it via `cols`."
+        end
+    end
+
     gf_levels = gf !== nothing ? sort!(unique(df[!, gf])) : nothing
 
     return _upset_core(pred_names, pred_levels, df, gf, gf_levels)
