@@ -315,7 +315,7 @@ upsettable
 ```
 
 ```@example UpSet
-upsettable(gm1, :subj)
+first(upsettable(gm1, :subj), 10)
 ```
 
 ## Nesting/Crossing Plots
