@@ -8,14 +8,15 @@ end
 """
     _normalize_ptype(ptype)
 
-Map the ASCII aliases `:sigma`, `:rho`, `:theta` to their Greek `ptype`
-symbols (`:σ`, `:ρ`, `:θ`); any other value (including `nothing` or `:β`)
+Map the ASCII aliases `:sigma`, `:rho`, `:theta`, `:beta` to their Greek `ptype`
+symbols (`:σ`, `:ρ`, `:θ`, `:β`); any other value (including `nothing` or `:β`)
 passes through unchanged.
 """
 function _normalize_ptype(ptype)
     ptype === :sigma && return :σ
     ptype === :rho && return :ρ
     ptype === :theta && return :θ
+    ptype === :beta && return :β
     return ptype
 end
 
