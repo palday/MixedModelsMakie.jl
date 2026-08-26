@@ -15,3 +15,10 @@ for ptype in (:σ, :ρ, :θ)
     local f = ridgeplot(b2; ptype)
     @test save(joinpath(OUTDIR, "ridge_kb07_$(ptype).png"), f)
 end
+
+for ptype in (:σ, :ρ)
+    local f = ridgeplot(b2; ptype, group=:item)
+    @test save(joinpath(OUTDIR, "ridge_kb07_$(ptype)_item.png"), f)
+end
+
+@test_throws ArgumentError ridgeplot(b2; ptype=:β, group=:subj)

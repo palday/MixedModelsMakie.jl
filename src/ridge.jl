@@ -25,6 +25,9 @@ parameterization, labeled positionally as `θ01`, `θ02`, ... since these lack
 a natural per-group name). `show_intercept` only applies to `:β`; it is a
 no-op for `:σ`/`:ρ`/`:θ`.
 
+`group` restricts `ptype ∈ (:σ, :ρ)` to a single grouping factor, e.g.
+`group=:subj`. It is not supported for `:β`/`:θ`.
+
 Densities are normalized so that the maximum density is always 1.
 
 The highest density interval corresponding to `conf_level` is marked with a bar at the bottom of each density.
@@ -61,16 +64,17 @@ function ridgeplot(xs::MixedModelBootstrap...;
                    show_intercept=true,
                    show_legend=length(xs) > 1,
                    ptype=:β,
+                   group=nothing,
                    kwargs...)
     width = 640
     # need to guarantee a min height of 200
-    height = max(200, 100 * _npreds(first(xs), ptype; show_intercept))
+    height = max(200, 100 * _npreds(first(xs), ptype; show_intercept, group))
 
     width += 50 * (show_legend in (:left, :right))
     height += 50 * (show_legend in (true, :top, :bottom))
 
     fig = Figure(; size=(width, height))
-    return ridgeplot!(fig, xs...; show_intercept, show_legend, ptype, kwargs...)
+    return ridgeplot!(fig, xs...; show_intercept, show_legend, ptype, group, kwargs...)
 end
 
 """$(@doc ridgeplot)"""
@@ -104,6 +108,7 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
                     vline_at_zero=true,
                     show_intercept=true,
                     ptype=:β,
+                    group=nothing,
                     scatter_attributes=(;),
                     errorbars_attributes=(;),
                     band_attributes=(;),
@@ -113,8 +118,8 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
                     labels=string.(1:length(xs)),
                     attributes...)
     x = first(xs)
-    cn = _coefnames(x, ptype; show_intercept)
-    all(_coefnames(m, ptype; show_intercept) == cn for m in xs) ||
+    cn = _coefnames(x, ptype; show_intercept, group)
+    all(_coefnames(m, ptype; show_intercept, group) == cn for m in xs) ||
         throw(ArgumentError("Inputs differ in coefficient names"))
 
     xlabel = if !ismissing(conf_level)
@@ -137,8 +142,8 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
     ax.xlabel = xlabel
 
     for (idx, (bootstrap, label)) in enumerate(zip(xs, labels))
-        df = _bootstrap_longtable(bootstrap, ptype)
-        filter!(:coefname => in(_coefnames(bootstrap, ptype; show_intercept)), df)
+        df = _bootstrap_longtable(bootstrap, ptype; group)
+        filter!(:coefname => in(_coefnames(bootstrap, ptype; show_intercept, group)), df)
         gdf = groupby(df, :coefname)
         dens = combine(gdf, :value => kde => :kde)
 
@@ -148,6 +153,7 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
                       vline_at_zero,
                       show_intercept,
                       ptype,
+                      group,
                       show_legend=false,
                       color=Cycled(idx),
                       labels=[label],
@@ -175,7 +181,7 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
     end
 
     if ismissing(conf_level)
-        nticks = _npreds(x, ptype; show_intercept)
+        nticks = _npreds(x, ptype; show_intercept, group)
         ax.yticks = (nticks:-1:1, cn)
         ylims!(ax, 0, nticks + 1)
         vline_at_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)

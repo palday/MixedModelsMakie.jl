@@ -47,6 +47,21 @@ end
     @test sort(theta.coefname) == ["θ1", "θ2", "θ3"]
 
     @test_throws ArgumentError confint_table(b1; ptype=:σs)
+
+    sigma_subj = confint_table(b2, 0.68; ptype=:σ, group=:subj)
+    @test sort(sigma_subj.coefname) ==
+          ["subj: (Intercept)", "subj: load: yes", "subj: prec: maintain",
+           "subj: spkr: old"]
+
+    sigma_item = confint_table(b2, 0.68; ptype=:σ, group=:item)
+    @test sort(sigma_item.coefname) == ["item: (Intercept)", "item: spkr: old"]
+
+    rho_item = confint_table(b2, 0.68; ptype=:ρ, group=:item)
+    @test rho_item.coefname == ["item: (Intercept), spkr: old"]
+
+    @test_throws ArgumentError confint_table(b2; ptype=:β, group=:subj)
+    @test_throws ArgumentError confint_table(b2; ptype=:θ, group=:subj)
+    @test_throws ArgumentError confint_table(b2; ptype=:σ, group=:nope)
 end
 
 @testset "ranefinfo" begin

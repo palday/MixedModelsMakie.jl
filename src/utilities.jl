@@ -1,6 +1,22 @@
-function _coefnames(x::MixedModel, ptype::Nothing=nothing; show_intercept=true)
+function _coefnames(x::MixedModel, ptype::Nothing=nothing; show_intercept=true,
+                    group=nothing)
+    isnothing(group) || throw(ArgumentError("`group` not supported for MixedModel"))
     cn = fixefnames(x)
     return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
+end
+
+"""
+    _validate_group(ptype, group)
+
+Throw an `ArgumentError` if `group` is specified for a `ptype` that has no
+associated grouping factor. Only `:σ`/`:ρ` are qualified by a grouping
+factor in [`_allparlabel`](@ref)'s labeling scheme (`:β` has none, `:θ`'s
+labels are purely positional).
+"""
+function _validate_group(ptype, group)
+    group === nothing || ptype in (:σ, :ρ) ||
+        throw(ArgumentError("`group` is only supported for ptype ∈ (:σ, :ρ); got ptype=$(ptype)"))
+    return nothing
 end
 
 """
@@ -16,7 +32,7 @@ _allparlabel(group, names::Missing) = group
 _allparlabel(group, names) = string(group, ": ", names)
 
 """
-    _bootstrap_longtable(bsamp::MixedModelBootstrap, ptype)
+    _bootstrap_longtable(bsamp::MixedModelBootstrap, ptype; group=nothing)
 
 Return a long-format DataFrame with columns `:iter`, `:coefname`, `:value`
 for the requested `ptype` (`:β`, `:σ`, `:ρ`, or `:θ`).
@@ -25,8 +41,12 @@ for the requested `ptype` (`:β`, `:σ`, `:ρ`, or `:θ`).
 [`_allparlabel`](@ref). `:θ` has no named/tidied accessor in MixedModels.jl,
 so it is drawn from `bsamp.tbl` and labeled positionally (e.g. `θ01`, `θ02`,
 ...), matching the convention already used by [`ridge2d`](@ref).
+
+`group` restricts `:σ`/`:ρ` to a single grouping factor (e.g. `:subj`); see
+[`_validate_group`](@ref).
 """
-function _bootstrap_longtable(bsamp::MixedModelBootstrap, ptype)
+function _bootstrap_longtable(bsamp::MixedModelBootstrap, ptype; group=nothing)
+    _validate_group(ptype, group)
     if ptype === :θ
         tbl = bsamp.tbl
         θcols = collect(filter(startswith("θ"), string.(propertynames(tbl))))
@@ -36,13 +56,19 @@ function _bootstrap_longtable(bsamp::MixedModelBootstrap, ptype)
     else
         df = DataFrame(bsamp.allpars)
         filter!(:type => ==(string(ptype)), df)
+        if group !== nothing
+            filter!(:group => ==(string(group)), df)
+            isempty(df) &&
+                throw(ArgumentError("No $(ptype) parameters found for group $(group)."))
+        end
         df.coefname = _allparlabel.(df.group, df.names)
         return select(df, :iter, :coefname, :value)
     end
 end
 
-function _coefnames(x::MixedModelBootstrap, ptype; show_intercept=true)
+function _coefnames(x::MixedModelBootstrap, ptype; show_intercept=true, group=nothing)
     ptype = something(ptype, :β)
+    _validate_group(ptype, group)
     if ptype === :β
         nt = first(x.fits).β
         cn = [string(k) for (k, v) in pairs(nt) if !isequal(v, -0.0)]
@@ -51,7 +77,7 @@ function _coefnames(x::MixedModelBootstrap, ptype; show_intercept=true)
         # relies on `unique` preserving first-occurrence order so that
         # y-axis ticks come out in a stable, sensible order (grouping
         # factors/RE terms in the order MixedModels.jl emits them)
-        return unique(_bootstrap_longtable(x, ptype).coefname)
+        return unique(_bootstrap_longtable(x, ptype; group).coefname)
     end
 end
 
@@ -76,6 +102,10 @@ including the residual, labeled `"group: names"`/`"residual"`), `:ρ`
 `show_intercept` only filters the fixed-effect `"(Intercept)"` row; it is a
 no-op for `:σ`/`:ρ`/`:θ`.
 
+`group` restricts `ptype ∈ (:σ, :ρ)` to a single grouping factor, e.g.
+`group=:subj`. It is not supported for `:β`/`:θ` (which have no associated
+grouping factor) or for a plain `MixedModel`.
+
 The returned table has the following columns:
 - `coefname`: the names of the coefficients
 - `estimate`: the point estimates
@@ -86,8 +116,10 @@ The returned table has the following columns:
     This function is internal and may be removed in a future release
     without being considered a breaking change.
 """
-function confint_table(x::MixedModel, level=0.95; ptype=nothing, show_intercept=true)
+function confint_table(x::MixedModel, level=0.95; ptype=nothing, show_intercept=true,
+                       group=nothing)
     isnothing(ptype) || throw(ArgumentError("`ptype` not supported for MixedModel"))
+    isnothing(group) || throw(ArgumentError("`group` not supported for MixedModel"))
     # taking from the lower tail
     semultiple = zquantile((1 - level) / 2)
     se = stderror(x)
@@ -102,9 +134,11 @@ function confint_table(x::MixedModel, level=0.95; ptype=nothing, show_intercept=
     return filter!(:coefname => in(_coefnames(x; show_intercept)), df)
 end
 
-function confint_table(x::MixedModelBootstrap, level=0.95; ptype=:β, show_intercept=true)
+function confint_table(x::MixedModelBootstrap, level=0.95; ptype=:β, show_intercept=true,
+                       group=nothing)
     ptype = something(ptype, :β)
     ptype in (:β, :σ, :ρ, :θ) || throw(ArgumentError("ptype $(ptype) not supported"))
+    _validate_group(ptype, group)
     if ptype === :θ
         # allpars (and hence shortestcovint(bsamp, level)) has no θ rows,
         # so θ needs its own grouped HDI computation
@@ -116,12 +150,13 @@ function confint_table(x::MixedModelBootstrap, level=0.95; ptype=:β, show_inter
     else
         hdi_df = DataFrame(shortestcovint(x, level))
         filter!(:type => ==(string(ptype)), hdi_df)
+        group === nothing || filter!(:group => ==(string(group)), hdi_df)
         hdi_df.coefname = _allparlabel.(hdi_df.group, hdi_df.names)
-        est = combine(groupby(_bootstrap_longtable(x, ptype), :coefname),
+        est = combine(groupby(_bootstrap_longtable(x, ptype; group), :coefname),
                       :value => mean => :estimate)
         df = innerjoin(est, select(hdi_df, :coefname, :lower, :upper); on=:coefname)
     end
-    return filter!(:coefname => in(_coefnames(x, ptype; show_intercept)), df)
+    return filter!(:coefname => in(_coefnames(x, ptype; show_intercept, group)), df)
 end
 
 _npreds(args...; kwargs...) = length(_coefnames(args...; kwargs...))
