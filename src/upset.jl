@@ -77,8 +77,10 @@ Returns a `NamedTuple` with fields:
 `gf_levels`, `set_labels`, `cell_labels`, `combo_matrix`, `cell_counts`,
 `cell_degrees`, `set_counts`.
 """
-function _upset_core(pred_names, pred_levels, pred_cols::AbstractVector,
-                     gf_refs::Union{AbstractVector{<:Integer},Nothing}, gf_levels)
+function _upset_core(pred_names::Vector{String}, pred_levels::Vector,
+                     pred_cols::Vector{Vector{String}},
+                     gf_refs::Union{Vector{<:Integer},Nothing},
+                     gf_levels::Union{Vector,Nothing})
     # Sets = individual condition levels, grouped by predictor (columns of matrix)
     set_labels = String[string(p, ": ", lv)
                         for (p, lvs) in zip(pred_names, pred_levels) for lv in lvs]
@@ -239,8 +241,8 @@ end
 Build UpSet data structures from a fitted model.
 
 Predictor names, levels, and per-observation values are recovered from the
-model's formula, design matrix, and contrast coding — no original data frame
-is needed. Grouping-factor membership comes from the random-effects terms.
+model's formula, design matrix, and contrast coding.
+Grouping-factor membership comes from the random-effects terms.
 """
 function _upset_data(m::MixedModel, gf::Union{Symbol,Nothing}=first(fnames(m)))
     pred_names, pred_levels = _categorical_terms(m)
