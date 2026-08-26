@@ -8,6 +8,19 @@
     @test MixedModelsMakie.zquantile(0.50) ≈ 0
 end
 
+@testset "_histcurve" begin
+    curve = MixedModelsMakie._histcurve(zeros(50); bins=1)
+    @test curve isa MixedModelsMakie._StepCurve
+    @test length(curve.x) == length(curve.density)
+    # closed at 0 on both ends, and the single bin spans the whole range
+    @test first(curve.density) == 0
+    @test last(curve.density) == 0
+    @test maximum(curve.density) == 50
+
+    curve2 = MixedModelsMakie._histcurve(zeros(50); bins=5)
+    @test maximum(curve2.density) == 50
+end
+
 @testset "Simple linear regression" begin
     a, b = 1, 2
     n = 100

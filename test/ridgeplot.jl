@@ -27,3 +27,14 @@ for alias in (:sigma, :rho, :theta)
     local f = ridgeplot(b2; ptype=alias)
     @test save(joinpath(OUTDIR, "ridge_kb07_$(alias)_alias.png"), f)
 end
+
+f = ridgeplot(b1; histogram=true)
+@test save(joinpath(OUTDIR, "ridge_sleepstudy_hist.png"), f)
+
+for ptype in (:σ, :ρ, :θ)
+    local f = ridgeplot(b2; ptype, histogram=true)
+    @test save(joinpath(OUTDIR, "ridge_kb07_$(ptype)_hist.png"), f)
+end
+
+f = ridgeplot(b2; ptype=:σ, histogram=true, bins=20)
+@test save(joinpath(OUTDIR, "ridge_kb07_sigma_hist_bins.png"), f)

@@ -54,6 +54,56 @@ function _parambounds(::Val{:θ}, bsamp, coefname)
 end
 
 """
+    _StepCurve(x, density)
+
+A step-function outline with fields `x`/`density`, mirroring the shape of
+`KernelDensity.UnivariateKDE` so [`_histcurve`](@ref)'s result can be drawn
+with the same ridge-plotting code as a KDE. A plain struct (rather than a
+`NamedTuple`) so `DataFrames.combine` stores it as a single cell instead of
+trying to expand it into multiple columns.
+"""
+struct _StepCurve
+    x::Vector{Float64}
+    density::Vector{Float64}
+end
+
+"""
+    _histcurve(vals; bins=nothing, bounds=(-Inf, Inf))
+
+Return a [`_StepCurve`](@ref) outline of a histogram of `vals`. Unlike a
+KDE, a histogram never draws mass *within* a bin past a parameter's hard
+bounds. But `StatsBase`'s automatic bin edges are rounded to "nice" numbers
+and can still overshoot the true data range, so the outermost edges are
+clamped to `bounds` (see [`_parambounds`](@ref)) the same way a KDE curve
+is truncated. A histogram can otherwise show a genuine spike/impulse when
+many bootstrap draws land on a boundary (e.g. a singular fit).
+
+`bins` is forwarded to `StatsBase.fit(Histogram, vals; nbins=bins)` when
+given; otherwise `StatsBase`'s automatic bin selection is used.
+"""
+function _histcurve(vals; bins=nothing, bounds=(-Inf, Inf))
+    h = isnothing(bins) ? fit(Histogram, vals) : fit(Histogram, vals; nbins=bins)
+    edges = collect(only(h.edges))
+    edges[1] = max(edges[1], first(bounds))
+    edges[end] = min(edges[end], last(bounds))
+    counts = h.weights
+    n = length(counts)
+    x = Vector{Float64}(undef, 2n + 2)
+    density = Vector{Float64}(undef, 2n + 2)
+    x[1] = edges[1]
+    density[1] = 0.0
+    for i in 1:n
+        x[2i] = edges[i]
+        density[2i] = counts[i]
+        x[2i + 1] = edges[i + 1]
+        density[2i + 1] = counts[i]
+    end
+    x[end] = edges[n + 1]
+    density[end] = 0.0
+    return _StepCurve(x, density)
+end
+
+"""
     _allparlabel(group, names)
 
 Combine the `group`/`names` columns of `MixedModels.allpars` into a single

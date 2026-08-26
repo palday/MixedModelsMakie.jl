@@ -34,6 +34,13 @@ bounded parameters (`:σ` ≥ 0, `:ρ` ∈ [-1, 1], `:θ` per-element via
 `lowerbd`), the density curve is truncated to the parameter's valid range,
 since kernel smoothing can otherwise leak density past a hard boundary.
 
+Setting `histogram=true` plots a histogram instead of a KDE for each row
+(counts normalized the same way). A histogram respects a parameter's bounds
+by construction, and can show a genuine spike where many bootstrap draws
+land on a boundary (e.g. a singular fit) — something a smoothed KDE cannot
+represent. `bins` is forwarded to `StatsBase.fit(Histogram, ...; nbins=bins)`
+when `histogram=true`; otherwise `StatsBase`'s automatic bin selection is used.
+
 The highest density interval corresponding to `conf_level` is marked with a bar at the bottom of each density.
 Setting `conf_level=missing` removes the markings for the highest density interval.
 
@@ -113,6 +120,8 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
                     show_intercept=true,
                     ptype=:β,
                     group=nothing,
+                    histogram=false,
+                    bins=nothing,
                     scatter_attributes=(;),
                     errorbars_attributes=(;),
                     band_attributes=(;),
@@ -128,10 +137,11 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
         throw(ArgumentError("Inputs differ in coefficient names"))
 
     xlabel = if !ismissing(conf_level)
-        @sprintf "Normalized bootstrap density and %g%% confidence interval" (conf_level *
-                                                                              100)
+        quantity = histogram ? "count" : "density"
+        @sprintf "Normalized bootstrap %s and %g%% confidence interval" quantity (conf_level *
+                                                                                  100)
     else
-        "Normalized bootstrap density"
+        histogram ? "Normalized bootstrap count" : "Normalized bootstrap density"
     end
 
     if length(xs) == 1
@@ -150,7 +160,15 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
         df = _bootstrap_longtable(bootstrap, ptype; group)
         filter!(:coefname => in(_coefnames(bootstrap, ptype; show_intercept, group)), df)
         gdf = groupby(df, :coefname)
-        dens = combine(gdf, :value => kde => :kde)
+        dens = if histogram
+            combine(gdf,
+                    [:coefname, :value] => ((cn, v) -> _histcurve(v; bins,
+                    bounds=_parambounds(ptype,
+                    bootstrap,
+                    first(cn)))) => :kde)
+        else
+            combine(gdf, :value => kde => :kde)
+        end
 
         if !ismissing(conf_level)
             coefplot!(ax, bootstrap;
@@ -168,12 +186,19 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
         end
 
         for (offset, row) in enumerate(reverse(eachrow(dens)))
-            # kernel smoothing can leak density past a hard support boundary
-            # (e.g. negative σ, |ρ| > 1); truncate the visible curve to it
-            lo, hi = _parambounds(ptype, bootstrap, row.coefname)
-            keep = lo .<= row.kde.x .<= hi
-            x = row.kde.x[keep]
-            density = row.kde.density[keep]
+            if histogram
+                # a histogram respects parameter bounds by construction, so
+                # there is no spillover to truncate
+                x = row.kde.x
+                density = row.kde.density
+            else
+                # kernel smoothing can leak density past a hard support
+                # boundary (e.g. negative σ, |ρ| > 1); truncate the curve
+                lo, hi = _parambounds(ptype, bootstrap, row.coefname)
+                keep = lo .<= row.kde.x .<= hi
+                x = row.kde.x[keep]
+                density = row.kde.density[keep]
+            end
             dd = 0.95 * density ./ maximum(density)
             lower = Point2f.(x, offset)
             upper = Point2f.(x, dd .+ offset)
