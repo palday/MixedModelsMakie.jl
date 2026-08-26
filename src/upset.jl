@@ -400,21 +400,17 @@ function _upsetplot_render!(f::Indexable, info::NamedTuple;
 
     if horiz
         intersection_pos in (:top, :bottom) ||
-            throw(ArgumentError(
-                "intersection_pos must be :top or :bottom for horizontal orientation, got :$intersection_pos"))
+            throw(ArgumentError("intersection_pos must be :top or :bottom for horizontal orientation, got :$intersection_pos"))
         if show_setsize
             setsize_pos in (:left, :right) ||
-                throw(ArgumentError(
-                    "setsize_pos must be :left or :right for horizontal orientation, got :$setsize_pos"))
+                throw(ArgumentError("setsize_pos must be :left or :right for horizontal orientation, got :$setsize_pos"))
         end
     else
         intersection_pos in (:left, :right) ||
-            throw(ArgumentError(
-                "intersection_pos must be :left or :right for vertical orientation, got :$intersection_pos"))
+            throw(ArgumentError("intersection_pos must be :left or :right for vertical orientation, got :$intersection_pos"))
         if show_setsize
             setsize_pos in (:top, :bottom) ||
-                throw(ArgumentError(
-                    "setsize_pos must be :top or :bottom for vertical orientation, got :$setsize_pos"))
+                throw(ArgumentError("setsize_pos must be :top or :bottom for vertical orientation, got :$setsize_pos"))
         end
     end
 
