@@ -8,6 +8,19 @@
     @test MixedModelsMakie.zquantile(0.50) ≈ 0
 end
 
+@testset "_histcurve" begin
+    curve = MixedModelsMakie._histcurve(zeros(50); bins=1)
+    @test curve isa MixedModelsMakie._StepCurve
+    @test length(curve.x) == length(curve.density)
+    # closed at 0 on both ends, and the single bin spans the whole range
+    @test first(curve.density) == 0
+    @test last(curve.density) == 0
+    @test maximum(curve.density) == 50
+
+    curve2 = MixedModelsMakie._histcurve(zeros(50); bins=5)
+    @test maximum(curve2.density) == 50
+end
+
 @testset "Simple linear regression" begin
     a, b = 1, 2
     n = 100
@@ -35,6 +48,37 @@ end
 
     @test fixefnames(mr) == MixedModelsMakie.confint_table(mr).coefname
     @test fixefnames(mr) == MixedModelsMakie.confint_table(br).coefname
+
+    sigma = confint_table(b1, 0.68; ptype=:σ)
+    @test sort(sigma.coefname) ==
+          ["residual", "subj: (Intercept)", "subj: days"]
+
+    rho = confint_table(b1, 0.68; ptype=:ρ)
+    @test rho.coefname == ["subj: (Intercept), days"]
+
+    theta = confint_table(b1, 0.68; ptype=:θ)
+    @test sort(theta.coefname) == ["θ1", "θ2", "θ3"]
+
+    @test_throws ArgumentError confint_table(b1; ptype=:σs)
+
+    sigma_subj = confint_table(b2, 0.68; ptype=:σ, group=:subj)
+    @test sort(sigma_subj.coefname) ==
+          ["subj: (Intercept)", "subj: load: yes", "subj: prec: maintain",
+           "subj: spkr: old"]
+
+    sigma_item = confint_table(b2, 0.68; ptype=:σ, group=:item)
+    @test sort(sigma_item.coefname) == ["item: (Intercept)", "item: spkr: old"]
+
+    rho_item = confint_table(b2, 0.68; ptype=:ρ, group=:item)
+    @test rho_item.coefname == ["item: (Intercept), spkr: old"]
+
+    @test_throws ArgumentError confint_table(b2; ptype=:β, group=:subj)
+    @test_throws ArgumentError confint_table(b2; ptype=:θ, group=:subj)
+    @test_throws ArgumentError confint_table(b2; ptype=:σ, group=:nope)
+
+    @test confint_table(b1, 0.68; ptype=:sigma) == sigma
+    @test confint_table(b1, 0.68; ptype=:rho) == rho
+    @test confint_table(b1, 0.68; ptype=:theta) == theta
 end
 
 @testset "ranefinfo" begin

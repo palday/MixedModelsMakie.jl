@@ -4,6 +4,7 @@
               show_legend=length(xs) > 1, legend_attributes=(;), kwargs...)
     coefplot!(ax::Axis, xs::Union{MixedModel,MixedModelBootstrap}...;
               conf_level=0.95, vline_at_zero=true, show_intercept=true,
+              ptype=nothing,
               scatter_attributes=(;),
               errorbars_attributes=(;),
               show_legend=length(xs) > 1,
@@ -11,9 +12,17 @@
               labels=string.(1:length(xs)),
               attributes...)
 
-Create a coefficient plot of the fixed-effects and associated confidence intervals.
+Create a coefficient plot of the requested parameters and associated confidence intervals.
 When multiple models are supplied, they are overlaid on the same axes for comparison;
 all models must share the same coefficient names.
+
+For a `MixedModelBootstrap`, `ptype` selects which parameters to plot: `:β`
+(fixed effects, default), `:σ`, `:ρ`, or `:θ` (see [`ridgeplot`](@ref) for
+details; the ASCII aliases `:sigma`, `:rho`, `:theta` are also accepted).
+`ptype` is not supported for a plain `MixedModel`.
+
+`group` restricts `ptype ∈ (:σ, :ρ)` to a single grouping factor, e.g.
+`group=:subj`. It is not supported for `:β`/`:θ` or for a plain `MixedModel`.
 
 `attributes` are passed onto both `scatter!` and `errorbars!`, while
 `scatter_attributes` and `errorbars_attributes` are passed only onto `scatter!` and
@@ -44,16 +53,18 @@ The mutating methods return the original object.
 function coefplot(xs::Union{MixedModel,MixedModelBootstrap}...;
                   show_intercept=true,
                   show_legend=length(xs) > 1,
+                  ptype=nothing,
+                  group=nothing,
                   kwargs...)
     width = 640
     # need to guarantee a min height of 150
-    height = max(150, 75 * _npreds(first(xs); show_intercept))
+    height = max(150, 75 * _npreds(first(xs), ptype; show_intercept, group))
 
     width += 50 * (show_legend in (:left, :right))
     height += 50 * (show_legend in (true, :top, :bottom))
 
     fig = Figure(; size=(width, height))
-    coefplot!(fig, xs...; show_intercept, show_legend, kwargs...)
+    coefplot!(fig, xs...; show_intercept, show_legend, ptype, group, kwargs...)
     return fig
 end
 
@@ -78,16 +89,19 @@ function coefplot!(ax::Axis, xs::Union{MixedModel,MixedModelBootstrap}...;
                    conf_level=0.95,
                    vline_at_zero=true,
                    show_intercept=true,
+                   ptype=nothing,
+                   group=nothing,
                    scatter_attributes=(;),
                    errorbars_attributes=(;),
                    show_legend=length(xs) > 1,
                    legend_attributes=(;),
                    labels=string.(1:length(xs)),
                    attributes...)
+    ptype = _normalize_ptype(ptype)
     x = first(xs)
-    cn = _coefnames(x; show_intercept)
-    nticks = _npreds(x; show_intercept)
-    all(_coefnames(m; show_intercept) == cn for m in xs) ||
+    cn = _coefnames(x, ptype; show_intercept, group)
+    nticks = _npreds(x, ptype; show_intercept, group)
+    all(_coefnames(m, ptype; show_intercept, group) == cn for m in xs) ||
         throw(ArgumentError("Inputs differ in coefficient names"))
 
     if length(xs) == 1
@@ -96,7 +110,7 @@ function coefplot!(ax::Axis, xs::Union{MixedModel,MixedModelBootstrap}...;
     end
 
     for (x, label) in zip(xs, labels)
-        ci = confint_table(x, conf_level; show_intercept)
+        ci = confint_table(x, conf_level; show_intercept, ptype, group)
         y = nrow(ci):-1:1
         xvals = ci.estimate
         scatter!(ax, xvals, y; attributes..., scatter_attributes..., label)

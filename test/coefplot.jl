@@ -17,3 +17,13 @@ f = coefplot(mr)
 
 f = coefplot(br)
 @test save(joinpath(OUTDIR, "coef_rankdeficient_boot.png"), f)
+
+for ptype in (:σ, :ρ, :θ)
+    local f = coefplot(b1; ptype)
+    @test save(joinpath(OUTDIR, "coef_sleepstudy_boot_$(ptype).png"), f)
+end
+
+for ptype in (:σ, :ρ)
+    local f = coefplot(b2; ptype, group=:item)
+    @test save(joinpath(OUTDIR, "coef_kb07_$(ptype)_item.png"), f)
+end

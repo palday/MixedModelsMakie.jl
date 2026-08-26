@@ -4,7 +4,8 @@
 
 Plot pairwise bivariate scatter plots with overlain densities for a bootstrap sample.
 
-`ptype` specifies the set of parameters to examine, e.g. `:β`, `:σ`, `:ρ`.
+`ptype` specifies the set of parameters to examine, e.g. `:β`, `:σ`, `:ρ`, `:θ`
+(the ASCII aliases `:sigma`, `:rho`, `:theta` are also accepted).
 
 The mutating methods return the original object.
 """
@@ -31,6 +32,7 @@ end
 
 """$(@doc ridge2d)"""
 function ridge2d!(f::Indexable, bs::MixedModelBootstrap; ptype=:β)
+    ptype = _normalize_ptype(ptype)
     tbl = bs.tbl
     cnames = [string(x) for x in propertynames(tbl)[2:end]]
     filter!(startswith(string(ptype)), cnames)

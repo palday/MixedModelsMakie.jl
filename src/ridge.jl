@@ -1,9 +1,10 @@
 """
-    ridgeplot(x::Union{MixedModel,MixedModelBootstrap}...; kwargs...)::Figure
-    ridgeplot!(fig::$(Indexable), x::MixedModelBootstrap...;
+    ridgeplot(xs::MixedModelBootstrap...; kwargs...)::Figure
+    ridgeplot!(fig::$(Indexable), xs::MixedModelBootstrap...;
                show_legend=length(xs) > 1, legend_attributes=(;), kwargs...)
-    ridgeplot!(ax::Axis, x::MixedModelBootstrap...;
+    ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
                conf_level=0.95, vline_at_zero=true, show_intercept=true,
+               ptype=:β,
                scatter_attributes=(;),
                errorbars_attributes=(;),
                band_attributes=(;),
@@ -13,11 +14,32 @@
                labels=string.(1:length(xs)),
                attributes...)
 
-Create a ridge plot for the bootstrap samples of the fixed effects.
+Create a ridge plot for the bootstrap samples of the requested parameters.
 When multiple bootstrap objects are supplied, they are overlaid on the same axes for
 comparison; all inputs must share the same coefficient names.
 
-Densities are normalized so that the maximum density is always 1.
+`ptype` selects which bootstrap parameters to plot: `:β` (fixed effects,
+default), `:σ` (random-effect standard deviations, including the residual),
+`:ρ` (random-effect correlations), or `:θ` (the unconstrained Cholesky
+parameterization, labeled positionally as `θ01`, `θ02`, ... since these lack
+a natural per-group name). The ASCII aliases `:sigma`, `:rho`, `:theta` are
+also accepted. `show_intercept` only applies to `:β`; it is a no-op for
+`:σ`/`:ρ`/`:θ`.
+
+`group` restricts `ptype ∈ (:σ, :ρ)` to a single grouping factor, e.g.
+`group=:subj`. It is not supported for `:β`/`:θ`.
+
+Densities are normalized so that the maximum density is always 1. For
+bounded parameters (`:σ` ≥ 0, `:ρ` ∈ [-1, 1], `:θ` per-element via
+`lowerbd`), the density curve is truncated to the parameter's valid range,
+since kernel smoothing can otherwise leak density past a hard boundary.
+
+Setting `histogram=true` plots a histogram instead of a KDE for each row
+(counts normalized the same way). A histogram respects a parameter's bounds
+by construction, and can show a genuine spike where many bootstrap draws
+land on a boundary (e.g. a singular fit) — something a smoothed KDE cannot
+represent. `bins` is forwarded to `StatsBase.fit(Histogram, ...; nbins=bins)`
+when `histogram=true`; otherwise `StatsBase`'s automatic bin selection is used.
 
 The highest density interval corresponding to `conf_level` is marked with a bar at the bottom of each density.
 Setting `conf_level=missing` removes the markings for the highest density interval.
@@ -52,15 +74,18 @@ The mutating methods return the original object.
 function ridgeplot(xs::MixedModelBootstrap...;
                    show_intercept=true,
                    show_legend=length(xs) > 1,
+                   ptype=:β,
+                   group=nothing,
                    kwargs...)
     width = 640
-    height = max(200, 100 * _npreds(first(xs); show_intercept))
+    # need to guarantee a min height of 200
+    height = max(200, 100 * _npreds(first(xs), ptype; show_intercept, group))
 
     width += 50 * (show_legend in (:left, :right))
     height += 50 * (show_legend in (true, :top, :bottom))
 
     fig = Figure(; size=(width, height))
-    return ridgeplot!(fig, xs...; show_intercept, show_legend, kwargs...)
+    return ridgeplot!(fig, xs...; show_intercept, show_legend, ptype, group, kwargs...)
 end
 
 """$(@doc ridgeplot)"""
@@ -93,6 +118,10 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
                     conf_level=0.95,
                     vline_at_zero=true,
                     show_intercept=true,
+                    ptype=:β,
+                    group=nothing,
+                    histogram=false,
+                    bins=nothing,
                     scatter_attributes=(;),
                     errorbars_attributes=(;),
                     band_attributes=(;),
@@ -101,16 +130,18 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
                     legend_attributes=(;),
                     labels=string.(1:length(xs)),
                     attributes...)
+    ptype = _normalize_ptype(ptype)
     x = first(xs)
-    cn = _coefnames(x; show_intercept)
-    all(_coefnames(m; show_intercept) == cn for m in xs) ||
+    cn = _coefnames(x, ptype; show_intercept, group)
+    all(_coefnames(m, ptype; show_intercept, group) == cn for m in xs) ||
         throw(ArgumentError("Inputs differ in coefficient names"))
 
     xlabel = if !ismissing(conf_level)
-        @sprintf "Normalized bootstrap density and %g%% confidence interval" (conf_level *
-                                                                              100)
+        quantity = histogram ? "count" : "density"
+        @sprintf "Normalized bootstrap %s and %g%% confidence interval" quantity (conf_level *
+                                                                                  100)
     else
-        "Normalized bootstrap density"
+        histogram ? "Normalized bootstrap count" : "Normalized bootstrap density"
     end
 
     if length(xs) == 1
@@ -126,16 +157,26 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
     ax.xlabel = xlabel
 
     for (idx, (bootstrap, label)) in enumerate(zip(xs, labels))
-        df = transform!(DataFrame(bootstrap.β), :coefname => ByRow(string) => :coefname)
-        filter!(:coefname => in(_coefnames(bootstrap; show_intercept)), df)
+        df = _bootstrap_longtable(bootstrap, ptype; group)
+        filter!(:coefname => in(_coefnames(bootstrap, ptype; show_intercept, group)), df)
         gdf = groupby(df, :coefname)
-        dens = combine(gdf, :β => kde => :kde)
+        dens = if histogram
+            combine(gdf,
+                    [:coefname, :value] => ((cn, v) -> _histcurve(v; bins,
+                    bounds=_parambounds(ptype,
+                    bootstrap,
+                    first(cn)))) => :kde)
+        else
+            combine(gdf, :value => kde => :kde)
+        end
 
         if !ismissing(conf_level)
             coefplot!(ax, bootstrap;
                       conf_level,
                       vline_at_zero,
                       show_intercept,
+                      ptype,
+                      group,
                       show_legend=false,
                       color=Cycled(idx),
                       labels=[label],
@@ -145,9 +186,22 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
         end
 
         for (offset, row) in enumerate(reverse(eachrow(dens)))
-            dd = 0.95 * row.kde.density ./ maximum(row.kde.density)
-            lower = Point2f.(row.kde.x, offset)
-            upper = Point2f.(row.kde.x, dd .+ offset)
+            if histogram
+                # a histogram respects parameter bounds by construction, so
+                # there is no spillover to truncate
+                x = row.kde.x
+                density = row.kde.density
+            else
+                # kernel smoothing can leak density past a hard support
+                # boundary (e.g. negative σ, |ρ| > 1); truncate the curve
+                lo, hi = _parambounds(ptype, bootstrap, row.coefname)
+                keep = lo .<= row.kde.x .<= hi
+                x = row.kde.x[keep]
+                density = row.kde.density[keep]
+            end
+            dd = 0.95 * density ./ maximum(density)
+            lower = Point2f.(x, offset)
+            upper = Point2f.(x, dd .+ offset)
             band!(ax, lower, upper;
                   color=Cycled(idx),
                   alpha=0.3,
@@ -163,7 +217,7 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
     end
 
     if ismissing(conf_level)
-        nticks = _npreds(x; show_intercept)
+        nticks = _npreds(x, ptype; show_intercept, group)
         ax.yticks = (nticks:-1:1, cn)
         ylims!(ax, 0, nticks + 1)
         vline_at_zero && vlines!(ax, 0; color=(:black, 0.75), linestyle=:dash)
