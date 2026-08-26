@@ -340,6 +340,9 @@ The plot is laid out like a correlation matrix:
   both by-subject and by-item slopes for every condition, while a partially
   crossed (e.g. Latin-square) design may not.
 
+Pass `swap_triangles=true` to swap which triangle shows which — heatmaps in the
+upper triangle and text badges in the lower.
+
 ```@docs
 nestingplot
 ```

@@ -57,6 +57,21 @@ f = nestingplot(g1)
 f = nestingplot(m2, :item, :subj)
 @test save(joinpath(OUTDIR, "nesting_kb07_gfs.png"), f)
 
+@testset "swap_triangles" begin
+    _has_heatmap(gl, i, j) = any(p -> p isa Heatmap, contents(gl[i, j])[1].scene.plots)
+
+    f_default = nestingplot(m2)
+    gl_default = contents(f_default[1, 1])[1]
+    @test _has_heatmap(gl_default, 2, 1) # lower triangle
+    @test !_has_heatmap(gl_default, 1, 2) # upper triangle: text badge
+
+    f_swapped = nestingplot(m2; swap_triangles=true)
+    @test save(joinpath(OUTDIR, "nesting_kb07_swapped.png"), f_swapped)
+    gl_swapped = contents(f_swapped[1, 1])[1]
+    @test !_has_heatmap(gl_swapped, 2, 1) # lower triangle: text badge
+    @test _has_heatmap(gl_swapped, 1, 2) # upper triangle: heatmap
+end
+
 # Mutating form into a GridPosition
 let f = Figure()
     nestingplot!(f[1, 1], m2)

@@ -268,13 +268,18 @@ function _relationship_label(rel::NamedTuple, name_a::AbstractString,
 end
 
 """
-    _nestingplot_render!(f::Indexable, info::NamedTuple; colormap=:Blues, fontsize=20)
+    _nestingplot_render!(f::Indexable, info::NamedTuple; colormap=:Blues,
+                         fontsize=20, swap_triangles=false)
 
 Render the grouping-factor nesting/crossing matrix into `f` from a
 pre-computed `info` NamedTuple (as returned by [`_nesting_data`](@ref)).
+
+The heatmap occupies the lower triangle and the text badge the upper triangle
+unless `swap_triangles=true`, which swaps them.
 """
 function _nestingplot_render!(f::Indexable, info::NamedTuple;
-                              colormap=:Blues, fontsize::Real=20)
+                              colormap=:Blues, fontsize::Real=20,
+                              swap_triangles::Bool=false)
     k = length(info.names)
     gl = GridLayout()
     f[1, 1] = gl
@@ -288,14 +293,22 @@ function _nestingplot_render!(f::Indexable, info::NamedTuple;
                   color=:gray)
             limits!(ax, 0, 1, 0, 1)
             hidedecorations!(ax)
-        elseif i > j
-            tab = info.tables[(i, j)]
+            continue
+        end
+        # (pi, pj) is the key under which this factor pair is stored,
+        # regardless of which grid triangle (i, j) falls in
+        pi, pj = max(i, j), min(i, j)
+        if (i > j) != swap_triangles
+            tab = info.tables[(pi, pj)]
             ro, co = _block_order(tab)
-            heatmap!(ax, permutedims(tab[ro, co]); colormap)
+            ordered = tab[ro, co]
+            # tab's rows/cols are factors (pi, pj); orient so the x-axis
+            # matches the grid column's factor and the y-axis the row's
+            heatmap!(ax, i > j ? permutedims(ordered) : ordered; colormap)
             hidedecorations!(ax; grid=false)
-        else # i < j: mirror of the (j, i) pair, drawn as a text badge
-            rel = info.relationships[(j, i)]
-            label = _relationship_label(rel, info.names[j], info.names[i])
+        else
+            rel = info.relationships[(pi, pj)]
+            label = _relationship_label(rel, info.names[pi], info.names[pj])
             text!(ax, 0.5, 0.5; text=label, align=(:center, :center),
                   space=:relative, fontsize=fontsize - 2)
             limits!(ax, 0, 1, 0, 1)
@@ -314,22 +327,23 @@ end
 """
     nestingplot!(f::Indexable, m::MixedModel,
                  gfs::Union{Symbol,AbstractString,Integer}...;
-                 colormap=:Blues, fontsize::Real=20)
+                 colormap=:Blues, fontsize::Real=20, swap_triangles::Bool=false)
 
 Add a nesting/crossing matrix for the grouping factors of `m` to `f`.
 
 Each distinct grouping factor (e.g. `subj`, `item`) becomes one row/column of
 a matrix, laid out like a correlation-matrix plot:
 - **diagonal**: factor name and number of levels
-- **lower triangle**: a heatmap of the co-occurrence contingency table between
-  the row and column factor. Rows and columns are reordered (for display only)
-  to group each level with its most common partner, so that nested structure
-  appears as a block-diagonal pattern and crossed structure appears as a dense
-  or scattered rectangle.
-- **upper triangle**: a text badge classifying the same pair as one factor
-  nested in the other (`A ⊂ B`), `identical` (the two names partition
-  observations the same way), or `crossed` — `complete` if every combination
-  of levels is observed, `partial` (with the observed density) otherwise.
+- **lower triangle** (upper if `swap_triangles=true`): a heatmap of the
+  co-occurrence contingency table between the row and column factor. Rows and
+  columns are reordered (for display only) to group each level with its most
+  common partner, so that nested structure appears as a block-diagonal
+  pattern and crossed structure appears as a dense or scattered rectangle.
+- **upper triangle** (lower if `swap_triangles=true`): a text badge
+  classifying the same pair as one factor nested in the other (`A ⊂ B`),
+  `identical` (the two names partition observations the same way), or
+  `crossed` — `complete` if every combination of levels is observed,
+  `partial` (with the observed density) otherwise.
 
 `gfs`, if given, restricts and orders which grouping factors to show (by name
 or index); otherwise all distinct grouping factors are shown, in the order
@@ -341,14 +355,15 @@ used by [`upsetplot`](@ref).
 """
 function nestingplot!(f::Indexable, m::MixedModel,
                       gfs::Union{Symbol,AbstractString,Integer}...;
-                      colormap=:Blues, fontsize::Real=20)
+                      colormap=:Blues, fontsize::Real=20,
+                      swap_triangles::Bool=false)
     info = _nesting_data(m, gfs)
-    return _nestingplot_render!(f, info; colormap, fontsize)
+    return _nestingplot_render!(f, info; colormap, fontsize, swap_triangles)
 end
 
 """
     nestingplot(m::MixedModel, gfs::Union{Symbol,AbstractString,Integer}...;
-                colormap=:Blues, fontsize::Real=20)
+                colormap=:Blues, fontsize::Real=20, swap_triangles::Bool=false)
 
 Return a `Figure` with a nesting/crossing matrix for the grouping factors of
 `m`. See [`nestingplot!`](@ref) for details.
