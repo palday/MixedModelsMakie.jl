@@ -268,13 +268,13 @@ function _relationship_label(rel::NamedTuple, name_a::AbstractString,
 end
 
 """
-    _nestingplot_render!(f::Indexable, info::NamedTuple; colormap=:Blues, fontsize=14)
+    _nestingplot_render!(f::Indexable, info::NamedTuple; colormap=:Blues, fontsize=20)
 
 Render the grouping-factor nesting/crossing matrix into `f` from a
 pre-computed `info` NamedTuple (as returned by [`_nesting_data`](@ref)).
 """
 function _nestingplot_render!(f::Indexable, info::NamedTuple;
-                              colormap=:Blues, fontsize::Real=14)
+                              colormap=:Blues, fontsize::Real=20)
     k = length(info.names)
     gl = GridLayout()
     f[1, 1] = gl
@@ -314,7 +314,7 @@ end
 """
     nestingplot!(f::Indexable, m::MixedModel,
                  gfs::Union{Symbol,AbstractString,Integer}...;
-                 colormap=:Blues, fontsize::Real=14)
+                 colormap=:Blues, fontsize::Real=20)
 
 Add a nesting/crossing matrix for the grouping factors of `m` to `f`.
 
@@ -341,14 +341,14 @@ used by [`upsetplot`](@ref).
 """
 function nestingplot!(f::Indexable, m::MixedModel,
                       gfs::Union{Symbol,AbstractString,Integer}...;
-                      colormap=:Blues, fontsize::Real=14)
+                      colormap=:Blues, fontsize::Real=20)
     info = _nesting_data(m, gfs)
     return _nestingplot_render!(f, info; colormap, fontsize)
 end
 
 """
     nestingplot(m::MixedModel, gfs::Union{Symbol,AbstractString,Integer}...;
-                colormap=:Blues, fontsize::Real=14)
+                colormap=:Blues, fontsize::Real=20)
 
 Return a `Figure` with a nesting/crossing matrix for the grouping factors of
 `m`. See [`nestingplot!`](@ref) for details.

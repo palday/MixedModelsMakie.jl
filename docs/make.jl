@@ -5,7 +5,7 @@ makedocs(;
          sitename="MixedModelsMakie",
          doctest=true,
          checkdocs=:exports,
-         format=Documenter.HTML(; 
+         format=Documenter.HTML(;
                                 size_threshold_ignore=["api.md"]),
          pages=["index.md",
                 "api.md"])
