@@ -62,6 +62,10 @@ end
     @test_throws ArgumentError confint_table(b2; ptype=:β, group=:subj)
     @test_throws ArgumentError confint_table(b2; ptype=:θ, group=:subj)
     @test_throws ArgumentError confint_table(b2; ptype=:σ, group=:nope)
+
+    @test confint_table(b1, 0.68; ptype=:sigma) == sigma
+    @test confint_table(b1, 0.68; ptype=:rho) == rho
+    @test confint_table(b1, 0.68; ptype=:theta) == theta
 end
 
 @testset "ranefinfo" begin

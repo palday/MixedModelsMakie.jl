@@ -18,7 +18,8 @@ all models must share the same coefficient names.
 
 For a `MixedModelBootstrap`, `ptype` selects which parameters to plot: `:β`
 (fixed effects, default), `:σ`, `:ρ`, or `:θ` (see [`ridgeplot`](@ref) for
-details). `ptype` is not supported for a plain `MixedModel`.
+details; the ASCII aliases `:sigma`, `:rho`, `:theta` are also accepted).
+`ptype` is not supported for a plain `MixedModel`.
 
 `group` restricts `ptype ∈ (:σ, :ρ)` to a single grouping factor, e.g.
 `group=:subj`. It is not supported for `:β`/`:θ` or for a plain `MixedModel`.
@@ -96,6 +97,7 @@ function coefplot!(ax::Axis, xs::Union{MixedModel,MixedModelBootstrap}...;
                    legend_attributes=(;),
                    labels=string.(1:length(xs)),
                    attributes...)
+    ptype = _normalize_ptype(ptype)
     x = first(xs)
     cn = _coefnames(x, ptype; show_intercept, group)
     nticks = _npreds(x, ptype; show_intercept, group)

@@ -22,8 +22,9 @@ comparison; all inputs must share the same coefficient names.
 default), `:σ` (random-effect standard deviations, including the residual),
 `:ρ` (random-effect correlations), or `:θ` (the unconstrained Cholesky
 parameterization, labeled positionally as `θ01`, `θ02`, ... since these lack
-a natural per-group name). `show_intercept` only applies to `:β`; it is a
-no-op for `:σ`/`:ρ`/`:θ`.
+a natural per-group name). The ASCII aliases `:sigma`, `:rho`, `:theta` are
+also accepted. `show_intercept` only applies to `:β`; it is a no-op for
+`:σ`/`:ρ`/`:θ`.
 
 `group` restricts `ptype ∈ (:σ, :ρ)` to a single grouping factor, e.g.
 `group=:subj`. It is not supported for `:β`/`:θ`.
@@ -120,6 +121,7 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
                     legend_attributes=(;),
                     labels=string.(1:length(xs)),
                     attributes...)
+    ptype = _normalize_ptype(ptype)
     x = first(xs)
     cn = _coefnames(x, ptype; show_intercept, group)
     all(_coefnames(m, ptype; show_intercept, group) == cn for m in xs) ||

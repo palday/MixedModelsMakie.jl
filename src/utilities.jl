@@ -6,6 +6,20 @@ function _coefnames(x::MixedModel, ptype::Nothing=nothing; show_intercept=true,
 end
 
 """
+    _normalize_ptype(ptype)
+
+Map the ASCII aliases `:sigma`, `:rho`, `:theta` to their Greek `ptype`
+symbols (`:σ`, `:ρ`, `:θ`); any other value (including `nothing` or `:β`)
+passes through unchanged.
+"""
+function _normalize_ptype(ptype)
+    ptype === :sigma && return :σ
+    ptype === :rho && return :ρ
+    ptype === :theta && return :θ
+    return ptype
+end
+
+"""
     _validate_group(ptype, group)
 
 Throw an `ArgumentError` if `group` is specified for a `ptype` that has no
@@ -87,7 +101,7 @@ function _bootstrap_longtable(bsamp::MixedModelBootstrap, ptype; group=nothing)
 end
 
 function _coefnames(x::MixedModelBootstrap, ptype; show_intercept=true, group=nothing)
-    ptype = something(ptype, :β)
+    ptype = _normalize_ptype(something(ptype, :β))
     _validate_group(ptype, group)
     if ptype === :β
         nt = first(x.fits).β
@@ -118,7 +132,8 @@ For `MixedModelBootstrap`, `ptype` selects which parameters to summarize:
 including the residual, labeled `"group: names"`/`"residual"`), `:ρ`
 (random-effect correlations, labeled `"group: name_i, name_j"`), or `:θ`
 (the unconstrained Cholesky parameterization, labeled positionally as
-`θ01`, `θ02`, ...). `ptype` is not supported for a plain `MixedModel`.
+`θ01`, `θ02`, ...). `ptype` is not supported for a plain `MixedModel`. The
+ASCII aliases `:sigma`, `:rho`, `:theta` are also accepted.
 `show_intercept` only filters the fixed-effect `"(Intercept)"` row; it is a
 no-op for `:σ`/`:ρ`/`:θ`.
 
@@ -156,7 +171,7 @@ end
 
 function confint_table(x::MixedModelBootstrap, level=0.95; ptype=:β, show_intercept=true,
                        group=nothing)
-    ptype = something(ptype, :β)
+    ptype = _normalize_ptype(something(ptype, :β))
     ptype in (:β, :σ, :ρ, :θ) || throw(ArgumentError("ptype $(ptype) not supported"))
     _validate_group(ptype, group)
     if ptype === :θ

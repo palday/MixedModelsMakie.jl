@@ -22,3 +22,8 @@ for ptype in (:σ, :ρ)
 end
 
 @test_throws ArgumentError ridgeplot(b2; ptype=:β, group=:subj)
+
+for alias in (:sigma, :rho, :theta)
+    local f = ridgeplot(b2; ptype=alias)
+    @test save(joinpath(OUTDIR, "ridge_kb07_$(alias)_alias.png"), f)
+end
