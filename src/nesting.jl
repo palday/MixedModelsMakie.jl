@@ -111,7 +111,7 @@ Returns a `NamedTuple` with fields `names` (`Vector{String}`), `nlevels`
 `tables` (`Dict{Tuple{Int,Int},Matrix{Int}}`, keyed `(i, j)` with `i > j`,
 rows indexed by factor `i` and columns by factor `j`), and `relationships`
 (`Dict{Tuple{Int,Int},NamedTuple}`, same keys, as returned by
-[`_nesting_relationship`](@ref)).
+`_nesting_relationship`).
 """
 function _nesting_data(m::MixedModel, gfs::Tuple=())
     idxs = _distinct_reterms(m)
@@ -198,7 +198,7 @@ end
 
 Convert the `info` NamedTuple (as returned by [`_nesting_data`](@ref)) into a
 `DataFrame`: one row per pair of distinct grouping factors, with the pairwise
-classification computed by [`_nesting_relationship`](@ref).
+classification computed by `_nesting_relationship`).
 """
 function _nesting_structure_table(info::NamedTuple)
     factor_a = String[]
@@ -231,8 +231,7 @@ upper-triangle badges: one row per pair of distinct grouping factors in `m`
 - `factor_a`, `factor_b`: the pair of grouping factors
 - `n_levels_a`, `n_levels_b`: their numbers of levels
 - `relationship`: one of `:identical`, `:a_nested_in_b`, `:b_nested_in_a`,
-  `:complete_crossing`, or `:partial_crossing` (see
-  [`_nesting_relationship`](@ref) for the exact definitions)
+  `:complete_crossing`, or `:partial_crossing` 
 - `density`: the fraction of the `n_levels_a × n_levels_b` grid of
   combinations that is actually observed (`1.0` for `:complete_crossing`)
 
@@ -247,7 +246,7 @@ end
     _relationship_label(rel::NamedTuple, name_a::AbstractString, name_b::AbstractString)
 
 Short text label describing the relationship classification `rel` (as
-returned by [`_nesting_relationship`](@ref)) between row-factor `name_a` and
+returned by `_nesting_relationship`) between row-factor `name_a` and
 column-factor `name_b`.
 """
 function _relationship_label(rel::NamedTuple, name_a::AbstractString,
