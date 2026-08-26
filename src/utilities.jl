@@ -20,6 +20,26 @@ function _validate_group(ptype, group)
 end
 
 """
+    _parambounds(ptype, bsamp, coefname)
+
+Return the `(lower, upper)` support bounds of a single bootstrap parameter,
+used to truncate ridge density curves at their theoretically valid range
+(kernel smoothing can otherwise leak density past a hard boundary, e.g.
+negative σ or |ρ| > 1). `:β` is unbounded. `:σ` is bounded to `[0, Inf]`.
+`:ρ` is bounded to `[-1, 1]`. `:θ` is bounded per-element via
+`lowerbd(bsamp)` (upper bound `Inf`), matched to `coefname`'s positional
+index (`θ01` → `lowerbd(bsamp)[1]`, etc.).
+"""
+_parambounds(ptype, bsamp, coefname) = _parambounds(Val(ptype), bsamp, coefname)
+_parambounds(::Val{:β}, bsamp, coefname) = (-Inf, Inf)
+_parambounds(::Val{:σ}, bsamp, coefname) = (0.0, Inf)
+_parambounds(::Val{:ρ}, bsamp, coefname) = (-1.0, 1.0)
+function _parambounds(::Val{:θ}, bsamp, coefname)
+    idx = parse(Int, replace(coefname, "θ" => ""))
+    return (lowerbd(bsamp)[idx], Inf)
+end
+
+"""
     _allparlabel(group, names)
 
 Combine the `group`/`names` columns of `MixedModels.allpars` into a single

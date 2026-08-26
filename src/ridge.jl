@@ -28,7 +28,10 @@ no-op for `:σ`/`:ρ`/`:θ`.
 `group` restricts `ptype ∈ (:σ, :ρ)` to a single grouping factor, e.g.
 `group=:subj`. It is not supported for `:β`/`:θ`.
 
-Densities are normalized so that the maximum density is always 1.
+Densities are normalized so that the maximum density is always 1. For
+bounded parameters (`:σ` ≥ 0, `:ρ` ∈ [-1, 1], `:θ` per-element via
+`lowerbd`), the density curve is truncated to the parameter's valid range,
+since kernel smoothing can otherwise leak density past a hard boundary.
 
 The highest density interval corresponding to `conf_level` is marked with a bar at the bottom of each density.
 Setting `conf_level=missing` removes the markings for the highest density interval.
@@ -163,9 +166,15 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
         end
 
         for (offset, row) in enumerate(reverse(eachrow(dens)))
-            dd = 0.95 * row.kde.density ./ maximum(row.kde.density)
-            lower = Point2f.(row.kde.x, offset)
-            upper = Point2f.(row.kde.x, dd .+ offset)
+            # kernel smoothing can leak density past a hard support boundary
+            # (e.g. negative σ, |ρ| > 1); truncate the visible curve to it
+            lo, hi = _parambounds(ptype, bootstrap, row.coefname)
+            keep = lo .<= row.kde.x .<= hi
+            x = row.kde.x[keep]
+            density = row.kde.density[keep]
+            dd = 0.95 * density ./ maximum(density)
+            lower = Point2f.(x, offset)
+            upper = Point2f.(x, dd .+ offset)
             band!(ax, lower, upper;
                   color=Cycled(idx),
                   alpha=0.3,
