@@ -16,6 +16,7 @@ coefplot
 
 ```@example Coefplot
 using CairoMakie
+CairoMakie.activate!(; type="svg")
 using MixedModels
 using MixedModelsMakie
 using Random
@@ -145,10 +146,11 @@ shrinkageplot!
 
 ```@example Shrinkage
 using CairoMakie
+# The SVG sometimes renders incorrectly,
+# so you may want to use PNG here
+CairoMakie.activate!(; type="svg")
 using MixedModels
 using MixedModelsMakie
-# The SVG sometimes renders incorrectly
-CairoMakie.activate!(; type="png")
 sleepstudy = MixedModels.dataset(:sleepstudy)
 verbagg = MixedModels.dataset(:verbagg)
 
@@ -189,8 +191,10 @@ The reference distribution for `qqnorm` is the standard normal, which differs fr
 
 !!! compat
     The [options and associated names for the `qqline` keyword argument](https://makie.juliaplots.org/v0.16/examples/plotting_functions/qqplot/index.html) changed in [Makie 0.16.3](https://github.com/JuliaPlots/Makie.jl/pull/1563) (and were broken in Makie 0.16.0-0.16.2). The equivalent to `qqline=:R` is `qqline=:fitrobust`. `qqline=:R` will be supported for backwards compatibility only until the next breaking release.
+
 ```@example Residuals
 using CairoMakie
+CairoMakie.activate!(; type="svg")
 using MixedModels
 using MixedModelsMakie
 
@@ -212,6 +216,7 @@ qqplot(Normal(0, fm1.σ), fm1)
 
 ```@example Profile
 using CairoMakie
+CairoMakie.activate!(; type="svg")
 using MixedModels
 using MixedModelsMakie
 
