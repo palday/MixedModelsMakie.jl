@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = MixedModelsMakie
+CollapsedDocStrings = true
 DocTestSetup = quote
     using MixedModelsMakie
 end
@@ -250,24 +251,17 @@ profiledensity(pr1; ptyp='σ')
 
 ## UpSet Plots
 
-UpSet plots[^upset] visualize the intersection structure of categorical conditions,
-showing which combinations of condition levels co-occur in the data and how many
-observations (or grouping-factor levels) fall in each combination.
+UpSet plots[^upset] visualize the intersection structure of categorical conditions, showing which combinations of condition levels co-occur in the data and how many observations (or grouping-factor levels) fall in each combination.
 
 [^upset]: Lex, A., Gehlenborg, N., Strobelt, H., Vuillemot, R., & Pfister, H. (2014). UpSet: Visualization of Intersecting Sets. IEEE Transactions on Visualization and Computer Graphics, 20(12), 1983–1992. https://doi.org/10.1109/TVCG.2014.2346248
 
 **Sets** are the individual levels of each categorical predictor (e.g., `"gender: M"`,
 `"gender: F"`, `"btype: curse"`).
-**Columns** of the combination matrix are the full factorial cells — every combination
-of one level per predictor — plus *marginal cells* where all levels of a single
-predictor are simultaneously active (showing whether that predictor is within-subjects
-or between-subjects). A filled circle means that condition level is active in that
-column; a connecting line spans the active conditions within each column. The top bars
-show counts per column; the left bars show counts per individual condition level.
+**Columns** of the combination matrix are the full factorial cells  (every combination of each level per predictor) plus *marginal cells* where all levels of a single predictor are simultaneously active (showing whether that predictor is within-subjects or between-subjects). 
+A filled circle means that condition level is active in that column; a connecting line spans the active conditions within each column. 
+The top bars show counts per column; the left bars show counts per individual condition level.
 
-A column in which only within-subjects predictors are collapsed will have non-zero
-counts; a column where a *between*-subjects predictor is collapsed will be empty
-because no single unit can appear in all levels of a between-subjects factor.
+A column in which only within-subjects predictors are collapsed will have non-zero counts; a column where a *between*-subjects predictor is collapsed will be empty because no single unit can appear in all levels of a between-subjects factor.
 
 ```@docs
 upsetplot
@@ -303,8 +297,8 @@ upsetplot(gm1, nothing, show_empty=false)
 
 ```@example UpSet
 # Table-based: no model required — non-numeric columns are detected automatically.
-# Numeric columns (r2, anger) and explicit exclusions (subj, item) are dropped.
-upsetplot(verbagg; cols=Not([:subj, :item]), gf=:subj, show_empty=false)
+# Numeric columns (anger) and explicit exclusions (subj, item, r2) are dropped.
+upsetplot(verbagg; cols=Not([:subj, :item, :r2]), gf=:subj, show_empty=false)
 ```
 
 ```@example UpSet
@@ -327,12 +321,8 @@ upsettable(gm1, :subj)
 ## Nesting/Crossing Plots
 
 Grouping factors in a mixed model (e.g. `subj`, `item`, `school`, `class`) can be
-**nested** — every level of one occurs with exactly one level of another, as with
-students nested within classrooms — or **crossed** — levels of both factors
-co-occur relatively freely, as with subjects and items in a repeated-measures
-design. `nestingplot` shows this structure for every pair of grouping factors in a
-model, using only their level assignments (`ReMat.refs`) — no original data frame
-is needed, matching the model-based approach used by [`upsetplot`](@ref).
+**nested** (every level of one occurs with exactly one level of another, as with students nested within classrooms in a single year) or **crossed** (levels of both factors co-occur relatively freely, as with subjects and items in a repeated-measures design). 
+`nestingplot` shows this structure for every pair of grouping factors in a model.
 
 The plot is laid out like a correlation matrix:
 - **diagonal**: each grouping factor's name and number of levels.
@@ -361,7 +351,6 @@ nestingplot!
 ```@example Nesting
 using CairoMakie
 CairoMakie.activate!(; type="svg")
-using DataFrames
 using MixedModels
 using MixedModelsMakie
 
@@ -377,29 +366,24 @@ nestingplot(gm2)
 ```
 
 As with `upsetplot`, the data underlying `nestingplot` is available as tables.
-[`nestingtable`](@ref) gives the raw co-occurrence counts in long format, with one
-row per pair of levels — including zero-count rows for combinations that never
-co-occur, since those absences are exactly what reveal nesting or partial
-crossing:
+[`nestingtable`](@ref) gives the raw co-occurrence counts in long format, with one row per pair of levels — including zero-count rows for combinations that never co-occur, since those absences are exactly what reveal nesting or partial crossing:
 
 ```@docs
 nestingtable
 ```
 
 ```@example Nesting
-nestingtable(gm2)
+first(nestingtable(gm2), 10)
 ```
 
-Filtering to `count == 0` finds specific missing combinations, e.g. the subjects
-who never saw a particular item:
+Filtering to `count == 0` finds specific missing combinations, e.g. the subjects who never saw a particular item:
 
 ```@example Nesting
 filter(:count => iszero, nestingtable(gm2))
 ```
 
-[`nestingstructure`](@ref) gives the pairwise nested/crossed classification and
-density shown in `nestingplot`'s upper-triangle badges — one row per pair of
-grouping factors, rather than one row per pair of levels:
+[`nestingstructure`](@ref) gives the pairwise nested/crossed classification and density shown in `nestingplot`'s upper-triangle badges.
+This results in one row per pair of grouping factors, rather than one row per pair of levels:
 
 ```@docs
 nestingstructure
@@ -420,6 +404,7 @@ splom!
 
 ```@example Splom
 using CairoMakie
+CairoMakie.activate!(; type="svg")
 using DataFrames
 using LinearAlgebra
 using MixedModelsMakie
