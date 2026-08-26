@@ -361,17 +361,63 @@ end
 """
     _upsetplot_render!(f::Indexable, info::NamedTuple; kwargs...)
 
-Render the UpSet combination matrix, intersection bar chart, and set-size bar
-chart into `f` from a pre-computed `info` NamedTuple (as returned by
-`_upset_data` or `_upset_data_from_table`).
+Render the UpSet combination matrix, intersection bar chart, and (optionally)
+set-size bar chart into `f` from a pre-computed `info` NamedTuple (as returned
+by `_upset_data` or `_upset_data_from_table`).
+
+Layout keywords:
+- `orientation`: `:horizontal` (combinations as columns, sets as rows — default)
+  or `:vertical` (combinations as rows, sets as columns).
+- `show_setsize`: whether to show the set-size bar chart (`true` by default).
+- `intersection_pos`: position of the intersection-size bars relative to the
+  incidence matrix — `:top`/`:bottom` for horizontal, `:left`/`:right` for
+  vertical.  Defaults to `:top` (horizontal) or `:left` (vertical).
+- `setsize_pos`: position of the set-size bars — `:left`/`:right` for
+  horizontal, `:top`/`:bottom` for vertical.  Defaults to `:left` (horizontal)
+  or `:top` (vertical).
 """
 function _upsetplot_render!(f::Indexable, info::NamedTuple;
                             sortby::Symbol=:count,
                             show_empty::Bool=true,
+                            orientation::Symbol=:horizontal,
+                            show_setsize::Bool=true,
+                            intersection_pos::Union{Symbol,Nothing}=nothing,
+                            setsize_pos::Union{Symbol,Nothing}=nothing,
                             filled_color=:black,
                             empty_color=:lightgray,
                             bar_color=:steelblue,
                             dot_size=12)
+    orientation in (:horizontal, :vertical) ||
+        throw(ArgumentError("orientation must be :horizontal or :vertical, got :$orientation"))
+    horiz = orientation === :horizontal
+
+    if intersection_pos === nothing
+        intersection_pos = horiz ? :top : :left
+    end
+    if setsize_pos === nothing
+        setsize_pos = horiz ? :left : :top
+    end
+
+    if horiz
+        intersection_pos in (:top, :bottom) ||
+            throw(ArgumentError(
+                "intersection_pos must be :top or :bottom for horizontal orientation, got :$intersection_pos"))
+        if show_setsize
+            setsize_pos in (:left, :right) ||
+                throw(ArgumentError(
+                    "setsize_pos must be :left or :right for horizontal orientation, got :$setsize_pos"))
+        end
+    else
+        intersection_pos in (:left, :right) ||
+            throw(ArgumentError(
+                "intersection_pos must be :left or :right for vertical orientation, got :$intersection_pos"))
+        if show_setsize
+            setsize_pos in (:top, :bottom) ||
+                throw(ArgumentError(
+                    "setsize_pos must be :top or :bottom for vertical orientation, got :$setsize_pos"))
+        end
+    end
+
     n_sets = length(info.set_labels)
 
     perm = if sortby === :count
@@ -386,51 +432,122 @@ function _upsetplot_render!(f::Indexable, info::NamedTuple;
     combo_matrix = info.combo_matrix[perm, :]
     n_shown = length(cell_counts)
 
-    ax_bar = Axis(f[1, 2]; ylabel="Intersection size")
-    ax_matrix = Axis(f[2, 2])
-    ax_sets = Axis(f[2, 1]; xlabel="Set size")
-
-    hidexdecorations!(ax_bar; grid=false)
-    hidexdecorations!(ax_matrix; grid=false)
-    hideydecorations!(ax_sets; grid=false)
-    linkxaxes!(ax_bar, ax_matrix)
-    linkyaxes!(ax_sets, ax_matrix)
-
-    barplot!(ax_bar, 1:n_shown, cell_counts; color=bar_color)
-
-    barplot!(ax_sets, 1:n_sets, info.set_counts; direction=:x, color=bar_color)
-    ax_sets.xreversed = true
-
-    empty_xs = Float64[]
-    empty_ys = Float64[]
-    filled_xs = Float64[]
-    filled_ys = Float64[]
-
-    for ci in 1:n_shown
-        active = findall(combo_matrix[ci, :])
-        if length(active) >= 2
-            lines!(ax_matrix, [ci, ci], [minimum(active), maximum(active)];
-                   color=filled_color, linewidth=2)
+    # --- Axes: grid positions, bar charts, decorations, linking ---
+    if horiz
+        bar_row = intersection_pos === :top ? 1 : 2
+        matrix_row = intersection_pos === :top ? 2 : 1
+        if show_setsize
+            sets_col = setsize_pos === :left ? 1 : 2
+            matrix_col = setsize_pos === :left ? 2 : 1
+        else
+            matrix_col = 1
         end
-        for si in 1:n_sets
-            if combo_matrix[ci, si]
-                push!(filled_xs, ci)
-                push!(filled_ys, si)
-            else
-                push!(empty_xs, ci)
-                push!(empty_ys, si)
+
+        ax_bar = Axis(f[bar_row, matrix_col]; ylabel="Intersection size")
+        ax_matrix = Axis(f[matrix_row, matrix_col])
+        hidexdecorations!(ax_bar; grid=false)
+        hidexdecorations!(ax_matrix; grid=false)
+        linkxaxes!(ax_bar, ax_matrix)
+
+        barplot!(ax_bar, 1:n_shown, cell_counts; color=bar_color)
+        if intersection_pos === :bottom
+            ax_bar.yreversed = true
+        end
+
+        ax_matrix.yticks = (1:n_sets, info.set_labels)
+        ax_matrix.yreversed = true
+
+        if show_setsize
+            ax_sets = Axis(f[matrix_row, sets_col]; xlabel="Set size")
+            hideydecorations!(ax_sets; grid=false)
+            linkyaxes!(ax_sets, ax_matrix)
+            barplot!(ax_sets, 1:n_sets, info.set_counts; direction=:x, color=bar_color)
+            ax_sets.yreversed = true
+            if setsize_pos === :left
+                ax_sets.xreversed = true
+            end
+        end
+    else
+        bar_col = intersection_pos === :left ? 1 : 2
+        matrix_col = intersection_pos === :left ? 2 : 1
+        if show_setsize
+            sets_row = setsize_pos === :top ? 1 : 2
+            matrix_row = setsize_pos === :top ? 2 : 1
+        else
+            matrix_row = 1
+        end
+
+        ax_bar = Axis(f[matrix_row, bar_col]; xlabel="Intersection size")
+        ax_matrix = Axis(f[matrix_row, matrix_col])
+        hideydecorations!(ax_bar; grid=false)
+        hideydecorations!(ax_matrix; grid=false)
+        linkyaxes!(ax_bar, ax_matrix)
+
+        barplot!(ax_bar, 1:n_shown, cell_counts; direction=:x, color=bar_color)
+        ax_bar.yreversed = true
+        if intersection_pos === :left
+            ax_bar.xreversed = true
+        end
+
+        ax_matrix.xticks = (1:n_sets, info.set_labels)
+        ax_matrix.xticklabelrotation = π / 4
+        ax_matrix.yreversed = true
+
+        if show_setsize
+            if setsize_pos === :bottom
+                ax_matrix.xaxisposition = :top
+            end
+            ax_sets = Axis(f[sets_row, matrix_col]; ylabel="Set size")
+            hidexdecorations!(ax_sets; grid=false)
+            linkxaxes!(ax_sets, ax_matrix)
+            barplot!(ax_sets, 1:n_sets, info.set_counts; color=bar_color)
+            if setsize_pos === :bottom
+                ax_sets.yreversed = true
             end
         end
     end
 
-    isempty(empty_xs) ||
-        scatter!(ax_matrix, empty_xs, empty_ys; color=empty_color, markersize=dot_size)
-    isempty(filled_xs) ||
-        scatter!(ax_matrix, filled_xs, filled_ys; color=filled_color, markersize=dot_size)
+    # --- Combination matrix: dots and connecting lines ---
+    empty_combo = Float64[]
+    empty_set = Float64[]
+    filled_combo = Float64[]
+    filled_set = Float64[]
 
-    ax_matrix.yticks = (1:n_sets, info.set_labels)
-    ax_matrix.yreversed = true
-    ax_sets.yreversed = true
+    for ci in 1:n_shown
+        active = findall(combo_matrix[ci, :])
+        if length(active) >= 2
+            s_min, s_max = extrema(active)
+            if horiz
+                lines!(ax_matrix, [ci, ci], [s_min, s_max];
+                       color=filled_color, linewidth=2)
+            else
+                lines!(ax_matrix, [s_min, s_max], [ci, ci];
+                       color=filled_color, linewidth=2)
+            end
+        end
+        for si in 1:n_sets
+            if combo_matrix[ci, si]
+                push!(filled_combo, ci)
+                push!(filled_set, si)
+            else
+                push!(empty_combo, ci)
+                push!(empty_set, si)
+            end
+        end
+    end
+
+    if horiz
+        ex, ey = empty_combo, empty_set
+        fx, fy = filled_combo, filled_set
+    else
+        ex, ey = empty_set, empty_combo
+        fx, fy = filled_set, filled_combo
+    end
+
+    isempty(ex) ||
+        scatter!(ax_matrix, ex, ey; color=empty_color, markersize=dot_size)
+    isempty(fx) ||
+        scatter!(ax_matrix, fx, fy; color=filled_color, markersize=dot_size)
 
     return f
 end
@@ -440,6 +557,10 @@ end
                gf::Union{Symbol,Nothing}=first(fnames(m));
                sortby::Symbol=:count,
                show_empty::Bool=true,
+               orientation::Symbol=:horizontal,
+               show_setsize::Bool=true,
+               intersection_pos::Symbol=...,
+               setsize_pos::Symbol=...,
                filled_color=:black,
                empty_color=:lightgray,
                bar_color=:steelblue,
@@ -452,12 +573,15 @@ Predictor names, levels, and per-observation values are recovered from the
 model's formula, design matrix, and contrast coding — no original data frame
 is needed.
 
-**Layout (standard UpSet orientation):**
-- top-right: intersection-size bar chart (e.g., subjects per full factorial cell)
-- middle-right: combination matrix — rows are individual condition levels (sets),
-  columns are full factorial cells; filled circles mark which condition levels are
-  active in each cell, connected by a vertical line
-- middle-left: set-size bar chart (e.g., subjects per individual condition level)
+**Layout keywords:**
+- `orientation`: `:horizontal` (default — combinations as columns, sets as rows)
+  or `:vertical` (combinations as rows, sets as columns).
+- `show_setsize`: show the set-size bar chart (`true` by default).
+- `intersection_pos`: where the intersection-size bars go relative to the
+  incidence matrix — `:top`/`:bottom` (horizontal) or `:left`/`:right`
+  (vertical).
+- `setsize_pos`: where the set-size bars go — `:left`/`:right` (horizontal) or
+  `:top`/`:bottom` (vertical).
 """
 function upsetplot!(f::Indexable, m::MixedModel,
                     gf::Union{Symbol,Nothing}=first(fnames(m));
@@ -472,6 +596,10 @@ end
                gf::Union{Symbol,Nothing}=nothing,
                sortby::Symbol=:count,
                show_empty::Bool=true,
+               orientation::Symbol=:horizontal,
+               show_setsize::Bool=true,
+               intersection_pos::Symbol=...,
+               setsize_pos::Symbol=...,
                filled_color=:black,
                empty_color=:lightgray,
                bar_color=:steelblue,
@@ -482,6 +610,8 @@ Add an UpSet plot to `f` directly from a Tables.jl-compatible table.
 Non-numeric columns (optionally restricted by `cols`) become the sets. Pass
 `gf=:col` to count unique values of that column per cell instead of
 observations.
+
+See [`upsetplot!(::Indexable, ::MixedModel)`](@ref) for layout keyword details.
 """
 function upsetplot!(f::Indexable, data;
                     cols=All(),
