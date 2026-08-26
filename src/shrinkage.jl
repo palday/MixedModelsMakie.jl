@@ -37,7 +37,7 @@ function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, λ;
 end
 
 """
-    shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout}, m::MixedModel,
+    shrinkageplot!(f::Indexable, m::MixedModel,
                    gf::Symbol=first(fnames(m)), θref;
                    ellipse=false, ellipse_scale=1, n_ellipse=5,
                    cols::Union{Nothing,AbstractVector}=nothing,
@@ -62,7 +62,7 @@ unable to see the ellipses, try increasing `ellipse_scale`.
     For degenerate (singular) models, the correlation ellipse will also be degenerate, i.e.,
     collapse to a point or line.
 """
-function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
+function shrinkageplot!(f::Indexable,
                         m::MixedModel{T},
                         gf::Symbol=first(fnames(m)),
                         θref::AbstractVector{T}=(isa(m, LinearMixedModel) ? 1e4 : 1) .*
@@ -77,9 +77,21 @@ function shrinkageplot!(f::Union{Makie.FigureLike,Makie.GridLayout},
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
     end
     r = m.reterms[reind]
+    user_specified_single = !isnothing(cols) && length(cols) == 1
     cols = something(cols, axes(r.cnames, 1))
-    length(cols) < 2 && throw(ArgumentError("At least two columns must be specified."))
     cols = _cols_to_idx(r.cnames, cols)
+
+    if length(cols) == 1
+        colname = r.cnames[only(cols)]
+        msg = if user_specified_single
+            "You only specified a single column."
+        else
+            "Grouping variable (\"$(gf)\") only has a single " *
+            "predictor associated with it (\"$(colname)\")."
+        end
+        msg *= " You need at least two."
+        throw(ArgumentError(msg))
+    end
     reest = ranef(m)[reind]          # random effects conditional means at estimated θ
     reref = _ranef(m, θref)[reind]   # same at θref
 

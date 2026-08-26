@@ -11,6 +11,10 @@ using PrecompileTools
 using Printf
 using SpecialFunctions
 using StatsBase
+using StatsModels: StatsModels, CategoricalTerm, terms
+
+# why, BSplineKit, do you export fit???
+using MixedModels: fit
 
 export RanefInfo,
        caterpillar,
@@ -18,6 +22,10 @@ export RanefInfo,
        clevelandaxes!,
        coefplot,
        coefplot!,
+       nestingplot,
+       nestingplot!,
+       nestingstructure,
+       nestingtable,
        profiledensity,
        profiledensity!,
        qqcaterpillar,
@@ -33,6 +41,9 @@ export RanefInfo,
        simplelinreg,
        splom!,
        splomaxes!,
+       upsetplot,
+       upsetplot!,
+       upsettable,
        zetaplot,
        zetaplot!
 
@@ -40,15 +51,24 @@ export RanefInfo,
 const Indexable = Union{Makie.Figure,Makie.GridLayout,Makie.GridPosition,
                         Makie.GridSubposition}
 
+if isdefined(Makie, :arrows2d!)
+    function arrows!(args...; kwargs...)
+        return arrows2d!(args...; shaftwidth=1, tipwidth=5, minshaftlength=0, kwargs...)
+    end
+    # arrows!(args...; kwargs...) = Makie.arrows!(args...; kwargs...)
+end
+
 include("utilities.jl")
 include("shrinkage.jl")
 include("caterpillar.jl")
 include("coefplot.jl")
+include("nesting.jl")
 include("profile.jl")
 include("ridge.jl")
 include("ridge2d.jl")
 include("xyplot.jl")
 include("recipes.jl")
+include("upset.jl")
 
 @setup_workload begin
     model = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days | subj)),

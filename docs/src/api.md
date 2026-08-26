@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = MixedModelsMakie
+CollapsedDocStrings = true
 DocTestSetup = quote
     using MixedModelsMakie
 end
@@ -16,6 +17,7 @@ coefplot
 
 ```@example Coefplot
 using CairoMakie
+CairoMakie.activate!(; type="svg")
 using MixedModels
 using MixedModelsMakie
 using Random
@@ -145,6 +147,9 @@ shrinkageplot!
 
 ```@example Shrinkage
 using CairoMakie
+# The SVG sometimes renders incorrectly,
+# so you may want to use PNG here
+CairoMakie.activate!(; type="svg")
 using MixedModels
 using MixedModelsMakie
 sleepstudy = MixedModels.dataset(:sleepstudy)
@@ -187,8 +192,10 @@ The reference distribution for `qqnorm` is the standard normal, which differs fr
 
 !!! compat
     The [options and associated names for the `qqline` keyword argument](https://makie.juliaplots.org/v0.16/examples/plotting_functions/qqplot/index.html) changed in [Makie 0.16.3](https://github.com/JuliaPlots/Makie.jl/pull/1563) (and were broken in Makie 0.16.0-0.16.2). The equivalent to `qqline=:R` is `qqline=:fitrobust`. `qqline=:R` will be supported for backwards compatibility only until the next breaking release.
+
 ```@example Residuals
 using CairoMakie
+CairoMakie.activate!(; type="svg")
 using MixedModels
 using MixedModelsMakie
 
@@ -210,6 +217,7 @@ qqplot(Normal(0, fm1.σ), fm1)
 
 ```@example Profile
 using CairoMakie
+CairoMakie.activate!(; type="svg")
 using MixedModels
 using MixedModelsMakie
 
@@ -241,6 +249,153 @@ profiledensity(pr1; share_y_scale=false)
 profiledensity(pr1; ptyp='σ')
 ```
 
+## UpSet Plots
+
+UpSet plots[^upset] visualize the intersection structure of categorical conditions, showing which combinations of condition levels co-occur in the data and how many observations (or grouping-factor levels) fall in each combination.
+
+[^upset]: Lex, A., Gehlenborg, N., Strobelt, H., Vuillemot, R., & Pfister, H. (2014). UpSet: Visualization of Intersecting Sets. IEEE Transactions on Visualization and Computer Graphics, 20(12), 1983–1992. https://doi.org/10.1109/TVCG.2014.2346248
+
+**Sets** are the individual levels of each categorical predictor (e.g., `"gender: M"`,
+`"gender: F"`, `"btype: curse"`).
+**Columns** of the combination matrix are the full factorial cells  (every combination of each level per predictor) plus *marginal cells* where all levels of a single predictor are simultaneously active (showing whether that predictor is within-subjects or between-subjects). 
+A filled circle means that condition level is active in that column; a connecting line spans the active conditions within each column. 
+The top bars show counts per column; the left bars show counts per individual condition level.
+
+A column in which only within-subjects predictors are collapsed will have non-zero counts; a column where a *between*-subjects predictor is collapsed will be empty because no single unit can appear in all levels of a between-subjects factor.
+
+```@docs
+upsetplot
+```
+
+```@docs
+upsetplot!
+```
+
+```@example UpSet
+using CairoMakie
+CairoMakie.activate!(; type="svg")
+using DataFrames: Not
+using MixedModels
+using MixedModelsMakie
+
+verbagg = MixedModels.dataset(:verbagg)
+
+gm1 = fit(MixedModel,
+          @formula(r2 ~ 1 + anger + gender + btype + situ + (1|subj) + (1+gender|item)),
+          verbagg, Bernoulli(); progress=false)
+
+# gender is between-subjects; btype and situ are within-subjects.
+# Marginal cells that collapse gender are empty (no subject has both genders),
+# while marginals that collapse btype or situ are non-empty.
+upsetplot(gm1, :subj, show_empty=false)
+```
+
+```@example UpSet
+# Observation counts instead of subject counts
+upsetplot(gm1, nothing, show_empty=false)
+```
+
+```@example UpSet
+# Table-based: no model required — non-numeric columns are detected automatically.
+# Numeric columns (anger) and explicit exclusions (subj, item, r2) are dropped.
+upsetplot(verbagg; cols=Not([:subj, :item, :r2]), gf=:subj, show_empty=false)
+```
+
+```@example UpSet
+# Sort by degree (full factorial cells first, then marginals) rather than by count
+upsetplot(gm1, :subj, sortby=:degree, show_empty=false)
+```
+
+The same incidence data drawn by `upsetplot` can be pulled out as a table with
+[`upsettable`](@ref), for cases where you want to filter, sort, or re-analyze it
+directly rather than (or in addition to) plotting it:
+
+```@docs
+upsettable
+```
+
+```@example UpSet
+first(upsettable(gm1, :subj), 10)
+```
+
+## Nesting/Crossing Plots
+
+Grouping factors in a mixed model (e.g. `subj`, `item`, `school`, `class`) can be
+**nested** (every level of one occurs with exactly one level of another, as with students nested within classrooms in a single year) or **crossed** (levels of both factors co-occur relatively freely, as with subjects and items in a repeated-measures design). 
+`nestingplot` shows this structure for every pair of grouping factors in a model.
+
+The plot is laid out like a correlation matrix:
+- **diagonal**: each grouping factor's name and number of levels.
+- **lower triangle**: a heatmap of the co-occurrence contingency table between the
+  row and column factor. Levels are reordered (for display only) to group each
+  level with its most common partner, so nested structure appears as a
+  block-diagonal pattern and crossed structure appears as a dense or scattered
+  rectangle.
+- **upper triangle**: a text badge classifying the same pair — one factor nested
+  in the other (`A ⊂ B`), `identical` (the two names partition observations the
+  same way, e.g. two labels for one grouping factor), or crossed, further split
+  into `complete` (every combination of levels is observed) and `partial` (only
+  some combinations are, with the observed density reported). This split matters
+  in practice: a completely-crossed subject × item design supports estimating
+  both by-subject and by-item slopes for every condition, while a partially
+  crossed (e.g. Latin-square) design may not.
+
+Pass `swap_triangles=true` to swap which triangle shows which — heatmaps in the
+upper triangle and text badges in the lower.
+
+```@docs
+nestingplot
+```
+
+```@docs
+nestingplot!
+```
+
+```@example Nesting
+using CairoMakie
+CairoMakie.activate!(; type="svg")
+using MixedModels
+using MixedModelsMakie
+
+kb07 = MixedModels.dataset(:kb07)
+gm2 = fit(MixedModel,
+          @formula(rt_trunc ~ 1 + spkr * prec * load +
+                              (1 + spkr + prec + load | subj) +
+                              (1 + spkr | item)),
+          kb07; progress=false)
+
+# subj and item are nearly (but not perfectly) crossed in this design
+nestingplot(gm2)
+```
+
+As with `upsetplot`, the data underlying `nestingplot` is available as tables.
+[`nestingtable`](@ref) gives the raw co-occurrence counts in long format, with one row per pair of levels — including zero-count rows for combinations that never co-occur, since those absences are exactly what reveal nesting or partial crossing:
+
+```@docs
+nestingtable
+```
+
+```@example Nesting
+first(nestingtable(gm2), 10)
+```
+
+Filtering to `count == 0` finds specific missing combinations, e.g. the subjects who never saw a particular item:
+
+```@example Nesting
+filter(:count => iszero, nestingtable(gm2))
+```
+
+[`nestingstructure`](@ref) gives the pairwise nested/crossed classification and density shown in `nestingplot`'s upper-triangle badges.
+This results in one row per pair of grouping factors, rather than one row per pair of levels:
+
+```@docs
+nestingstructure
+```
+
+```@example Nesting
+nestingstructure(gm2)
+```
+
 ## General plots
 
 We also provide a `splom` or scatter-plot matrix plot for data frames with numeric columns (i.e. a matrix of all pairwise plots).
@@ -252,6 +407,7 @@ splom!
 
 ```@example Splom
 using CairoMakie
+CairoMakie.activate!(; type="svg")
 using DataFrames
 using LinearAlgebra
 using MixedModelsMakie

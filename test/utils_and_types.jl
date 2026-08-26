@@ -10,8 +10,9 @@ end
 
 @testset "Simple linear regression" begin
     a, b = 1, 2
-    x = collect(1:10)
-    y = randn(MersenneTwister(42), 10) * 0.1
+    n = 100
+    x = 1:n
+    y = randn(MersenneTwister(42), n) * 0.1
     @. y += a + b * x
     result = simplelinreg(x, y)
     @test result isa Tuple
@@ -19,23 +20,25 @@ end
     @test b ≈ result[2] atol = 0.05
 end
 
-m1 = fit(MixedModel,
-         @formula(1000 / reaction ~ 1 + days + (1 + days | subj)),
-         MixedModels.dataset(:sleepstudy); progress)
-
 @testset "confint_table" begin
-    wald = confint_table(m1, 0.68)
-    bsamp = parametricbootstrap(MersenneTwister(42), 1000, m1; progress)
+    wald = confint_table(m1_speed, 0.68)
+    bsamp = parametricbootstrap(MersenneTwister(42), 1000, m1_speed; progress)
     boot = confint_table(bsamp, 0.68)
 
     @test wald.coefname == boot.coefname
     @test wald.estimate ≈ boot.estimate rtol = 0.05
     @test wald.lower ≈ boot.lower rtol = 0.05
     @test wald.upper ≈ boot.upper rtol = 0.05
+
+    @test all(splat(isapprox),
+              zip(MixedModelsMakie.confint_table(mr).estimate, fixef(mr)))
+
+    @test fixefnames(mr) == MixedModelsMakie.confint_table(mr).coefname
+    @test fixefnames(mr) == MixedModelsMakie.confint_table(br).coefname
 end
 
 @testset "ranefinfo" begin
-    reinfo = ranefinfo(m1)
+    reinfo = ranefinfo(m1_speed)
     @test isone(length(reinfo))
     @test keys(reinfo) == (:subj,)
     re1 = only(reinfo)

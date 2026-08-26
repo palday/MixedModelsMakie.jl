@@ -17,42 +17,45 @@ on:
       - 'LICENSE.md'
       - 'README.md'
       - 'examples/**'
+permissions: {}
 jobs:
   ci:
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       matrix:
-        version: [1.9]
-        arch: [x64]
-        os: [ubuntu-22.04] # macos-10.15, windows-2019
+        version: [min, 1]
+        os: [ubuntu-22.04, macos-14]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Julia Setup
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@fa02766e078afaaf09b14210362cee14137e6a32 # v3.0.2
         with:
           version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
       - name: Cache
-        uses: julia-actions/cache@v1
+        uses: julia-actions/cache@a7bed9df697e5d7309d68afe7542a87621a8b6c8 # v3.3.0
         with:
           cache-compiled: "true"
       - name: Build
-        uses: julia-actions/julia-buildpkg@v1
+        uses: julia-actions/julia-buildpkg@e3eb439fad4f9aba7da2667e7510e4a46ebc46e1 # v1
       - name: Test
-        uses: julia-actions/julia-runtest@v1
+        uses: julia-actions/julia-runtest@6e050c8013b833b1195105ff2fce9cd802f53271 # v1.12.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Percy Upload
-        if: ${{ matrix.version == '1.9' }}
+        if: ${{ matrix.version == 'min' }}
         run: |
           ls ./test/output/ # useful for debugging
           npx @percy/cli upload ./test/output
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
       - name: Coverage Process
-        uses: julia-actions/julia-processcoverage@v1
+        uses: julia-actions/julia-processcoverage@03114f09f119417c3242a9fb6e0b722676aedf38 # v1
       - name: Coverage Upload
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

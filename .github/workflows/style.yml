@@ -1,35 +1,40 @@
 name: Style-Enforcer
 on:
-  push:
-    branches:
-      - 'main'
-    tags: '*'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    # note: keep in sync with `format/run.jl`
     paths-ignore:
       - 'README.md'
       - '.gitignore'
+permissions: {}
 jobs:
   format-check:
     name: Style Enforcement
-    # Run on push's or non-draft PRs
-    if: (github.event_name == 'push') || (github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     strategy:
       matrix:
-        julia-version: [1.9]
+        julia-version: [min]
     steps:
-      - uses: julia-actions/setup-julia@latest
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: julia-actions/setup-julia@fa02766e078afaaf09b14210362cee14137e6a32 # v3.0.2
         with:
           version: ${{ matrix.julia-version }}
-      - uses: actions/checkout@v1
-      - name: Instantiate `format` environment and format
+      - name: Install JuliaFormatter
+        shell: julia --project=@format --color=yes {0}
         run: |
-          julia --project=format -e 'using Pkg; Pkg.instantiate()'
-          julia --project=format 'format/run.jl'
-      - uses: reviewdog/action-suggester@v1
-        if: github.event_name == 'pull_request'
+          using Pkg
+          Pkg.add(PackageSpec(; name="JuliaFormatter", version="1"))
+      - name: Check formatting
+        shell: julia --project=@format --color=yes {0}
+        run: |
+          using JuliaFormatter
+          format(".", YASStyle(); verbose=true) || exit(1)
+      # Add formatting suggestions to non-draft PRs even if "Check formatting" fails
+      - uses: reviewdog/action-suggester@2558ba17e65a9039e73764a73009fc05fef28a46 # v1.24.3
+        if: ${{ !cancelled() && github.event.pull_request.draft == false }}
         with:
           tool_name: JuliaFormatter
-          fail_on_error: true
