@@ -29,8 +29,8 @@ assignments (one row per observation). `refs_a`/`refs_b` are integer group
 indices, as stored in `ReMat.refs`; `n_a`/`n_b` are the number of levels of
 each factor. The returned matrix has size `(n_a, n_b)`.
 """
-function _cooccurrence(refs_a::AbstractVector{<:Integer}, n_a::Integer,
-                       refs_b::AbstractVector{<:Integer}, n_b::Integer)
+function _cooccurrence(refs_a::Vector{<:Integer}, n_a::Int,
+                       refs_b::Vector{<:Integer}, n_b::Int)
     tab = zeros(Int, n_a, n_b)
     for (a, b) in zip(refs_a, refs_b)
         tab[a, b] += 1
@@ -45,8 +45,7 @@ Classify the pairwise relationship between two grouping factors A (rows) and
 B (columns) from their co-occurrence contingency table `tab`.
 
 Returns `(; rel, density)` where `rel` is one of:
-- `:identical`         — A and B partition observations identically (e.g. two
-                          names for the same grouping factor)
+- `:identical`         — A and B partition observations identically (e.g. two names for the same grouping factor)
 - `:b_nested_in_a`     — every level of B occurs with exactly one level of A
 - `:a_nested_in_b`     — every level of A occurs with exactly one level of B
 - `:complete_crossing` — every combination of an A-level and a B-level is observed
