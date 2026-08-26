@@ -4,7 +4,7 @@
 
 Plot pairwise bivariate scatter plots with overlain densities for a bootstrap sample.
 
-`ptype` specifies the set of parameters to examine, e.g. `:β`, `:σ`, `:ρ`.
+`ptype` specifies the set of parameters to examine, e.g. `:β`, `:σ`, `:ρ`, `:θ`.
 
 The mutating methods return the original object.
 """

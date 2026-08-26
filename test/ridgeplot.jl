@@ -10,3 +10,8 @@ for legend_pos in (true, false, :top, :bottom, :left, :right, :axis)
 end
 
 @test_throws ArgumentError("Inputs differ in coefficient names") ridgeplot(b1, br)
+
+for ptype in (:σ, :ρ, :θ)
+    local f = ridgeplot(b1; ptype)
+    @test save(joinpath(OUTDIR, "ridge_sleepstudy_$(ptype).png"), f)
+end

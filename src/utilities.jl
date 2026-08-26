@@ -3,11 +3,56 @@ function _coefnames(x::MixedModel, ptype::Nothing=nothing; show_intercept=true)
     return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
 end
 
+"""
+    _allparlabel(group, names)
+
+Combine the `group`/`names` columns of `MixedModels.allpars` into a single
+coefname string: bare `names` for fixed effects (`group === missing`),
+`"residual"` for the residual standard deviation (`names === missing`), and
+`"group: names"` (e.g. `"subj: (Intercept)"`) otherwise.
+"""
+_allparlabel(group::Missing, names) = string(names)
+_allparlabel(group, names::Missing) = group
+_allparlabel(group, names) = string(group, ": ", names)
+
+"""
+    _bootstrap_longtable(bsamp::MixedModelBootstrap, ptype)
+
+Return a long-format DataFrame with columns `:iter`, `:coefname`, `:value`
+for the requested `ptype` (`:β`, `:σ`, `:ρ`, or `:θ`).
+
+`:β`/`:σ`/`:ρ` are drawn from `bsamp.allpars`, with `coefname` built via
+[`_allparlabel`](@ref). `:θ` has no named/tidied accessor in MixedModels.jl,
+so it is drawn from `bsamp.tbl` and labeled positionally (e.g. `θ01`, `θ02`,
+...), matching the convention already used by [`ridge2d`](@ref).
+"""
+function _bootstrap_longtable(bsamp::MixedModelBootstrap, ptype)
+    if ptype === :θ
+        tbl = bsamp.tbl
+        θcols = collect(filter(startswith("θ"), string.(propertynames(tbl))))
+        df = DataFrame(Tables.columntable(tbl))
+        df.iter = 1:nrow(df)
+        return stack(df, θcols; variable_name=:coefname, value_name=:value)
+    else
+        df = DataFrame(bsamp.allpars)
+        filter!(:type => ==(string(ptype)), df)
+        df.coefname = _allparlabel.(df.group, df.names)
+        return select(df, :iter, :coefname, :value)
+    end
+end
+
 function _coefnames(x::MixedModelBootstrap, ptype; show_intercept=true)
     ptype = something(ptype, :β)
-    nt = getproperty(first(x.fits), ptype)
-    cn = [string(k) for (k, v) in pairs(nt) if !isequal(v, -0.0)]
-    return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
+    if ptype === :β
+        nt = first(x.fits).β
+        cn = [string(k) for (k, v) in pairs(nt) if !isequal(v, -0.0)]
+        return show_intercept ? cn : filter!(!=("(Intercept)"), cn)
+    else
+        # relies on `unique` preserving first-occurrence order so that
+        # y-axis ticks come out in a stable, sensible order (grouping
+        # factors/RE terms in the order MixedModels.jl emits them)
+        return unique(_bootstrap_longtable(x, ptype).coefname)
+    end
 end
 
 """
@@ -21,6 +66,15 @@ Return a DataFrame of coefficient names, point estimates and confidence interval
 For `MixedModels`, the intervals are computed using the standard errors and the asymptotic
 Wald approximation (e.g. est±1.96*se for 95% intervals). For `MixedModelBootstrap`, the intervals
 are computed using `shortestcovint`, and the point estimate re-computed as the mean of the bootstrap values.
+
+For `MixedModelBootstrap`, `ptype` selects which parameters to summarize:
+`:β` (fixed effects, default), `:σ` (random-effect standard deviations,
+including the residual, labeled `"group: names"`/`"residual"`), `:ρ`
+(random-effect correlations, labeled `"group: name_i, name_j"`), or `:θ`
+(the unconstrained Cholesky parameterization, labeled positionally as
+`θ01`, `θ02`, ...). `ptype` is not supported for a plain `MixedModel`.
+`show_intercept` only filters the fixed-effect `"(Intercept)"` row; it is a
+no-op for `:σ`/`:ρ`/`:θ`.
 
 The returned table has the following columns:
 - `coefname`: the names of the coefficients
@@ -50,17 +104,23 @@ end
 
 function confint_table(x::MixedModelBootstrap, level=0.95; ptype=:β, show_intercept=true)
     ptype = something(ptype, :β)
-    ptype in (:β, :σs) || throw(ArgumentError("ptype $(ptype) not supported"))
-    df = DataFrame(getproperty(x, ptype))
-    rename!(c -> replace(c, "column" => "coefname"), df)
-    transform!(select!(df, Not(:iter)),
-               :coefname => ByRow(string) => :coefname)
-    ci(x) = shortestcovint(x, level)
-    # drop trailing s
-    var = replace(string(ptype), "s" => "")
-    df = combine(groupby(df, :coefname),
-                 var => mean => :estimate,
-                 var => NamedTuple{(:lower, :upper)} ∘ ci => [:lower, :upper])
+    ptype in (:β, :σ, :ρ, :θ) || throw(ArgumentError("ptype $(ptype) not supported"))
+    if ptype === :θ
+        # allpars (and hence shortestcovint(bsamp, level)) has no θ rows,
+        # so θ needs its own grouped HDI computation
+        long = _bootstrap_longtable(x, :θ)
+        df = combine(groupby(long, :coefname),
+                     :value => mean => :estimate,
+                     :value => (v -> NamedTuple{(:lower, :upper)}(shortestcovint(v, level))) => [:lower,
+                                                                                                 :upper])
+    else
+        hdi_df = DataFrame(shortestcovint(x, level))
+        filter!(:type => ==(string(ptype)), hdi_df)
+        hdi_df.coefname = _allparlabel.(hdi_df.group, hdi_df.names)
+        est = combine(groupby(_bootstrap_longtable(x, ptype), :coefname),
+                      :value => mean => :estimate)
+        df = innerjoin(est, select(hdi_df, :coefname, :lower, :upper); on=:coefname)
+    end
     return filter!(:coefname => in(_coefnames(x, ptype; show_intercept)), df)
 end
 

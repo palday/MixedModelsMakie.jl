@@ -4,3 +4,4 @@
              ridge2d(b1; ptype=:ρ))
 @test save(joinpath(OUTDIR, "ridge2d_beta.png"), ridge2d(b1))
 @test save(joinpath(OUTDIR, "ridge2d_sigma.png"), ridge2d(b1; ptype=:σ))
+@test save(joinpath(OUTDIR, "ridge2d_theta.png"), ridge2d(b1; ptype=:θ))

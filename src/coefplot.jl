@@ -12,9 +12,13 @@
               labels=string.(1:length(xs)),
               attributes...)
 
-Create a coefficient plot of the fixed-effects and associated confidence intervals.
+Create a coefficient plot of the requested parameters and associated confidence intervals.
 When multiple models are supplied, they are overlaid on the same axes for comparison;
 all models must share the same coefficient names.
+
+For a `MixedModelBootstrap`, `ptype` selects which parameters to plot: `:β`
+(fixed effects, default), `:σ`, `:ρ`, or `:θ` (see [`ridgeplot`](@ref) for
+details). `ptype` is not supported for a plain `MixedModel`.
 
 `attributes` are passed onto both `scatter!` and `errorbars!`, while
 `scatter_attributes` and `errorbars_attributes` are passed only onto `scatter!` and

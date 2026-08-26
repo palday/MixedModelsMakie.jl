@@ -14,9 +14,16 @@
                labels=string.(1:length(xs)),
                attributes...)
 
-Create a ridge plot for the bootstrap samples of the fixed effects.
+Create a ridge plot for the bootstrap samples of the requested parameters.
 When multiple bootstrap objects are supplied, they are overlaid on the same axes for
 comparison; all inputs must share the same coefficient names.
+
+`ptype` selects which bootstrap parameters to plot: `:β` (fixed effects,
+default), `:σ` (random-effect standard deviations, including the residual),
+`:ρ` (random-effect correlations), or `:θ` (the unconstrained Cholesky
+parameterization, labeled positionally as `θ01`, `θ02`, ... since these lack
+a natural per-group name). `show_intercept` only applies to `:β`; it is a
+no-op for `:σ`/`:ρ`/`:θ`.
 
 Densities are normalized so that the maximum density is always 1.
 
@@ -130,14 +137,10 @@ function ridgeplot!(ax::Axis, xs::MixedModelBootstrap...;
     ax.xlabel = xlabel
 
     for (idx, (bootstrap, label)) in enumerate(zip(xs, labels))
-        df = DataFrame(getproperty(bootstrap, ptype))
-        rename!(c -> replace(c, "column" => "coefname"), df)
-        transform!(df, :coefname => ByRow(string) => :coefname)
+        df = _bootstrap_longtable(bootstrap, ptype)
         filter!(:coefname => in(_coefnames(bootstrap, ptype; show_intercept)), df)
-        # drop trailing s
-        densvar = replace(string(ptype), "s" => "")
         gdf = groupby(df, :coefname)
-        dens = combine(gdf, densvar => kde => :kde)
+        dens = combine(gdf, :value => kde => :kde)
 
         if !ismissing(conf_level)
             coefplot!(ax, bootstrap;

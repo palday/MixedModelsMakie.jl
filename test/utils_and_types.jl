@@ -35,6 +35,18 @@ end
 
     @test fixefnames(mr) == MixedModelsMakie.confint_table(mr).coefname
     @test fixefnames(mr) == MixedModelsMakie.confint_table(br).coefname
+
+    sigma = confint_table(b1, 0.68; ptype=:σ)
+    @test sort(sigma.coefname) ==
+          ["residual", "subj: (Intercept)", "subj: days"]
+
+    rho = confint_table(b1, 0.68; ptype=:ρ)
+    @test rho.coefname == ["subj: (Intercept), days"]
+
+    theta = confint_table(b1, 0.68; ptype=:θ)
+    @test sort(theta.coefname) == ["θ1", "θ2", "θ3"]
+
+    @test_throws ArgumentError confint_table(b1; ptype=:σs)
 end
 
 @testset "ranefinfo" begin
