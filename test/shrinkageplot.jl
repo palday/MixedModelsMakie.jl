@@ -39,3 +39,13 @@ f = shrinkageplot(m2, :subj; labels=["S030", "S031"])
 
 @test_throws(ArgumentError("Specified columns not found in random effects: [\"nonexistent\"]"),
              shrinkageplot(m1; labels=["nonexistent"]))
+
+f = shrinkageplot(m1; labels=:auto)
+@test save(joinpath(OUTDIR, "shrinkage_sleepstudy_labels_auto.png"), f)
+
+f = shrinkageplot(m2, :item; labels=:auto, n_labels=3)
+@test save(joinpath(OUTDIR, "shrinkage_kb07_item_labels_auto.png"), f)
+
+@test_throws(ArgumentError("Unsupported value for `labels`: bogus. Use `true`, `false`, " *
+                           "`:auto`, or a vector of level names/indices."),
+             shrinkageplot(m1; labels=:bogus))
