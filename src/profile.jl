@@ -1,17 +1,20 @@
 """
-    zetaplot!(f::Indexable, pr::MixedModelProfile;
+    zetaplot(args...; kwargs...)::Figure
+    zetaplot!(f::$(Indexable), pr::MixedModelProfile;
               absv=false,
               ptyp='β',
               coverage=[.5,.8,.9,.95,.99],
               zbd=nothing)
 
-Add axes with plots of the profile ζ (or its absolute value) for parameters
-starting with `ptyp` from `pr` to `f`.
+Create plots of the profile ζ (or its absolute value) for parameters
+starting with `ptyp` from `pr`.
 
 Valid `ptyp` values are 'β', 'σ', and 'θ'.
 
 If `absv` is `true` then intervals corresponding to coverage levels in
 `coverage` are added to each panel.
+
+The mutating method returns the original object.
 """
 function zetaplot!(f::Indexable,
                    pr::MixedModelProfile;
@@ -51,27 +54,23 @@ function zetaplot!(f::Indexable,
     return f
 end
 
-"""
-    zetaplot(args...; kwargs...)
-
-Convenience wrapper for `zetaplot!(Figure(), ...)`.
-
-See [`zetaplot!`](@ref).
-"""
+"""$(@doc zetaplot!)"""
 zetaplot(args...; kwargs...) = zetaplot!(Figure(), args...; kwargs...)
 
 """
-    profiledensity!(f::Indexable, pr::MixedModelProfile;
+    profiledensity(args...; kwargs...)::Figure
+    profiledensity!(f::$(Indexable), pr::MixedModelProfile;
                     ptyp::Char='σ',
                     zbd=3,
-                    share_y_scale=true).
+                    share_y_scale=true)
 
-Add axes with density plots of the profile ζ for parameters
-starting with `ptyp` from `pr` to `f`.
+Create density plots of the profile ζ for parameters starting with `ptyp` from `pr`.
 
 Valid `ptyp` values are 'β', 'σ', and 'θ'.
 
 If `share_y_scale`, the each facet shares a common y-scale.
+
+The mutating method returns the original object.
 """
 function profiledensity!(f::Indexable,
                          pr::MixedModelProfile;
@@ -103,13 +102,7 @@ function profiledensity!(f::Indexable,
     return f
 end
 
-"""
-    profiledensity(args...; kwargs...)
-
-Convenience wrapper for `profiledensity!(Figure(), ...)`.
-
-See [`profiledensity!`](@ref).
-"""
+"""$(@doc profiledensity!)"""
 profiledensity(args...; kwargs...) = profiledensity!(Figure(), args...; kwargs...)
 
 #= outdated code

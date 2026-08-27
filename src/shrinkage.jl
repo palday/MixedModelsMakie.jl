@@ -37,14 +37,15 @@ function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, λ;
 end
 
 """
-    shrinkageplot!(f::Indexable, m::MixedModel,
+    shrinkageplot(m::MixedModel, gf::Symbol=first(fnames(m)), θref, args...; kwargs...)::Figure
+    shrinkageplot!(f::$(Indexable), m::MixedModel,
                    gf::Symbol=first(fnames(m)), θref;
                    ellipse=false, ellipse_scale=1, n_ellipse=5,
                    cols::Union{Nothing,AbstractVector}=nothing,
                    shrunk_dotcolor=(:blue, 0.25), ref_dotcolor=(:red, 0.25),
                    ellipse_color=:green, ellipse_linestyle=:dash)
 
-Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
+Create a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
 
 Two sets of conditional means are plotted: those at the estimated parameter values and those at `θref`.
 The default `θref` results in `Λ` being a very large multiple of the identity.  The corresponding
@@ -57,6 +58,8 @@ Correlation ellipses can be added with `ellipse=true`, with the number of ellips
 `n_ellipse`. The ellipses are equally spaced between the outer ellipse and the origin (center).
 The scaling of the ellipses can be adjusted with the multiplicative `ellipse_scale`. If you are
 unable to see the ellipses, try increasing `ellipse_scale`.
+
+The mutating method returns the original object.
 
 !!! note
     For degenerate (singular) models, the correlation ellipse will also be degenerate, i.e.,
@@ -145,17 +148,7 @@ function _ranef(m::GeneralizedLinearMixedModel, θref; uscale::Bool=false)
     return vv
 end
 
-"""
-    shrinkageplot(m::MixedModel, gf::Symbol=first(fnames(m)), θref, args...; kwargs...)
-
-Return a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
-
-Two sets of conditional means are plotted: those at the estimated parameter values and those at `θref`.
-The default `θref` results in `Λ` being a very large multiple of the identity.  The corresponding
-conditional means can be regarded as unpenalized.
-
-`args...` and `kwargs...` are passed on to [`shrinkageplot!`](@ref)
-"""
+"""$(@doc shrinkageplot!)"""
 function shrinkageplot(m::MixedModel, args...; kwargs...)
     f = Figure(; size=(1000, 1000)) # use an aspect ratio of 1 for the whole figure
 

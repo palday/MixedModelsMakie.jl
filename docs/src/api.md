@@ -78,10 +78,6 @@ ranefinfo
 caterpillar
 ```
 
-```@docs
-caterpillar!
-```
-
 ```@example Caterpillar
 using CairoMakie
 CairoMakie.activate!(type = "svg")
@@ -118,10 +114,6 @@ caterpillar(gm0, :item)
 qqcaterpillar
 ```
 
-```@docs
-qqcaterpillar!
-```
-
 ```@example Caterpillar
 qqcaterpillar(fm1)
 ```
@@ -142,7 +134,6 @@ qqcaterpillar!(Figure(; size=(400,300)), subjre; cols=[:days])
 
 ```@docs
 shrinkageplot
-shrinkageplot!
 ```
 
 ```@example Shrinkage
@@ -267,11 +258,8 @@ The top bars show counts per column; the left bars show counts per individual co
 A column in which only within-subjects predictors are collapsed will have non-zero counts; a column where a *between*-subjects predictor is collapsed will be empty because no single unit can appear in all levels of a between-subjects factor.
 
 ```@docs
-upsetplot
-```
-
-```@docs
-upsetplot!
+upsetplot!(::Indexable, ::MixedModel, ::Union{Symbol,Nothing})
+upsetplot!(::Indexable, ::Any)
 ```
 
 ```@example UpSet
@@ -348,10 +336,6 @@ upper triangle and text badges in the lower.
 
 ```@docs
 nestingplot
-```
-
-```@docs
-nestingplot!
 ```
 
 ```@example Nesting

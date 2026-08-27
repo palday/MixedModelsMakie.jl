@@ -334,7 +334,7 @@ end
 """
     upsettable(m::MixedModel, gf::Union{Symbol,Nothing}=first(fnames(m)))
 
-Return the incidence table underlying [`upsetplot`](@ref): one row per
+Return the incidence table underlying [`upsetplot!`](@ref): one row per
 combination cell (every full factorial cell of the categorical fixed-effect
 predictors, plus marginal cells that collapse a single predictor), with:
 - `cell`: a label for the combination
@@ -345,7 +345,7 @@ predictors, plus marginal cells that collapse a single predictor), with:
   `"gender: M"`) indicating whether that set is active in the cell
 
 Pass `gf=nothing` to count observations instead of grouping-factor levels,
-matching [`upsetplot`](@ref).
+matching [`upsetplot!`](@ref).
 """
 function upsettable(m::MixedModel, gf::Union{Symbol,Nothing}=first(fnames(m)))
     return _upset_incidence_table(_upset_data(m, gf))
@@ -354,8 +354,8 @@ end
 """
     upsettable(data; cols=All(), gf::Union{Symbol,Nothing}=nothing)
 
-Return the incidence table underlying [`upsetplot`](@ref), built directly
-from a Tables.jl-compatible table. See [`upsetplot`](@ref) for the meaning of
+Return the incidence table underlying [`upsetplot!`](@ref), built directly
+from a Tables.jl-compatible table. See [`upsetplot!`](@ref) for the meaning of
 `cols` and `gf`.
 """
 function upsettable(data; cols=All(), gf::Union{Symbol,Nothing}=nothing)
@@ -608,7 +608,9 @@ function _upsetplot_render!(f::Indexable, info::NamedTuple;
 end
 
 """
-    upsetplot!(f::Indexable, m::MixedModel,
+    upsetplot(m::MixedModel,
+              gf::Union{Symbol,Nothing}=first(fnames(m)); kwargs...)::Figure
+    upsetplot!(f::$(Indexable), m::MixedModel,
                gf::Union{Symbol,Nothing}=first(fnames(m));
                sortby::Symbol=:count,
                show_empty::Bool=true,
@@ -622,8 +624,10 @@ end
                union_color=:gray30,
                dot_size=12)
 
-Add an UpSet plot to `f` showing which levels of grouping factor `gf` appear
+Create an UpSet plot showing which levels of grouping factor `gf` appear
 in which categorical fixed-effect conditions.
+
+Pass `gf=nothing` to count observations instead of grouping-factor levels.
 
 Predictor names, levels, and per-observation values are recovered from the
 model's formula, design matrix, and contrast coding — no original data frame
@@ -644,6 +648,8 @@ active) get an "or" bracket drawn around that predictor's sibling dots,
 since lighting up every level of a predictor represents "not constrained on
 this predictor" (a union), not an intersection like the solid line
 connecting the rest of the dots.
+
+The mutating method returns the original object.
 """
 function upsetplot!(f::Indexable, m::MixedModel,
                     gf::Union{Symbol,Nothing}=first(fnames(m));
@@ -652,8 +658,14 @@ function upsetplot!(f::Indexable, m::MixedModel,
     return _upsetplot_render!(f, info; kwargs...)
 end
 
+"""$(@doc upsetplot!(::Indexable, ::MixedModel, ::Union{Symbol,Nothing}))"""
+function upsetplot(m::MixedModel, args...; kwargs...)
+    return upsetplot!(Figure(; size=(1000, 800)), m, args...; kwargs...)
+end
+
 """
-    upsetplot!(f::Indexable, data;
+    upsetplot(data; cols=All(), gf::Union{Symbol,Nothing}=nothing, kwargs...)::Figure
+    upsetplot!(f::$(Indexable), data;
                cols=All(),
                gf::Union{Symbol,Nothing}=nothing,
                sortby::Symbol=:count,
@@ -668,13 +680,15 @@ end
                union_color=:gray30,
                dot_size=12)
 
-Add an UpSet plot to `f` directly from a Tables.jl-compatible table.
+Create an UpSet plot directly from a Tables.jl-compatible table.
 
 Non-numeric columns (optionally restricted by `cols`) become the sets. Pass
 `gf=:col` to count unique values of that column per cell instead of
 observations.
 
 See [`upsetplot!(::Indexable, ::MixedModel)`](@ref) for layout keyword details.
+
+The mutating method returns the original object.
 """
 function upsetplot!(f::Indexable, data;
                     cols=All(),
@@ -684,37 +698,7 @@ function upsetplot!(f::Indexable, data;
     return _upsetplot_render!(f, info; kwargs...)
 end
 
-"""
-    upsetplot(m::MixedModel,
-              gf::Union{Symbol,Nothing}=first(fnames(m));
-              kwargs...)
-
-Return a `Figure` with an UpSet plot showing which levels of grouping factor `gf`
-appear in which categorical fixed-effect conditions.
-
-Pass `gf=nothing` to count observations instead of grouping-factor levels.
-
-Predictor names, levels, and per-observation values are recovered from the
-model's formula, design matrix, and contrast coding — no original data frame
-is needed.
-
-`kwargs` are forwarded to [`upsetplot!`](@ref).
-"""
-function upsetplot(m::MixedModel, args...; kwargs...)
-    return upsetplot!(Figure(; size=(1000, 800)), m, args...; kwargs...)
-end
-
-"""
-    upsetplot(data; cols=All(), gf::Union{Symbol,Nothing}=nothing, kwargs...)
-
-Return a `Figure` with an UpSet plot built directly from a Tables.jl-compatible
-table.
-
-Non-numeric columns (optionally restricted by `cols`) are used as sets. Pass
-`gf=:col` to count unique values of that column per cell instead of observations.
-
-`kwargs` are forwarded to [`upsetplot!`](@ref).
-"""
+"""$(@doc upsetplot!(::Indexable, ::Any))"""
 function upsetplot(data; cols=All(), gf::Union{Symbol,Nothing}=nothing, kwargs...)
     return upsetplot!(Figure(; size=(1000, 800)), data; cols, gf, kwargs...)
 end

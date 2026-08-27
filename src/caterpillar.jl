@@ -77,17 +77,18 @@ function ranefinfotable(ri::RanefInfo)
 end
 
 """
-    caterpillar!(f::Indexable, r::RanefInfo;
+    caterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)::Figure
+    caterpillar!(f::$(Indexable), m::MixedModel,
+                 gf::Symbol=first(fnames(m)); kwargs...)
+    caterpillar!(f::$(Indexable), r::RanefInfo;
                 orderby=1, cols::Union{Nothing,AbstractVector}=nothing,
                 dotcolor=(:red, 0.2), barcolor=:black,
                 vline_at_zero::Bool=false)
-    caterpillar!(f::Indexable, m::MixedModel,
-                 gf::Symbol=first(fnames(m)); orderby=1,
-                 cols::Union{Nothing,AbstractVector}=nothing,
-                 dotcolor=(:red, 0.2), barcolor=:black,
-                 vline_at_zero::Bool=false)
 
-Add Axes of a caterpillar plot from `r` to `f`.
+Create a "caterpillar plot" of the random-effects conditional means and prediction intervals.
+
+A "caterpillar plot" is a horizontal error-bar plot of conditional means and standard deviations
+of the random effects.
 
 When passing a `MixedModel`, `gf` specifies which grouping variable is displayed.
 Alternatively, [`ranefinfo`](@ref) may be used to construct the [`RanefInfo`](@ref) object directly.
@@ -100,6 +101,8 @@ order they are stored in.
 
 The display can be restricted to a subset of random effects associated with a grouping variable by
 specifying `cols`, either by indices or term names.
+
+The mutating methods return the original object.
 
 !!! note
     Even when not sorting the levels, they might have already been sorted during
@@ -141,33 +144,21 @@ function caterpillar!(f::Indexable, m::MixedModel,
     return caterpillar!(f, ranefinfo(m, gf); kwargs...)
 end
 
-"""
-    caterpillar(m::MixedModel, gf::Symbol; kwargs...)
-
-Returns a `Figure` of a "caterpillar plot" of the random-effects means and prediction intervals
-
-A "caterpillar plot" is a horizontal error-bar plot of conditional means and standard deviations
-of the random effects.
-
-`gf` specifies which grouping variable is displayed.
-
-`kwargs...` are passed on to [`caterpillar!`](@ref).
-"""
+"""$(@doc caterpillar!)"""
 function caterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
     return caterpillar!(Figure(; size=(1000, 800)), m, gf; kwargs...)
 end
 
 """
-    qqcaterpillar!(f::Indexable, r::RanefInfo;
-                   cols::Union{Nothing,AbstractVector}=nothing,
-                   dotcolor=(:red, 0.2), barcolor=:black)
-    qqcaterpillar!(f::Indexable, m::MixedModel,
-                   gf::Symbol=first(fnames(m));
+    qqcaterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)::Figure
+    qqcaterpillar!(f::$(Indexable), m::MixedModel,
+                   gf::Symbol=first(fnames(m)); kwargs...)
+    qqcaterpillar!(f::$(Indexable), r::RanefInfo;
                    cols::Union{Nothing,AbstractVector}=nothing,
                    dotcolor=(:red, 0.2), barcolor=:black,
                    vline_at_zero::Bool=false)
 
-Update the figure with a caterpillar plot with the vertical axis on the Normal() quantile scale.
+Create a caterpillar plot with the vertical axis on the Normal() quantile scale.
 
 When passing a `MixedModel`, `gf` specifies which grouping variable is displayed.
 Alternatively, [`ranefinfo`](@ref) may be used to construct the [`RanefInfo`](@ref) object directly.
@@ -180,6 +171,8 @@ The order of the levels on the vertical axes is increasing `orderby` column
 of `r.ranef`, usually the `(Intercept)` random effects.
 Setting `orderby=nothing` will disable sorting, i.e. return the levels in the
 order they are stored in.
+
+The mutating methods return the original object.
 """
 function qqcaterpillar!(f::Indexable, r::RanefInfo;
                         cols::Union{Nothing,AbstractVector}=nothing,
@@ -211,16 +204,7 @@ function qqcaterpillar!(f::Indexable, m::MixedModel,
     return qqcaterpillar!(f, ranefinfo(m, gf); kwargs...)
 end
 
-"""
-    qqcaterpillar(m::MixedModel, gf::Symbol=first(fnames(m));
-                  kwargs...)
-
-Returns a `Figure` of a "qq-caterpillar plot" of the random-effects means and prediction intervals.
-
-`gf` specifies which grouping variable is displayed.
-
-`kwargs...` are passed on to [`qqcaterpillar!`](@ref).
-"""
+"""$(@doc qqcaterpillar!)"""
 function qqcaterpillar(m::MixedModel, gf::Symbol=first(fnames(m)); kwargs...)
     return qqcaterpillar!(Figure(; size=(1000, 800)), m, gf; kwargs...)
 end

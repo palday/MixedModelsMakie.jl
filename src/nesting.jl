@@ -325,11 +325,13 @@ function _nestingplot_render!(f::Indexable, info::NamedTuple;
 end
 
 """
-    nestingplot!(f::Indexable, m::MixedModel,
+    nestingplot(m::MixedModel, gfs::Union{Symbol,AbstractString,Integer}...;
+                colormap=:Blues, fontsize::Real=20, swap_triangles::Bool=false)::Figure
+    nestingplot!(f::$(Indexable), m::MixedModel,
                  gfs::Union{Symbol,AbstractString,Integer}...;
                  colormap=:Blues, fontsize::Real=20, swap_triangles::Bool=false)
 
-Add a nesting/crossing matrix for the grouping factors of `m` to `f`.
+Create a nesting/crossing matrix for the grouping factors of `m`.
 
 Each distinct grouping factor (e.g. `subj`, `item`) becomes one row/column of
 a matrix, laid out like a correlation-matrix plot:
@@ -351,7 +353,9 @@ they first appear in the model.
 
 The classification only depends on the grouping factors' level assignments
 (`ReMat.refs`), not on the original data, matching the model-based approach
-used by [`upsetplot`](@ref).
+used by [`upsetplot!`](@ref).
+
+The mutating method returns the original object.
 """
 function nestingplot!(f::Indexable, m::MixedModel,
                       gfs::Union{Symbol,AbstractString,Integer}...;
@@ -361,13 +365,7 @@ function nestingplot!(f::Indexable, m::MixedModel,
     return _nestingplot_render!(f, info; colormap, fontsize, swap_triangles)
 end
 
-"""
-    nestingplot(m::MixedModel, gfs::Union{Symbol,AbstractString,Integer}...;
-                colormap=:Blues, fontsize::Real=20, swap_triangles::Bool=false)
-
-Return a `Figure` with a nesting/crossing matrix for the grouping factors of
-`m`. See [`nestingplot!`](@ref) for details.
-"""
+"""$(@doc nestingplot!)"""
 function nestingplot(m::MixedModel, gfs::Union{Symbol,AbstractString,Integer}...;
                      kwargs...)
     return nestingplot!(Figure(; size=(800, 800)), m, gfs...; kwargs...)
