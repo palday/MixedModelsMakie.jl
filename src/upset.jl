@@ -330,7 +330,7 @@ end
 """
     upsettable(m::MixedModel, gf::Union{Symbol,Nothing}=first(fnames(m)))
 
-Return the incidence table underlying [`upsetplot`](@ref): one row per
+Return the incidence table underlying [`upsetplot!`](@ref): one row per
 combination cell (every full factorial cell of the categorical fixed-effect
 predictors, plus marginal cells that collapse a single predictor), with:
 - `cell`: a label for the combination
@@ -341,7 +341,7 @@ predictors, plus marginal cells that collapse a single predictor), with:
   `"gender: M"`) indicating whether that set is active in the cell
 
 Pass `gf=nothing` to count observations instead of grouping-factor levels,
-matching [`upsetplot`](@ref).
+matching [`upsetplot!`](@ref).
 """
 function upsettable(m::MixedModel, gf::Union{Symbol,Nothing}=first(fnames(m)))
     return _upset_incidence_table(_upset_data(m, gf))
@@ -350,8 +350,8 @@ end
 """
     upsettable(data; cols=All(), gf::Union{Symbol,Nothing}=nothing)
 
-Return the incidence table underlying [`upsetplot`](@ref), built directly
-from a Tables.jl-compatible table. See [`upsetplot`](@ref) for the meaning of
+Return the incidence table underlying [`upsetplot!`](@ref), built directly
+from a Tables.jl-compatible table. See [`upsetplot!`](@ref) for the meaning of
 `cols` and `gf`.
 """
 function upsettable(data; cols=All(), gf::Union{Symbol,Nothing}=nothing)

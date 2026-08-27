@@ -353,7 +353,7 @@ they first appear in the model.
 
 The classification only depends on the grouping factors' level assignments
 (`ReMat.refs`), not on the original data, matching the model-based approach
-used by [`upsetplot`](@ref).
+used by [`upsetplot!`](@ref).
 
 The mutating method returns the original object.
 """

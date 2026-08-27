@@ -114,10 +114,6 @@ caterpillar(gm0, :item)
 qqcaterpillar
 ```
 
-```@docs
-qqcaterpillar!
-```
-
 ```@example Caterpillar
 qqcaterpillar(fm1)
 ```
@@ -259,7 +255,8 @@ The top bars show counts per column; the left bars show counts per individual co
 A column in which only within-subjects predictors are collapsed will have non-zero counts; a column where a *between*-subjects predictor is collapsed will be empty because no single unit can appear in all levels of a between-subjects factor.
 
 ```@docs
-upsetplot
+upsetplot!(::Indexable, ::MixedModel, ::Union{Symbol,Nothing})
+upsetplot!(::Indexable, ::Any)
 ```
 
 ```@example UpSet
