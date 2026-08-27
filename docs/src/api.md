@@ -78,10 +78,6 @@ ranefinfo
 caterpillar
 ```
 
-```@docs
-caterpillar!
-```
-
 ```@example Caterpillar
 using CairoMakie
 CairoMakie.activate!(type = "svg")
@@ -345,10 +341,6 @@ upper triangle and text badges in the lower.
 
 ```@docs
 nestingplot
-```
-
-```@docs
-nestingplot!
 ```
 
 ```@example Nesting
