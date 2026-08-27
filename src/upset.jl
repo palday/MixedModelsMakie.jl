@@ -74,7 +74,9 @@ per-observation level. `gf_refs` is either `nothing` (count observations) or
 an integer vector mapping each observation to a grouping-factor level index.
 
 Returns a `NamedTuple` with fields:
-`gf_levels`, `set_labels`, `cell_labels`, `combo_matrix`, `cell_counts`,
+`gf_levels`, `set_labels`, `set_predictor` (the predictor index each set
+belongs to, used to distinguish true intersections from marginal/collapsed
+sets when rendering), `cell_labels`, `combo_matrix`, `cell_counts`,
 `cell_degrees`, `set_counts`.
 """
 function _upset_core(pred_names::Vector{String}, pred_levels::Vector,
@@ -84,6 +86,7 @@ function _upset_core(pred_names::Vector{String}, pred_levels::Vector,
     # Sets = individual condition levels, grouped by predictor (columns of matrix)
     set_labels = String[string(p, ": ", lv)
                         for (p, lvs) in zip(pred_names, pred_levels) for lv in lvs]
+    set_predictor = Int[pi for (pi, lvs) in enumerate(pred_levels) for _ in lvs]
     n_sets = length(set_labels)
 
     # Index: (predictor_index, level_as_string) → set column index
@@ -231,8 +234,9 @@ function _upset_core(pred_names::Vector{String}, pred_levels::Vector,
     all_counts = vcat(cell_counts, marginal_counts)
     all_degrees = vcat(cell_degrees, marginal_degrees)
 
-    return (; gf_levels, set_labels, cell_labels=all_labels, combo_matrix=all_combo,
-            cell_counts=all_counts, cell_degrees=all_degrees, set_counts)
+    return (; gf_levels, set_labels, set_predictor, cell_labels=all_labels,
+            combo_matrix=all_combo, cell_counts=all_counts, cell_degrees=all_degrees,
+            set_counts)
 end
 
 """
@@ -375,6 +379,10 @@ Layout keywords:
 - `setsize_pos`: position of the set-size bars — `:left`/`:right` for
   horizontal, `:top`/`:bottom` for vertical.  Defaults to `:left` (horizontal)
   or `:top` (vertical).
+- `union_color`: color of the box, "or" label, and dashed connecting line
+  bracketing the sibling levels of a collapsed predictor in a marginal cell
+  (one that activates all of a predictor's levels at once), marking that
+  relationship as a union rather than an intersection.
 """
 function _upsetplot_render!(f::Indexable, info::NamedTuple;
                             sortby::Symbol=:count,
@@ -386,6 +394,7 @@ function _upsetplot_render!(f::Indexable, info::NamedTuple;
                             filled_color=:black,
                             empty_color=:lightgray,
                             bar_color=:steelblue,
+                            union_color=:gray30,
                             dot_size=12)
     orientation in (:horizontal, :vertical) ||
         throw(ArgumentError("orientation must be :horizontal or :vertical, got :$orientation"))
@@ -508,23 +517,49 @@ function _upsetplot_render!(f::Indexable, info::NamedTuple;
     empty_set = Float64[]
     filled_combo = Float64[]
     filled_set = Float64[]
+    union_dot_combo = Float64[]
+    union_dot_set = Float64[]
 
+    set_predictor = info.set_predictor
+    union_groups = Vector{Tuple{Int,Int,Int}}()  # (cell_index, lo_set, hi_set)
     for ci in 1:n_shown
-        active = findall(combo_matrix[ci, :])
+        active = sort(findall(combo_matrix[ci, :]))
+        union_members = Set{Int}()
         if length(active) >= 2
-            s_min, s_max = extrema(active)
-            if horiz
-                lines!(ax_matrix, [ci, ci], [s_min, s_max];
-                       color=filled_color, linewidth=2)
-            else
-                lines!(ax_matrix, [s_min, s_max], [ci, ci];
-                       color=filled_color, linewidth=2)
+            # A segment between two sibling levels of the same (collapsed)
+            # predictor is a union, not an intersection — drawn thin, pale,
+            # and dotted so the box+"or" label below remains the clear cue,
+            # rather than the solid line used between distinct predictors.
+            for k in 1:(length(active) - 1)
+                a, b = active[k], active[k + 1]
+                is_union_seg = set_predictor[a] == set_predictor[b]
+                seg_color = is_union_seg ? (union_color, 0.5) : filled_color
+                seg_style = is_union_seg ? :dot : :solid
+                seg_width = is_union_seg ? 1.5 : 2
+                if horiz
+                    lines!(ax_matrix, [ci, ci], [a, b];
+                           color=seg_color, linewidth=seg_width, linestyle=seg_style)
+                else
+                    lines!(ax_matrix, [a, b], [ci, ci];
+                           color=seg_color, linewidth=seg_width, linestyle=seg_style)
+                end
+            end
+            for p in unique(set_predictor[active])
+                group = filter(si -> set_predictor[si] == p, active)
+                length(group) >= 2 || continue
+                push!(union_groups, (ci, extrema(group)...))
+                union!(union_members, group)
             end
         end
         for si in 1:n_sets
             if combo_matrix[ci, si]
-                push!(filled_combo, ci)
-                push!(filled_set, si)
+                if si in union_members
+                    push!(union_dot_combo, ci)
+                    push!(union_dot_set, si)
+                else
+                    push!(filled_combo, ci)
+                    push!(filled_set, si)
+                end
             else
                 push!(empty_combo, ci)
                 push!(empty_set, si)
@@ -535,15 +570,39 @@ function _upsetplot_render!(f::Indexable, info::NamedTuple;
     if horiz
         ex, ey = empty_combo, empty_set
         fx, fy = filled_combo, filled_set
+        ux, uy = union_dot_combo, union_dot_set
     else
         ex, ey = empty_set, empty_combo
         fx, fy = filled_set, filled_combo
+        ux, uy = union_dot_set, union_dot_combo
     end
 
     isempty(ex) ||
         scatter!(ax_matrix, ex, ey; color=empty_color, markersize=dot_size)
     isempty(fx) ||
         scatter!(ax_matrix, fx, fy; color=filled_color, markersize=dot_size)
+    isempty(ux) ||
+        scatter!(ax_matrix, ux, uy; color=(filled_color, 0.5), markersize=dot_size)
+
+    # Bracket the sibling levels of a collapsed predictor with a box and an
+    # "or" label, since they're a union (mutually exclusive levels), not an
+    # intersection like the other dots in the same combination. The box is
+    # padded more generously across the cell axis (perpendicular to the
+    # dot-connecting line) than along it, so the rotated "or" label has room
+    # to sit cleanly inside without widening the box along the line itself.
+    pad_along = 0.2
+    pad_across = 0.4
+    for (ci, lo, hi) in union_groups
+        x0, x1 = horiz ? (ci - pad_across, ci + pad_across) :
+                 (lo - pad_along, hi + pad_along)
+        y0, y1 = horiz ? (lo - pad_along, hi + pad_along) :
+                 (ci - pad_across, ci + pad_across)
+        poly!(ax_matrix, Point2f[(x0, y0), (x1, y0), (x1, y1), (x0, y1)];
+              color=(:black, 0.0), strokecolor=union_color, strokewidth=1.5)
+        label_pos = horiz ? Point2f(ci, (lo + hi) / 2) : Point2f((lo + hi) / 2, ci)
+        text!(ax_matrix, label_pos; text="or", color=union_color, fontsize=24,
+              align=(:center, :center), rotation=(horiz ? π / 2 : 0.0))
+    end
 
     return f
 end
@@ -560,6 +619,7 @@ end
                filled_color=:black,
                empty_color=:lightgray,
                bar_color=:steelblue,
+               union_color=:gray30,
                dot_size=12)
 
 Add an UpSet plot to `f` showing which levels of grouping factor `gf` appear
@@ -578,6 +638,12 @@ is needed.
   (vertical).
 - `setsize_pos`: where the set-size bars go — `:left`/`:right` (horizontal) or
   `:top`/`:bottom` (vertical).
+
+Marginal cells (which collapse one predictor, leaving all of its levels
+active) get an "or" bracket drawn around that predictor's sibling dots,
+since lighting up every level of a predictor represents "not constrained on
+this predictor" (a union), not an intersection like the solid line
+connecting the rest of the dots.
 """
 function upsetplot!(f::Indexable, m::MixedModel,
                     gf::Union{Symbol,Nothing}=first(fnames(m));
@@ -599,6 +665,7 @@ end
                filled_color=:black,
                empty_color=:lightgray,
                bar_color=:steelblue,
+               union_color=:gray30,
                dot_size=12)
 
 Add an UpSet plot to `f` directly from a Tables.jl-compatible table.

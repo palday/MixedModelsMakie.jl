@@ -255,6 +255,9 @@ UpSet plots[^upset] visualize the intersection structure of categorical conditio
 
 [^upset]: Lex, A., Gehlenborg, N., Strobelt, H., Vuillemot, R., & Pfister, H. (2014). UpSet: Visualization of Intersecting Sets. IEEE Transactions on Visualization and Computer Graphics, 20(12), 1983–1992. https://doi.org/10.1109/TVCG.2014.2346248
 
+!!! warning "Evolving design"
+    The visual design of UpSet plots (e.g. colors, markers, and how marginal/collapsed cells are distinguished from true intersections) is still being refined. Such visual changes may land in minor releases without being treated as breaking.
+
 **Sets** are the individual levels of each categorical predictor (e.g., `"gender: M"`,
 `"gender: F"`, `"btype: curse"`).
 **Columns** of the combination matrix are the full factorial cells  (every combination of each level per predictor) plus *marginal cells* where all levels of a single predictor are simultaneously active (showing whether that predictor is within-subjects or between-subjects). 
