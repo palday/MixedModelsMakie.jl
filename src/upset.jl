@@ -633,6 +633,12 @@ Predictor names, levels, and per-observation values are recovered from the
 model's formula, design matrix, and contrast coding — no original data frame
 is needed.
 
+!!! warning "Evolving design"
+    The visual design of UpSet plots (e.g. colors, markers, and how
+    marginal/collapsed cells are distinguished from true intersections) is
+    still being refined. Such visual changes may land in minor releases
+    without being treated as breaking.
+
 **Layout keywords:**
 - `orientation`: `:horizontal` (default — combinations as columns, sets as rows)
   or `:vertical` (combinations as rows, sets as columns).
@@ -685,6 +691,12 @@ Create an UpSet plot directly from a Tables.jl-compatible table.
 Non-numeric columns (optionally restricted by `cols`) become the sets. Pass
 `gf=:col` to count unique values of that column per cell instead of
 observations.
+
+!!! warning "Evolving design"
+    The visual design of UpSet plots (e.g. colors, markers, and how
+    marginal/collapsed cells are distinguished from true intersections) is
+    still being refined. Such visual changes may land in minor releases
+    without being treated as breaking.
 
 See [`upsetplot!(::Indexable, ::MixedModel)`](@ref) for layout keyword details.
 
