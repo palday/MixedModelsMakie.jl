@@ -13,12 +13,18 @@ end
 function _shrinkage_panel!(ax::Axis, i::Int, j::Int, reref, reest, λ;
                            ellipse::Bool, ellipse_scale::Real, n_ellipse::Integer,
                            shrunk_dotcolor, ref_dotcolor,
-                           ellipse_color, ellipse_linestyle)
+                           ellipse_color, ellipse_linestyle,
+                           label_idx, labelnames, labelcolor, labelsize)
     x, y = view(reref, j, :), view(reref, i, :)
     u, v = view(reest, j, :), view(reest, i, :)
     scatter!(ax, x, y; color=ref_dotcolor)   # reference points
     arrows!(ax, x, y, u .- x, v .- y)        # first so arrow heads don't obscure pts
     plt = scatter!(ax, u, v; color=shrunk_dotcolor)  # conditional means at estimates
+    if !isempty(label_idx)
+        text!(ax, view(x, label_idx), view(y, label_idx);
+              text=labelnames, color=labelcolor, fontsize=labelsize,
+              offset=(4, 4))
+    end
     if ellipse
         # force computation of current limits
         autolimits!(ax)
@@ -43,7 +49,9 @@ end
                    ellipse=false, ellipse_scale=1, n_ellipse=5,
                    cols::Union{Nothing,AbstractVector}=nothing,
                    shrunk_dotcolor=(:blue, 0.25), ref_dotcolor=(:red, 0.25),
-                   ellipse_color=:green, ellipse_linestyle=:dash)
+                   ellipse_color=:green, ellipse_linestyle=:dash,
+                   labels::Union{Bool,AbstractVector}=false,
+                   labelcolor=:black, labelsize=10)
 
 Create a scatter-plot matrix of the conditional means, b, of the random effects for grouping factor `gf`.
 
@@ -53,6 +61,10 @@ conditional means can be regarded as unpenalized.
 
 The display can be restricted to a subset of random effects associated with a grouping variable by
 specifying `cols`, either by indices or term names.
+
+The reference (unshrunk) points can be labeled with the levels of `gf` by passing `labels=true`
+(label every level) or a vector of level names/indices (label only that subset). `labelcolor` and
+`labelsize` control the appearance of the labels.
 
 Correlation ellipses can be added with `ellipse=true`, with the number of ellipses controlled by
 `n_ellipse`. The ellipses are equally spaced between the outer ellipse and the origin (center).
@@ -74,7 +86,9 @@ function shrinkageplot!(f::Indexable,
                         n_ellipse::Integer=5,
                         cols::Union{Nothing,AbstractVector}=nothing,
                         shrunk_dotcolor=(:blue, 0.25), ref_dotcolor=(:red, 0.25),
-                        ellipse_color=:green, ellipse_linestyle=:dash) where {T}
+                        ellipse_color=:green, ellipse_linestyle=:dash,
+                        labels::Union{Bool,AbstractVector}=false,
+                        labelcolor=:black, labelsize=10) where {T}
     reind = findfirst(==(gf), fnames(m))  # convert the symbol gf to an index
     if isnothing(reind)
         throw(ArgumentError("gf=$gf is not one of the grouping factor names, $(fnames(m))"))
@@ -83,6 +97,14 @@ function shrinkageplot!(f::Indexable,
     user_specified_single = !isnothing(cols) && length(cols) == 1
     cols = something(cols, axes(r.cnames, 1))
     cols = _cols_to_idx(r.cnames, cols)
+    label_idx = if labels === false
+        Int[]
+    elseif labels === true
+        collect(axes(r.levels, 1))
+    else
+        _cols_to_idx(r.levels, labels)
+    end
+    labelnames = r.levels[label_idx]
 
     if length(cols) == 1
         colname = r.cnames[only(cols)]
@@ -107,7 +129,8 @@ function shrinkageplot!(f::Indexable,
     splomaxes!(f, cnames, _shrinkage_panel!,
                reref, reest, λ; ellipse, ellipse_scale, n_ellipse,
                shrunk_dotcolor, ref_dotcolor,
-               ellipse_color, ellipse_linestyle)
+               ellipse_color, ellipse_linestyle,
+               label_idx, labelnames, labelcolor, labelsize)
 
     return f
 end

@@ -30,3 +30,12 @@ f = shrinkageplot(g1, :item)
 
 f = shrinkageplot(g1, :item; ellipse=true, n_ellipse=2)
 @test save(joinpath(OUTDIR, "shrinkage_verbagg_ellipse.png"), f)
+
+f = shrinkageplot(m1; labels=true)
+@test save(joinpath(OUTDIR, "shrinkage_sleepstudy_labels.png"), f)
+
+f = shrinkageplot(m2, :subj; labels=["S030", "S031"])
+@test save(joinpath(OUTDIR, "shrinkage_kb07_subj_labels_subset.png"), f)
+
+@test_throws(ArgumentError("Specified columns not found in random effects: [\"nonexistent\"]"),
+             shrinkageplot(m1; labels=["nonexistent"]))
