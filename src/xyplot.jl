@@ -42,9 +42,17 @@ Return a Tuple of the coefficients, `(a, b)`,  from a simple linear regression, 
 """
 function simplelinreg(x, y)
     x, y = float(x), float(y)
-    A = cholesky!(Symmetric([length(x) sum(x) sum(y); 0.0 sum(abs2, x) dot(x, y);
-                             0.0 0.0 sum(abs2, y)])).factors
-    return (ldiv!(UpperTriangular(view(A, 1:2, 1:2)), view(A, 1:2, 3))...,)
+    try
+        A = cholesky!(Symmetric([length(x) sum(x) sum(y); 0.0 sum(abs2, x) dot(x, y);
+                                 0.0 0.0 sum(abs2, y)])).factors
+        return (ldiv!(UpperTriangular(view(A, 1:2, 1:2)), view(A, 1:2, 3))...,)
+    catch e
+        e isa PosDefException || rethrow()
+        # Cholesky needs a strictly positive-definite Gram matrix, e.g. it fails
+        # when `x` is constant. QR handles the rank-deficient case directly.
+        X = [ones(eltype(x), length(x)) x]
+        return (X \ y...,)
+    end
 end
 
 """

@@ -31,6 +31,14 @@ end
     @test result isa Tuple
     @test a ≈ result[1] atol = 0.05
     @test b ≈ result[2] atol = 0.05
+
+    # constant x makes the Gram matrix singular, so Cholesky fails and
+    # simplelinreg must fall back to a QR-based solve instead of erroring
+    xconst = fill(3.0, n)
+    resultconst = simplelinreg(xconst, y)
+    @test resultconst isa Tuple
+    @test length(resultconst) == 2
+    @test all(isfinite, resultconst)
 end
 
 @testset "confint_table" begin

@@ -53,7 +53,11 @@ Every plot type follows this pattern:
 
 ### Testing
 
-Tests live in [test/](test/); each plot type has its own file (e.g., `test_caterpillar.jl`). [test/setup_tests.jl](test/setup_tests.jl) fits shared models (`m1`, `m1zc`, `m2`, `g1`) and bootstrap samples (`b1`, `br`) used across all test files. Reference images for visual regression are stored in [test/output/](test/output/) and compared via Percy.io in CI.
+Tests live in [test/](test/); each plot type has its own file (e.g., `test_caterpillar.jl`). [test/setup_tests.jl](test/setup_tests.jl) fits shared models (`m1`, `m1zc`, `m2`, `g1`) and bootstrap samples (`b1`, `br`) used across all test files. Reference images for visual regression are stored in [test/output/](test/output/) and compared via Percy.io in CI; that directory is gitignored, so these images are never committed — they're only regenerated locally and in CI.
+
+### Visual changes
+
+For changes that affect plot appearance (new visual elements, styling options, layout, colors), render a couple of representative cases to PNG and get explicit approval on the visual result *before* running the full test suite or committing. Individual test files can be run freely to confirm new/modified code executes without error — that's a correctness check, not a design sign-off. `Pkg.test()` regenerates the reference images compared in CI, so treat running it (and committing) as gated on visual approval, not just on the code running cleanly.
 
 ### Code style
 
