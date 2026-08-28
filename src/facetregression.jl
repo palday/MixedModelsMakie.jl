@@ -283,6 +283,11 @@ defaults to the model's only non-intercept fixed-effect term — this throws an
 All panels share linked x/y axes (Cleveland-trellis convention), so slopes and
 scatter remain visually comparable across panels.
 
+!!! warning "Evolving design"
+    `facetregression` is still experimental. The keyword set (e.g. the
+    `LinearMixedModel` overlay colors/lines, banking behavior) may change in
+    minor releases without being treated as breaking.
+
 # Keywords
 - `orderby::Symbol=:none`: panel order — `:none` preserves the order groups are
   first encountered (not alphabetical), `:intercept`/`:slope` sort by the
@@ -379,6 +384,11 @@ The `LinearMixedModel` method additionally has:
   effects plus that group's conditional modes from `ranef(m)`)
 
 `orderby` and `rev` have the same meaning as in [`facetregression!`](@ref).
+
+!!! warning "Evolving design"
+    `facetregression`/`facetregressiontable` are still experimental and their
+    design (e.g. the `LinearMixedModel` columns) may change in minor releases
+    without being treated as breaking.
 """
 function facetregressiontable(data, response::Union{Symbol,AbstractString},
                               predictor::Union{Symbol,AbstractString},
