@@ -81,7 +81,7 @@ specifying `cols`, either by indices or term names.
 
 The reference (unshrunk) points can be labeled with the levels of `gf` by passing `labels=true`
 (label every level), a vector of level names/indices (label only that subset), or `labels=:auto`
-(automatically pick the `n_labels` "most interesting" levels — see [`_auto_label_idx`](@ref)).
+(automatically pick the `n_labels` "most interesting" levels).
 `labelcolor` and `labelsize` control the appearance of the labels; `n_labels` only applies to
 `labels=:auto` and defaults to a small number so the plot doesn't get overcrowded.
 
