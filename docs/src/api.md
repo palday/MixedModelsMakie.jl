@@ -385,14 +385,8 @@ nestingstructure(gm2)
 
 ## Facet Regression Plots
 
-`facetregression` draws a Cleveland-trellis-style small-multiples display: one
-panel per level of a grouping column, each showing a scatter of a response
-against a predictor plus that group's own OLS regression line. Panels share
-linked axes so slopes remain visually comparable across groups; by default the
-shared y-range is chosen so that the *mean* of the per-group slopes appears at
-45° on screen ("banking to 45°"), which is where slope differences are easiest
-to compare visually — see Cleveland, W. S. (1993), *Visualizing Data*, Hobart
-Press.
+`facetregression` draws a Cleveland-trellis-style small-multiples display: one panel per level of a grouping column, each showing a scatter of a response against a predictor plus that group's own OLS regression line. 
+Panels share linked axes so slopes remain visually comparable across groups; by default the shared y-range is chosen so that the *mean* of the per-group slopes appears at 45° on screen ("banking to 45°"), which is where slope differences are easiest to compare visually (Cleveland, W. S. (1993), *Visualizing Data*, Hobart Press).
 
 ```@docs
 facetregression!
@@ -419,12 +413,8 @@ facetregression(sleepstudy, :reaction, :days, :subj; orderby=:slope)
 facetregression(sleepstudy, :reaction, :days, :subj; bank45=false)
 ```
 
-`facetregression` can also be built directly from a fitted `LinearMixedModel`,
-with no data table needed — the observations, groups, and coefficients are all
-extracted from the model's own matrices. This additionally overlays two
-reference lines in every panel: the population-level fixed-effects fit (black,
-dashed) and that group's shrunken/BLUP fit (green), alongside the within-unit
-OLS fit (red):
+`facetregression` can also be built directly from a fitted `LinearMixedModel`, with no data table needed. 
+This additionally overlays two reference lines in every panel: the population-level fixed-effects fit (black, dashed) and that group's shrunken/BLUP fit (green), alongside the within-unit OLS fit (red):
 
 ```@example FacetRegression
 fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days | subj)), sleepstudy;
@@ -432,8 +422,7 @@ fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days | subj)), sleepst
 facetregression(fm1, :days)
 ```
 
-`predictor` may be omitted when the model has exactly one non-intercept fixed
-effect:
+`predictor` may be omitted when the model has exactly one non-intercept fixed effect:
 
 ```@example FacetRegression
 facetregression(fm1)

@@ -271,9 +271,7 @@ continuous fixed-effect term (e.g. `:days`); `group` names a grouping factor and
 defaults to the first one (`first(fnames(m))`). Two extra reference lines are
 drawn in every panel: the population-level fixed-effects fit (`show_fixef`,
 the same line in every panel) and that group's own shrunken/BLUP fit
-(`show_shrunken`, fixed effects plus that group's conditional modes from
-`ranef(m)` — equal to the population fit if the model has no random slope on
-`predictor` for `group`).
+`(`show_shrunken`).
 
 `predictor` may be omitted entirely (note `group` then becomes keyword-only, to
 avoid ambiguity with the `predictor` positional argument), in which case it
