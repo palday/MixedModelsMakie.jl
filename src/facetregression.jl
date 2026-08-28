@@ -260,7 +260,7 @@ end
 
 Create a Cleveland-trellis-style small-multiples display: one panel per level of
 `group`, each showing a scatter of `response` against `predictor` plus that
-group's own OLS regression line (via [`simplelinreg`](@ref)).
+group's own OLS regression line.
 
 The table-based methods take `response`, `predictor`, and `group` as `Symbol` or
 `AbstractString` column names into any Tables.jl-compatible `data`.
@@ -369,7 +369,6 @@ Return the per-group OLS fits underlying [`facetregression!`](@ref) as a
 - `group`: the group level
 - `n`: number of observations in that group
 - `intercept`, `slope`: the group's within-unit OLS fit of `response` on `predictor`
-  (via [`simplelinreg`](@ref))
 
 As with [`facetregression!`](@ref), `predictor` may be omitted for the
 `LinearMixedModel` methods (`group` then becomes keyword-only), defaulting to
