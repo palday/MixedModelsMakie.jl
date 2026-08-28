@@ -7,6 +7,9 @@ f = facetregression(data, :y, :x, :g; orderby=:slope)
 f = facetregression(data, :y, :x, :g; orderby=:intercept)
 @test save(joinpath(OUTDIR, "facetregression_orderby_intercept.png"), f)
 
+f = facetregression(data, :y, :x, :g; orderby=:slope, rev=true)
+@test save(joinpath(OUTDIR, "facetregression_orderby_slope_rev.png"), f)
+
 f = facetregression(data, :y, :x, :g; bank45=false)
 @test save(joinpath(OUTDIR, "facetregression_nobank.png"), f)
 
@@ -53,6 +56,11 @@ end
     # :intercept sorts increasing
     ft_intercept = facetregressiontable(data, :y, :x, :g; orderby=:intercept)
     @test issorted(ft_intercept.intercept)
+
+    # rev reverses whatever ordering orderby produced, including :none
+    @test facetregressiontable(data, :y, :x, :g; rev=true).group == reverse(ft.group)
+    ft_slope_rev = facetregressiontable(data, :y, :x, :g; orderby=:slope, rev=true)
+    @test issorted(ft_slope_rev.slope; rev=true)
 
     # matches a direct simplelinreg computation for one group
     lab = first(data.g)

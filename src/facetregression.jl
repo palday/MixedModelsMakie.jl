@@ -24,8 +24,8 @@ function _facetregression_data(df::DataFrame, response::Symbol, predictor::Symbo
             yrange=(minimum(yall), maximum(yall)))
 end
 
-function _facetregression_order(info::NamedTuple, orderby::Symbol)
-    return if orderby === :none
+function _facetregression_order(info::NamedTuple, orderby::Symbol; rev::Bool=false)
+    perm = if orderby === :none
         collect(eachindex(info.labels))
     elseif orderby === :intercept
         sortperm(info.intercept)
@@ -34,6 +34,7 @@ function _facetregression_order(info::NamedTuple, orderby::Symbol)
     else
         throw(ArgumentError("orderby must be :none, :intercept, or :slope, got :$orderby"))
     end
+    return rev ? reverse(perm) : perm
 end
 
 const _MaybeInt = Union{Nothing,Int}
@@ -74,6 +75,7 @@ end
     facetregression(data, response, predictor, group; kwargs...)::Figure
     facetregression!(f::$(Indexable), data, response, predictor, group;
                      orderby::Symbol=:none,
+                     rev::Bool=false,
                      layout::Union{Nothing,Tuple{Union{Nothing,Int},Union{Nothing,Int}}}=nothing,
                      bank45::Bool=true,
                      xlabel::AbstractString=string(predictor),
@@ -97,6 +99,8 @@ scatter remain visually comparable across panels.
 - `orderby::Symbol=:none`: panel order — `:none` preserves the order groups are
   first encountered in `data` (not alphabetical), `:intercept`/`:slope` sort by
   the group's own OLS fit.
+- `rev::Bool=false`: reverse the panel order produced by `orderby` (applied
+  after sorting, so it also reverses `:none`'s first-encountered order).
 - `layout::Union{Nothing,Tuple{Union{Nothing,Int},Union{Nothing,Int}}}=nothing`:
   `(nrow, ncol)` grid shape. `nothing` auto-computes a roughly square grid.
   Either element may be `nothing` to auto-compute just that one from the
@@ -119,6 +123,7 @@ The mutating methods return the original object.
 """
 function _facetregression_render!(f::Indexable, info::NamedTuple;
                                   orderby::Symbol=:none,
+                                  rev::Bool=false,
                                   layout::Union{Nothing,Tuple{_MaybeInt,_MaybeInt}}=nothing,
                                   bank45::Bool=true,
                                   xlabel::AbstractString=string(info.predictor),
@@ -127,7 +132,7 @@ function _facetregression_render!(f::Indexable, info::NamedTuple;
                                   linecolor=:red,
                                   labelcolor=:black,
                                   labelsize=12)
-    perm = _facetregression_order(info, orderby)
+    perm = _facetregression_order(info, orderby; rev)
     labels = info.labels[perm]
     lo = _facetregression_layout(length(labels), layout)
     nrow, ncol = lo
@@ -209,7 +214,8 @@ function facetregression(data, response, predictor, group; kwargs...)
 end
 
 """
-    facetregressiontable(data, response, predictor, group; orderby::Symbol=:none)::DataFrame
+    facetregressiontable(data, response, predictor, group; orderby::Symbol=:none,
+                         rev::Bool=false)::DataFrame
 
 Return the per-group OLS fits underlying [`facetregression!`](@ref) as a
 `DataFrame`, one row per level of `group`, with columns:
@@ -218,15 +224,15 @@ Return the per-group OLS fits underlying [`facetregression!`](@ref) as a
 - `intercept`, `slope`: the group's OLS fit of `response` on `predictor`
   (via [`simplelinreg`](@ref))
 
-`orderby` has the same meaning as in [`facetregression!`](@ref).
+`orderby` and `rev` have the same meaning as in [`facetregression!`](@ref).
 """
 function facetregressiontable(data, response::Union{Symbol,AbstractString},
                               predictor::Union{Symbol,AbstractString},
                               group::Union{Symbol,AbstractString};
-                              orderby::Symbol=:none)
+                              orderby::Symbol=:none, rev::Bool=false)
     df = DataFrame(data)
     info = _facetregression_data(df, Symbol(response), Symbol(predictor), Symbol(group))
-    perm = _facetregression_order(info, orderby)
+    perm = _facetregression_order(info, orderby; rev)
     return DataFrame(; group=info.labels[perm], n=info.n[perm],
                      intercept=info.intercept[perm], slope=info.slope[perm])
 end
