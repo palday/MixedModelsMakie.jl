@@ -419,6 +419,26 @@ facetregression(sleepstudy, :reaction, :days, :subj; orderby=:slope)
 facetregression(sleepstudy, :reaction, :days, :subj; bank45=false)
 ```
 
+`facetregression` can also be built directly from a fitted `LinearMixedModel`,
+with no data table needed — the observations, groups, and coefficients are all
+extracted from the model's own matrices. This additionally overlays two
+reference lines in every panel: the population-level fixed-effects fit (black,
+dashed) and that group's shrunken/BLUP fit (green), alongside the within-unit
+OLS fit (red):
+
+```@example FacetRegression
+fm1 = fit(MixedModel, @formula(reaction ~ 1 + days + (1 + days | subj)), sleepstudy;
+          progress=false)
+facetregression(fm1, :days)
+```
+
+`predictor` may be omitted when the model has exactly one non-intercept fixed
+effect:
+
+```@example FacetRegression
+facetregression(fm1)
+```
+
 The per-group fits are also available as a table via [`facetregressiontable`](@ref):
 
 ```@docs
@@ -427,6 +447,10 @@ facetregressiontable
 
 ```@example FacetRegression
 facetregressiontable(sleepstudy, :reaction, :days, :subj; orderby=:slope)
+```
+
+```@example FacetRegression
+facetregressiontable(fm1, :days; orderby=:slope)
 ```
 
 ## General plots
