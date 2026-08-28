@@ -222,11 +222,11 @@ function _facetregression_render!(f::Indexable, info::NamedTuple;
         end
         if show_shrunken && info.shrunken_intercept !== nothing
             ablines!(ax, info.shrunken_intercept[idx], info.shrunken_slope[idx];
-                    color=shrunkencolor)
+                     color=shrunkencolor)
         end
         text!(ax, xlo + 0.05 * (xhi - xlo), yhi - 0.05 * (yhi - ylo);
-             text=string(labels[k]), color=labelcolor,
-             fontsize=labelsize, align=(:left, :top))
+              text=string(labels[k]), color=labelcolor,
+              fontsize=labelsize, align=(:left, :top))
     end
     linkaxes!(axs...)
 
