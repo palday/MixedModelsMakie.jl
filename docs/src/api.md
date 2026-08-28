@@ -383,6 +383,52 @@ nestingstructure
 nestingstructure(gm2)
 ```
 
+## Facet Regression Plots
+
+`facetregression` draws a Cleveland-trellis-style small-multiples display: one
+panel per level of a grouping column, each showing a scatter of a response
+against a predictor plus that group's own OLS regression line. Panels share
+linked axes so slopes remain visually comparable across groups; by default the
+shared y-range is chosen so that the *mean* of the per-group slopes appears at
+45° on screen ("banking to 45°"), which is where slope differences are easiest
+to compare visually — see Cleveland, W. S. (1993), *Visualizing Data*, Hobart
+Press.
+
+```@docs
+facetregression!
+```
+
+```@example FacetRegression
+using CairoMakie
+CairoMakie.activate!(; type="svg")
+using MixedModels
+using MixedModelsMakie
+
+sleepstudy = MixedModels.dataset(:sleepstudy)
+
+facetregression(sleepstudy, :reaction, :days, :subj)
+```
+
+```@example FacetRegression
+# order panels by slope instead of table order
+facetregression(sleepstudy, :reaction, :days, :subj; orderby=:slope)
+```
+
+```@example FacetRegression
+# disable banking to compare against the natural data-range aspect
+facetregression(sleepstudy, :reaction, :days, :subj; bank45=false)
+```
+
+The per-group fits are also available as a table via [`facetregressiontable`](@ref):
+
+```@docs
+facetregressiontable
+```
+
+```@example FacetRegression
+facetregressiontable(sleepstudy, :reaction, :days, :subj; orderby=:slope)
+```
+
 ## General plots
 
 We also provide a `splom` or scatter-plot matrix plot for data frames with numeric columns (i.e. a matrix of all pairwise plots).

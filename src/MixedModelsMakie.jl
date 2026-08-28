@@ -22,6 +22,9 @@ export RanefInfo,
        clevelandaxes!,
        coefplot,
        coefplot!,
+       facetregression,
+       facetregression!,
+       facetregressiontable,
        nestingplot,
        nestingplot!,
        nestingstructure,
@@ -67,6 +70,7 @@ include("profile.jl")
 include("ridge.jl")
 include("ridge2d.jl")
 include("xyplot.jl")
+include("facetregression.jl")
 include("recipes.jl")
 include("upset.jl")
 

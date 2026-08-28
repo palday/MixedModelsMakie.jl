@@ -16,6 +16,8 @@ include("setup_tests.jl")
 
     @testset "clevelandaxes" include("clevelandaxes.jl")
 
+    @testset "facetregression" include("facetregression.jl")
+
     @testset "coefplot" include("coefplot.jl")
 
     @testset "recipes" include("recipes.jl")
